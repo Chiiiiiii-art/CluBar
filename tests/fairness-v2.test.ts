@@ -1,10 +1,24 @@
 import assert from 'node:assert/strict';
-import test from 'node:test';
+import test, { after } from 'node:test';
+import { closeDb, isDatabaseConfigured } from '../src/db';
 import {
   applyFairnessPolicy,
   computeClubPulse,
   freshnessScore,
 } from '../src/lib/discovery/fairness';
+import { getDiscoverEvents, getDiscoverStream } from '../src/lib/discovery/service';
+
+for (const envFile of ['.env.local', '.env']) {
+  try {
+    process.loadEnvFile(envFile);
+  } catch {
+    // ignore missing env file
+  }
+}
+
+after(async () => {
+  await closeDb();
+});
 
 test('applyFairnessPolicy caps single club at 2, prevents consecutive duplicates, and never pads', () => {
   const highVolumePosts = Array.from({ length: 10 }, (_, idx) => ({
@@ -68,4 +82,31 @@ test('freshnessScore and computeClubPulse produce expected qualitative signals',
     '幹部當日回覆提問'
   );
   assert.equal(computeClubPulse({ lastActivityAt: twentyDaysAgo, now }), '近 30 天活躍');
+});
+
+test('getDiscoverStream paginates non-overlapping batches and isolates post_kind', async (t) => {
+  if (!isDatabaseConfigured()) {
+    t.skip('DATABASE_URL not configured');
+    return;
+  }
+
+  const batch1 = await getDiscoverStream({});
+  assert.ok(batch1.items.length > 0 && batch1.items.length <= 12);
+
+  const allowedKinds = new Set(['nrc_moment', 'wip_work', 'album_highlight', 'qa_highlight']);
+  for (const item of batch1.items) {
+    assert.equal(allowedKinds.has(item.post_kind), true);
+  }
+
+  const batch2 = await getDiscoverStream({ excludeIds: batch1.batch_meta.next_exclude_ids });
+  const ids1 = new Set(batch1.items.map((i) => i.id));
+  for (const item of batch2.items) {
+    assert.equal(ids1.has(item.id), false, 'Next batch must not repeat items from batch 1');
+  }
+
+  const evBatch = await getDiscoverEvents({ beginnerOnly: true });
+  assert.ok(evBatch.items.length > 0);
+  for (const ev of evBatch.items) {
+    assert.equal(ev.beginner_friendly, true);
+  }
 });

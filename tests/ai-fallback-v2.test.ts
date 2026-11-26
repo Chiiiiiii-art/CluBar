@@ -5,6 +5,10 @@ import {
   runDiscoverQuery,
   type DiscoverStreamCandidate,
 } from '../src/lib/discovery/service';
+import {
+  computeBlendScore,
+  computePersonaArchetype,
+} from '../src/lib/services/onboarding-blend';
 
 function makeCandidate(
   id: string,
@@ -108,4 +112,31 @@ test('runDiscoverQuery strips hallucinated IDs and relevance_score < 55', async 
   assert.equal(res.items.length, 1);
   assert.equal(res.items[0]!.id, P1);
   assert.equal(res.items[0]!.reason, '提供零基礎暗房底片沖洗體驗課');
+});
+
+test('Onboarding archetype and Blend deterministic scoring stay bounded 45..100', () => {
+  const archetype = computePersonaArchetype({
+    goals: ['make_friends'],
+    vibe: 'chill',
+    domainNames: ['影像攝影'],
+  });
+  assert.equal(archetype, '暖心破冰派 · 影像攝影');
+
+  const fullMatch = computeBlendScore({
+    domainsA: ['d1', 'd2'],
+    goalsA: ['g1'],
+    domainsB: ['d1', 'd2'],
+    goalsB: ['g1'],
+  });
+  assert.equal(fullMatch.matchScore, 100);
+  assert.deepEqual(fullMatch.sharedDomainIds, ['d1', 'd2']);
+
+  const zeroMatch = computeBlendScore({
+    domainsA: ['d1'],
+    goalsA: ['g1'],
+    domainsB: ['d2'],
+    goalsB: ['g2'],
+  });
+  assert.equal(zeroMatch.matchScore, 45);
+  assert.deepEqual(zeroMatch.sharedDomainIds, []);
 });

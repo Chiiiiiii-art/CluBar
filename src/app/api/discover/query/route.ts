@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { runDiscoverQuery } from '@/lib/discovery/service';
+import { queryDiscoverEventsSemantic, runDiscoverQuery } from '@/lib/discovery/service';
 import { handleApiError } from '@/lib/errors';
 import { assertRateLimit, getClientIp } from '@/lib/rate-limit';
 import { recordAnalyticsEvent } from '@/lib/services/analytics';
@@ -8,6 +8,8 @@ import { recordAnalyticsEvent } from '@/lib/services/analytics';
 const discoverQuerySchema = z.object({
   query: z.string().trim().min(2, '請輸入至少 2 個字的需求描述。').max(300, '需求描述請勿超過 300 字。'),
   university_id: z.string().uuid().optional().nullable(),
+  tab: z.enum(['stream', 'events']).default('stream'),
+  exclude_ids: z.array(z.string().uuid()).max(240).optional(),
 });
 
 export async function POST(req: Request) {
@@ -18,18 +20,26 @@ export async function POST(req: Request) {
     const body = await req.json();
     const parsed = discoverQuerySchema.parse(body);
 
-    const result = await runDiscoverQuery({
-      query: parsed.query,
-      universityId: parsed.university_id ?? undefined,
-    });
+    const result =
+      parsed.tab === 'events'
+        ? await queryDiscoverEventsSemantic({
+            query: parsed.query,
+            universityId: parsed.university_id ?? undefined,
+            excludeIds: parsed.exclude_ids,
+          })
+        : await runDiscoverQuery({
+            query: parsed.query,
+            universityId: parsed.university_id ?? undefined,
+            excludeIds: parsed.exclude_ids,
+          });
 
     await recordAnalyticsEvent({
       eventType: 'discover_query_submit',
       universityId: parsed.university_id ?? null,
-      sourceSurface: 'discover_nl',
+      sourceSurface: `discover_${parsed.tab}`,
     });
 
-    return NextResponse.json(result);
+    return NextResponse.json({ ...result, tab: parsed.tab });
   } catch (err) {
     return handleApiError(err);
   }
