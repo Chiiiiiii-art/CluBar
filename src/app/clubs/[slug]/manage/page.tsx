@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { and, desc, eq, gt, isNull, or } from 'drizzle-orm';
 import { db, isDatabaseConfigured } from '@/db';
@@ -62,8 +63,14 @@ export default async function ClubManagePage({
       <div className="mx-auto max-w-lg rounded-3xl border border-red-200 bg-white p-8 text-center">
         <h1 className="text-lg font-extrabold text-slate-900">您沒有此社團的管理後台權限</h1>
         <p className="mt-2 text-sm text-slate-600">
-          僅現任社長、現任幹部或歷屆校友（只讀檢視）可進入社團管理後台。
+          僅現任社長、現任幹部或歷屆校友（只讀檢視評鑑檔案）可進入社團管理後台。
         </p>
+        <Link
+          href={`/clubs/${slug}`}
+          className="mt-4 inline-flex rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white"
+        >
+          返回社團門面
+        </Link>
       </div>
     );
   }
@@ -81,7 +88,6 @@ export default async function ClubManagePage({
         displayName: users.displayName,
         role: clubMemberships.role,
         title: clubMemberships.title,
-        joinedAt: clubMemberships.joinedAt,
         endedAt: clubMemberships.endedAt,
       })
       .from(clubMemberships)
@@ -140,6 +146,7 @@ export default async function ClubManagePage({
       scheduleMode: e.scheduleMode,
       startsAt: e.startsAt ? e.startsAt.toISOString() : null,
       status: e.status,
+      includeInEvaluation: e.includeInEvaluation,
     })),
     members: memberRows.map((m) => ({
       userId: m.userId,

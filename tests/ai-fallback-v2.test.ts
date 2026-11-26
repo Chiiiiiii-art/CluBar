@@ -9,6 +9,7 @@ import {
   computeBlendScore,
   computePersonaArchetype,
 } from '../src/lib/services/onboarding-blend';
+import { generateVisionOrRawDraft } from '../src/lib/ai/draft';
 
 function makeCandidate(
   id: string,
@@ -139,4 +140,31 @@ test('Onboarding archetype and Blend deterministic scoring stay bounded 45..100'
   });
   assert.equal(zeroMatch.matchScore, 45);
   assert.deepEqual(zeroMatch.sharedDomainIds, []);
+});
+
+
+test('generateVisionOrRawDraft degrades cleanly on Vision timeout without throwing', async () => {
+  const posterFile = new File([new Uint8Array([137, 80, 78, 71])], 'poster.png', {
+    type: 'image/png',
+  });
+
+  const result = await generateVisionOrRawDraft(
+    {
+      rawText: '底片沖洗之夜歡迎零基礎免費體驗',
+      file: posterFile,
+      clubName: '中大攝影社',
+      universityShortName: '中央大學',
+    },
+    {
+      callVision: async () => {
+        throw new Error('AI_VISION_TIMEOUT');
+      },
+    }
+  );
+
+  assert.equal(result.degraded, true);
+  assert.equal(result.extracted_source, 'vision_poster');
+  assert.ok(result.warnings.length >= 1);
+  assert.ok(result.draft.title.length >= 2);
+  assert.ok(result.draft.missing_beginner_fields.length >= 1);
 });

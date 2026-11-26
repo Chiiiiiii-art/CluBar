@@ -28,6 +28,7 @@ import {
   serializePublicStreamPost,
 } from '@/lib/serializers';
 import { FollowButton } from '@/components/BookmarkFollowButtons';
+import { ClubDetailClient } from '@/components/ClubDetailClient';
 import { ClubOfficialLinks, ClubPageViewTracker } from '@/components/ClubExternalLinks';
 import { clampedAspectRatio } from '@/components/PostCard';
 import { ReportModal } from '@/components/ReportModal';
@@ -364,6 +365,20 @@ export default async function ClubPublicPage({
           </div>
         </section>
       )}
+
+      <ClubDetailClient
+        clubSlug={publicClub.slug}
+        clubName={publicClub.name}
+        universityShortName={publicClub.university.short_name}
+        isVerifiedClub={publicClub.verification_status === 'verified'}
+        isLoggedIn={Boolean(currentUser)}
+        isCampusVerified={Boolean(currentUser?.campusVerifiedAt)}
+        isSameUniversity={Boolean(
+          currentUser?.campusVerifiedAt &&
+            currentUser?.universityId === publicClub.university.id
+        )}
+        membershipRole={membershipRole}
+      />
     </div>
   );
 }

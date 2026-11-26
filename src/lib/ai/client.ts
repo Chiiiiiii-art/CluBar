@@ -28,6 +28,35 @@ function getChatClient(): { client: OpenAI; model: string } | null {
   };
 }
 
+function getVisionClient(): { client: OpenAI; model: string; provider: string } | null {
+  const cfg = getAiConfig();
+  if (cfg.visionProvider === 'disabled') return null;
+
+  if (cfg.visionProvider === 'openrouter') {
+    if (!cfg.openrouterApiKey) return null;
+    return {
+      client: new OpenAI({
+        apiKey: cfg.openrouterApiKey,
+        baseURL: 'https://openrouter.ai/api/v1',
+      }),
+      model: cfg.openrouterVisionModel,
+      provider: 'openrouter',
+    };
+  }
+
+  if (!cfg.azureEndpoint || !cfg.azureApiKey) return null;
+  return {
+    client: new AzureOpenAI({
+      endpoint: cfg.azureEndpoint,
+      apiKey: cfg.azureApiKey,
+      apiVersion: cfg.azureApiVersion,
+      deployment: cfg.azureVisionDeployment,
+    }),
+    model: cfg.azureVisionDeployment,
+    provider: 'azure',
+  };
+}
+
 function getEmbeddingClient(): { client: OpenAI; model: string } | null {
   const cfg = getAiConfig();
   if (cfg.embeddingProvider === 'disabled') return null;
@@ -56,10 +85,18 @@ function getEmbeddingClient(): { client: OpenAI; model: string } | null {
   };
 }
 
+function stripMarkdownFences(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed.startsWith('```')) {
+    return trimmed.replace(/^```[a-zA-Z]*\s*/, '').replace(/\s*```$/, '').trim();
+  }
+  return trimmed;
+}
+
 export async function chatJson<T>(params: {
   systemPrompt: string;
   userPrompt: string;
-  schema: z.ZodType<T>;
+  schema: z.ZodType<T, z.ZodTypeDef, unknown>;
   timeoutMs?: number;
   temperature?: number;
 }): Promise<T> {
@@ -98,7 +135,62 @@ export async function chatJson<T>(params: {
       throw new Error('Empty AI chat response.');
     }
 
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(stripMarkdownFences(raw));
+    return params.schema.parse(parsed);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function visionJson<T>(params: {
+  systemPrompt: string;
+  userText: string;
+  imageDataUrl: string;
+  schema: z.ZodType<T, z.ZodTypeDef, unknown>;
+  timeoutMs?: number;
+  temperature?: number;
+}): Promise<T> {
+  const cfg = getAiConfig();
+  const entry = getVisionClient();
+  if (!entry) {
+    throw new Error('AI vision provider is not configured.');
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(
+    () => controller.abort(new Error('AI_VISION_TIMEOUT')),
+    params.timeoutMs ?? cfg.visionTimeoutMs
+  );
+
+  try {
+    const requestBody = {
+      model: entry.model,
+      temperature: params.temperature ?? 0.2,
+      response_format: { type: 'json_object' as const },
+      messages: [
+        { role: 'system' as const, content: params.systemPrompt },
+        {
+          role: 'user' as const,
+          content: [
+            { type: 'text' as const, text: params.userText },
+            { type: 'image_url' as const, image_url: { url: params.imageDataUrl } },
+          ],
+        },
+      ],
+      ...(entry.provider === 'openrouter' ? { reasoning: { effort: 'none' } } : {}),
+    };
+
+    const response = await entry.client.chat.completions.create(
+      requestBody as OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
+      { signal: controller.signal }
+    );
+
+    const raw = response.choices[0]?.message?.content?.trim();
+    if (!raw) {
+      throw new Error('Empty AI vision response.');
+    }
+
+    const parsed = JSON.parse(stripMarkdownFences(raw));
     return params.schema.parse(parsed);
   } finally {
     clearTimeout(timeout);

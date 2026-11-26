@@ -4,8 +4,7 @@ import {
   evaluateArchiveAccess,
   evaluateClubWriteAccess,
 } from '../src/lib/auth/guards';
-import {
-  FORBIDDEN_PUBLIC_KEYS,
+import { FORBIDDEN_PUBLIC_KEYS,
   serializeDiscoverEventCard,
   serializeDiscoverStreamCard,
   serializePublicClub,
@@ -13,6 +12,7 @@ import {
   serializePublicStreamPost,
   serializePublicTogetherItem,
 } from '../src/lib/serializers';
+import { createPrivateArchiveReadSas } from '../src/lib/media/azure-blob';
 import { isAllowedEmbedUrl, isAllowedMediaUrl } from '../src/lib/validators';
 
 function assertNoForbiddenKeys(obj: unknown, path = 'root'): void {
@@ -250,4 +250,22 @@ test('URL validators block javascript:, path traversal, and non-allowlisted embe
   assert.equal(isAllowedEmbedUrl('https://myteam.itch.io/game'), true);
   assert.equal(isAllowedEmbedUrl('https://evil.example.com/phish'), false);
   assert.equal(isAllowedEmbedUrl('javascript:alert(1)'), false);
+});
+
+
+test('createPrivateArchiveReadSas rejects traversal paths and non-archive blob paths', () => {
+  assert.throws(
+    () =>
+      createPrivateArchiveReadSas({
+        blobPath: 'archive/../secrets/ledger.pdf',
+      }),
+    /非法的私密檔案路徑/
+  );
+  assert.throws(
+    () =>
+      createPrivateArchiveReadSas({
+        blobPath: 'posts/public/file.pdf',
+      }),
+    /非法的私密檔案路徑/
+  );
 });
