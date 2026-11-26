@@ -6,16 +6,7 @@ import type { Provider } from 'next-auth/providers';
 import { and, eq } from 'drizzle-orm';
 import { db, isDatabaseConfigured } from '@/db';
 import { oauthAccounts, universities, users } from '@/db/schema';
-import { matchesUniversityDomain } from '@/lib/validators';
-
-function getAdminEmails(): Set<string> {
-  return new Set(
-    (process.env.ADMIN_EMAILS ?? '')
-      .split(',')
-      .map((s) => s.trim().toLowerCase())
-      .filter(Boolean)
-  );
-}
+import { isBootstrapAdminAccount, matchesUniversityDomain } from '@/lib/validators';
 
 async function resolveCampusMatch(email: string): Promise<string | null> {
   const allUnis = await db.select().from(universities);
@@ -100,7 +91,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const rawEmail = user.email?.trim().toLowerCase();
       if (!rawEmail || !providerAccountId) return false;
 
-      const adminEmails = getAdminEmails();
       const emailVerified =
         (provider === 'google' && profile?.email_verified === true) ||
         (provider === 'microsoft-entra-id' && profile?.email_verified === true);
@@ -133,7 +123,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
           userId = existingByEmail.id;
         } else {
-          const isAdmin = emailVerified && adminEmails.has(rawEmail);
+          const isAdmin = isBootstrapAdminAccount({ email: rawEmail, emailVerified });
           const matchedUniId = emailVerified ? await resolveCampusMatch(rawEmail) : null;
           let campusEmailTaken = false;
           if (matchedUniId) {
@@ -171,15 +161,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .onConflictDoNothing();
       }
 
-      // Sync admin bootstrap or auto-campus verify on returning verified sign-ins
-      if (emailVerified && userId) {
+      // Sync admin bootstrap or auto-campus verify on returning sign-ins
+      if (userId) {
         const [current] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
         if (current) {
           const updates: Partial<typeof users.$inferInsert> = {};
-          if (adminEmails.has(rawEmail) && current.platformRole !== 'platform_admin') {
+          if (
+            current.platformRole !== 'platform_admin' &&
+            isBootstrapAdminAccount({
+              email: rawEmail,
+              emailVerified,
+              campusEmail: current.campusEmail,
+              campusVerifiedAt: current.campusVerifiedAt,
+            })
+          ) {
             updates.platformRole = 'platform_admin';
           }
-          if (!current.campusVerifiedAt) {
+          if (emailVerified && !current.campusVerifiedAt) {
             const matchedUniId = await resolveCampusMatch(rawEmail);
             if (matchedUniId) {
               const [dup] = await db

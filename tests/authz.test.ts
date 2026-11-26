@@ -9,7 +9,7 @@ import {
   serializePublicClub,
   serializePublicPost,
 } from '../src/lib/serializers';
-import { postWriteSchema, safeExternalUrlSchema, slugSchema } from '../src/lib/validators';
+import { isBootstrapAdminAccount, postWriteSchema, safeExternalUrlSchema, slugSchema } from '../src/lib/validators';
 
 function collectAllKeys(obj: unknown, prefix = ''): string[] {
   if (!obj || typeof obj !== 'object') return [];
@@ -235,5 +235,40 @@ test('Public serializers strictly omit PII and vanity metrics at every object de
         `Forbidden key "${k}" leaked into public DTO`
       );
     }
+  }
+});
+
+test('isBootstrapAdminAccount promotes only verified primary or verified campus emails', () => {
+  const prev = process.env.ADMIN_EMAILS;
+  process.env.ADMIN_EMAILS = 'admin@clubar.edu.tw,115423038@cc.ncu.edu.tw';
+  try {
+    assert.equal(
+      isBootstrapAdminAccount({ email: 'admin@clubar.edu.tw', emailVerified: false }),
+      false
+    );
+    assert.equal(
+      isBootstrapAdminAccount({ email: 'admin@clubar.edu.tw', emailVerified: true }),
+      true
+    );
+    assert.equal(
+      isBootstrapAdminAccount({
+        email: 'personal@gmail.com',
+        emailVerified: false,
+        campusEmail: '115423038@cc.ncu.edu.tw',
+        campusVerifiedAt: null,
+      }),
+      false
+    );
+    assert.equal(
+      isBootstrapAdminAccount({
+        email: 'personal@gmail.com',
+        emailVerified: false,
+        campusEmail: '115423038@cc.ncu.edu.tw',
+        campusVerifiedAt: new Date(),
+      }),
+      true
+    );
+  } finally {
+    process.env.ADMIN_EMAILS = prev;
   }
 });

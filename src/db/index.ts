@@ -29,6 +29,10 @@ export function getDb(): CluBarDb {
     globalThis.__clubarSql = postgres(url, {
       prepare: false,
       max: 5,
+      // ponytail: recycle idle sockets before Supavisor or Vercel container freeze leaves dead half-open TCP sockets.
+      idle_timeout: 15,
+      max_lifetime: 60 * 5,
+      connect_timeout: 10,
     });
   }
   if (!globalThis.__clubarDb) {

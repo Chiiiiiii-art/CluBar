@@ -10,6 +10,7 @@ import {
   type PlatformRole,
 } from '@/db/schema';
 import { AppError } from '@/lib/errors';
+import { isBootstrapAdminAccount } from '@/lib/validators';
 
 export type AuthenticatedUser = typeof users.$inferSelect;
 
@@ -20,7 +21,24 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
   if (!userId) return null;
 
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  return user ?? null;
+  if (!user) return null;
+
+  if (
+    user.platformRole !== 'platform_admin' &&
+    isBootstrapAdminAccount({
+      campusEmail: user.campusEmail,
+      campusVerifiedAt: user.campusVerifiedAt,
+    })
+  ) {
+    const [promoted] = await db
+      .update(users)
+      .set({ platformRole: 'platform_admin', updatedAt: new Date() })
+      .where(eq(users.id, user.id))
+      .returning();
+    return promoted ?? { ...user, platformRole: 'platform_admin' };
+  }
+
+  return user;
 }
 
 export async function requireAuth(): Promise<AuthenticatedUser> {

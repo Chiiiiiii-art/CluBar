@@ -2,9 +2,10 @@ import { redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
 import { asc } from 'drizzle-orm';
 import { ShieldCheck, Sparkles, Terminal } from 'lucide-react';
-import { auth, signIn } from '@/auth';
+import { signIn } from '@/auth';
 import { db, isDatabaseConfigured } from '@/db';
 import { users } from '@/db/schema';
+import { getCurrentUser } from '@/lib/auth/guards';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,11 +19,11 @@ export default async function LoginPage({
 }: {
   searchParams: Promise<{ callbackUrl?: string; error?: string }>;
 }) {
-  const session = await auth();
+  const user = await getCurrentUser().catch(() => null);
   const params = await searchParams;
   const callbackUrl = sanitizeCallbackUrl(params.callbackUrl);
 
-  if (session?.user?.id) {
+  if (user?.id) {
     redirect(callbackUrl);
   }
 

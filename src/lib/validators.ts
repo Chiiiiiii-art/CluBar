@@ -128,3 +128,32 @@ export function matchesUniversityDomain(email: string, emailDomains: string[]): 
     return domain === allowed || domain.endsWith(`.${allowed}`);
   });
 }
+
+export function getAdminEmails(): Set<string> {
+  return new Set(
+    (process.env.ADMIN_EMAILS ?? '')
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+export function isBootstrapAdminAccount(params: {
+  email?: string | null;
+  emailVerified?: boolean;
+  campusEmail?: string | null;
+  campusVerifiedAt?: Date | null;
+}): boolean {
+  const admins = getAdminEmails();
+  if (params.emailVerified && params.email && admins.has(params.email.trim().toLowerCase())) {
+    return true;
+  }
+  if (
+    params.campusVerifiedAt &&
+    params.campusEmail &&
+    admins.has(params.campusEmail.trim().toLowerCase())
+  ) {
+    return true;
+  }
+  return false;
+}

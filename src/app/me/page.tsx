@@ -24,90 +24,94 @@ export default async function MePage() {
   const user = await getCurrentUser();
   if (!user) redirect('/login?callbackUrl=/me');
 
-  const [uniRow] = user.universityId
-    ? await db
-        .select({ name: universities.name })
-        .from(universities)
-        .where(eq(universities.id, user.universityId))
-        .limit(1)
-    : [];
-
-  const membershipRows = await db
-    .select({
-      clubId: clubs.id,
-      slug: clubs.slug,
-      name: clubs.name,
-      universityShortName: universities.shortName,
-      category: clubs.category,
-      role: clubMemberships.role,
-      title: clubMemberships.title,
-      verificationStatus: clubs.verificationStatus,
-    })
-    .from(clubMemberships)
-    .innerJoin(clubs, eq(clubMemberships.clubId, clubs.id))
-    .innerJoin(universities, eq(clubs.universityId, universities.id))
-    .where(
-      and(
-        eq(clubMemberships.userId, user.id),
-        or(isNull(clubMemberships.endedAt), eq(clubMemberships.role, 'alumni'))
-      )
-    );
-
-  const pendingHandoverRows = await db
-    .select({
-      id: clubHandovers.id,
-      clubName: clubs.name,
-      clubSlug: clubs.slug,
-      fromUserName: users.displayName,
-      note: clubHandovers.note,
-      expiresAt: clubHandovers.expiresAt,
-    })
-    .from(clubHandovers)
-    .innerJoin(clubs, eq(clubHandovers.clubId, clubs.id))
-    .innerJoin(users, eq(clubHandovers.fromUserId, users.id))
-    .where(
-      and(
-        eq(clubHandovers.toUserId, user.id),
-        eq(clubHandovers.status, 'pending'),
-        gt(clubHandovers.expiresAt, new Date())
-      )
-    );
-
-  const notifRows = await db
-    .select()
-    .from(notifications)
-    .where(eq(notifications.userId, user.id))
-    .orderBy(desc(notifications.createdAt))
-    .limit(25);
-
-  const bookmarkRows = await db
-    .select({
-      postId: posts.id,
-      title: posts.title,
-      clubName: clubs.name,
-      clubSlug: clubs.slug,
-      universityShortName: universities.shortName,
-    })
-    .from(userBookmarks)
-    .innerJoin(posts, eq(userBookmarks.postId, posts.id))
-    .innerJoin(clubs, eq(posts.clubId, clubs.id))
-    .innerJoin(universities, eq(clubs.universityId, universities.id))
-    .where(and(eq(userBookmarks.userId, user.id), eq(posts.status, 'published')))
-    .orderBy(desc(userBookmarks.createdAt));
-
-  const followRows = await db
-    .select({
-      clubId: clubs.id,
-      slug: clubs.slug,
-      name: clubs.name,
-      universityShortName: universities.shortName,
-      category: clubs.category,
-    })
-    .from(userFollows)
-    .innerJoin(clubs, eq(userFollows.clubId, clubs.id))
-    .innerJoin(universities, eq(clubs.universityId, universities.id))
-    .where(eq(userFollows.userId, user.id))
-    .orderBy(desc(userFollows.createdAt));
+  const [
+    [uniRow],
+    membershipRows,
+    pendingHandoverRows,
+    notifRows,
+    bookmarkRows,
+    followRows,
+  ] = await Promise.all([
+    user.universityId
+      ? db
+          .select({ name: universities.name })
+          .from(universities)
+          .where(eq(universities.id, user.universityId))
+          .limit(1)
+      : Promise.resolve([]),
+    db
+      .select({
+        clubId: clubs.id,
+        slug: clubs.slug,
+        name: clubs.name,
+        universityShortName: universities.shortName,
+        category: clubs.category,
+        role: clubMemberships.role,
+        title: clubMemberships.title,
+        verificationStatus: clubs.verificationStatus,
+      })
+      .from(clubMemberships)
+      .innerJoin(clubs, eq(clubMemberships.clubId, clubs.id))
+      .innerJoin(universities, eq(clubs.universityId, universities.id))
+      .where(
+        and(
+          eq(clubMemberships.userId, user.id),
+          or(isNull(clubMemberships.endedAt), eq(clubMemberships.role, 'alumni'))
+        )
+      ),
+    db
+      .select({
+        id: clubHandovers.id,
+        clubName: clubs.name,
+        clubSlug: clubs.slug,
+        fromUserName: users.displayName,
+        note: clubHandovers.note,
+        expiresAt: clubHandovers.expiresAt,
+      })
+      .from(clubHandovers)
+      .innerJoin(clubs, eq(clubHandovers.clubId, clubs.id))
+      .innerJoin(users, eq(clubHandovers.fromUserId, users.id))
+      .where(
+        and(
+          eq(clubHandovers.toUserId, user.id),
+          eq(clubHandovers.status, 'pending'),
+          gt(clubHandovers.expiresAt, new Date())
+        )
+      ),
+    db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, user.id))
+      .orderBy(desc(notifications.createdAt))
+      .limit(25),
+    db
+      .select({
+        postId: posts.id,
+        title: posts.title,
+        clubName: clubs.name,
+        clubSlug: clubs.slug,
+        universityShortName: universities.shortName,
+      })
+      .from(userBookmarks)
+      .innerJoin(posts, eq(userBookmarks.postId, posts.id))
+      .innerJoin(clubs, eq(posts.clubId, clubs.id))
+      .innerJoin(universities, eq(clubs.universityId, universities.id))
+      .where(and(eq(userBookmarks.userId, user.id), eq(posts.status, 'published')))
+      .orderBy(desc(userBookmarks.createdAt)),
+    db
+      .select({
+        clubId: clubs.id,
+        slug: clubs.slug,
+        name: clubs.name,
+        universityShortName: universities.shortName,
+        category: clubs.category,
+      })
+      .from(userFollows)
+      .innerJoin(clubs, eq(userFollows.clubId, clubs.id))
+      .innerJoin(universities, eq(clubs.universityId, universities.id))
+      .where(eq(userFollows.userId, user.id))
+      .orderBy(desc(userFollows.createdAt)),
+  ]);
 
   const data: MePageData = {
     user: {
