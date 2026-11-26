@@ -4,10 +4,12 @@ import { and, eq, isNotNull, isNull, like } from 'drizzle-orm';
 import { closeDb, db, isDatabaseConfigured } from '../src/db';
 import {
   clubArchiveFiles,
+  clubEvents,
   clubHandoverNotes,
   clubHandovers,
   clubMemberships,
   clubs,
+  coClubLinks,
   notifications,
   practicalResources,
   users,
@@ -157,6 +159,61 @@ test('Live DB: 3-step handover transitions owner->alumni and successor->owner wi
       await db.delete(clubMemberships).where(eq(clubMemberships.clubId, tempClubId));
       await db.delete(notifications).where(like(notifications.title, '%交接測試社%'));
       await db.delete(clubs).where(eq(clubs.id, tempClubId));
+    }
+  }
+});
+
+
+test('Live DB: Co-Club accepted invitation with partnerIncludeEval=true merges event into partner club evaluation pack', async (t) => {
+  if (!isDatabaseConfigured()) {
+    t.skip('DATABASE_URL 未設定，略過 Co-Club 評鑑彙整測試');
+    return;
+  }
+
+  const [hostClub] = await db.select().from(clubs).where(eq(clubs.slug, 'ncu-gamedev')).limit(1);
+  const [partnerClub] = await db.select().from(clubs).where(eq(clubs.slug, 'ncu-art')).limit(1);
+  const [someUser] = await db.select().from(users).limit(1);
+
+  assert.ok(hostClub && partnerClub && someUser, 'Seeded clubs and user required');
+
+  let tempEventId: string | null = null;
+  try {
+    const [ev] = await db
+      .insert(clubEvents)
+      .values({
+        clubId: hostClub.id,
+        createdBy: someUser.id,
+        shortCode: `cc-${Date.now().toString(36).slice(-6)}`,
+        title: 'Co-Club Eval Merge Integration Event',
+        locationText: '跨社團排練室',
+        scheduleMode: 'scheduled',
+        startsAt: new Date(),
+        includeInEvaluation: true,
+      })
+      .returning();
+    tempEventId = ev.id;
+
+    await db.insert(coClubLinks).values({
+      targetType: 'event',
+      targetId: ev.id,
+      hostClubId: hostClub.id,
+      partnerClubId: partnerClub.id,
+      status: 'accepted',
+      partnerIncludeEval: true,
+      invitedBy: someUser.id,
+      respondedBy: someUser.id,
+      respondedAt: new Date(),
+    });
+
+    const partnerPack = await buildClubEvaluationPack({ clubId: partnerClub.id });
+    const merged = partnerPack.events.find((item) => item.id === ev.id);
+    assert.ok(merged, 'Expected partner evaluation pack to include accepted Co-Club event');
+    assert.equal(merged.is_co_hosted, true);
+    assert.equal(merged.partner_or_host_club, hostClub.name);
+  } finally {
+    if (tempEventId) {
+      await db.delete(coClubLinks).where(eq(coClubLinks.targetId, tempEventId));
+      await db.delete(clubEvents).where(eq(clubEvents.id, tempEventId));
     }
   }
 });

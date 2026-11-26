@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { and, desc, eq, gt, isNull, or } from 'drizzle-orm';
+import { and, desc, eq, gt, inArray, isNull, or } from 'drizzle-orm';
 import { signOut } from '@/auth';
 import { db, isDatabaseConfigured } from '@/db';
 import {
@@ -7,6 +7,7 @@ import {
   clubHandovers,
   clubMemberships,
   clubs,
+  coClubLinks,
   notifications,
   posts,
   universities,
@@ -15,6 +16,7 @@ import {
   users,
 } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
+import { buildUserPortfolio } from '@/lib/services/portfolio';
 import { MeClient, type MePageData } from '@/components/MeClient';
 
 export const dynamic = 'force-dynamic';
@@ -33,6 +35,7 @@ export default async function MePage() {
     postBookmarkRows,
     eventBookmarkRows,
     followRows,
+    portfolioRes,
   ] = await Promise.all([
     user.universityId
       ? db
@@ -134,7 +137,31 @@ export default async function MePage() {
       .innerJoin(universities, eq(clubs.universityId, universities.id))
       .where(eq(userFollows.userId, user.id))
       .orderBy(desc(userFollows.createdAt)),
+    buildUserPortfolio({ targetUserId: user.id, viewer: user }),
   ]);
+
+  const officerClubIds = membershipRows
+    .filter((m) => m.role === 'owner' || m.role === 'editor')
+    .map((m) => m.clubId);
+
+  const pendingCoClubRows =
+    officerClubIds.length > 0
+      ? await db
+          .select({
+            id: coClubLinks.id,
+            targetType: coClubLinks.targetType,
+            targetId: coClubLinks.targetId,
+            hostClubName: clubs.name,
+          })
+          .from(coClubLinks)
+          .innerJoin(clubs, eq(coClubLinks.hostClubId, clubs.id))
+          .where(
+            and(
+              inArray(coClubLinks.partnerClubId, officerClubIds),
+              eq(coClubLinks.status, 'pending')
+            )
+          )
+      : [];
 
   const data: MePageData = {
     user: {
@@ -154,6 +181,11 @@ export default async function MePage() {
       fromUserName: h.fromUserName,
       note: h.pendingNoteJson?.venue_tips || null,
       expiresAt: h.expiresAt.toISOString(),
+    })),
+    pendingCoClubInvitations: pendingCoClubRows.map((c) => ({
+      id: c.id,
+      targetType: c.targetType,
+      hostClubName: c.hostClubName,
     })),
     notifications: notifRows.map((n) => ({
       id: n.id,
@@ -175,6 +207,7 @@ export default async function MePage() {
       })),
     ],
     follows: followRows,
+    portfolio: portfolioRes.portfolio,
   };
 
   return (

@@ -3,6 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bookmark, Heart } from 'lucide-react';
+import type { FollowMode } from '@/db/schema';
+
+const FOLLOW_MODE_LABELS: Record<FollowMode, string> = {
+  all: '全動態追蹤中',
+  events_only: '只追活動中',
+};
 
 export function BookmarkButton({
   targetType = 'post',
@@ -66,15 +72,15 @@ export function FollowButton({
 }: {
   clubId: string;
   initialFollowed: boolean;
-  initialMode?: 'all' | 'events_only';
+  initialMode?: FollowMode;
   isLoggedIn: boolean;
 }) {
   const router = useRouter();
   const [followed, setFollowed] = useState(initialFollowed);
-  const [followMode, setFollowMode] = useState<'all' | 'events_only'>(initialMode);
+  const [followMode, setFollowMode] = useState<FollowMode>(initialMode);
   const [pending, setPending] = useState(false);
 
-  const toggle = async (nextMode?: 'all' | 'events_only') => {
+  const toggle = async (nextMode?: FollowMode) => {
     if (!isLoggedIn) {
       router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`);
       return;
@@ -110,17 +116,19 @@ export function FollowButton({
         }`}
       >
         <Heart className={`h-4 w-4 ${followed ? 'fill-current' : ''}`} aria-hidden="true" />
-        <span>{followed ? (followMode === 'events_only' ? '只追活動中' : '已追蹤全動態') : '追蹤社團'}</span>
+        <span>{followed ? FOLLOW_MODE_LABELS[followMode] : '追蹤社團'}</span>
       </button>
       {followed && (
-        <button
-          type="button"
+        <select
+          aria-label="選擇追蹤篩選模式"
           disabled={pending}
-          onClick={() => toggle(followMode === 'all' ? 'events_only' : 'all')}
-          className="min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50"
+          value={followMode}
+          onChange={(e) => toggle(e.target.value as FollowMode)}
+          className="min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-white px-3 py-2 text-xs font-semibold text-slate-700"
         >
-          {followMode === 'all' ? '切換：只追活動' : '切換：追蹤全動態'}
-        </button>
+          <option value="all">只看：全動態</option>
+          <option value="events_only">只看：新活動</option>
+        </select>
       )}
     </div>
   );

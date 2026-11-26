@@ -13,7 +13,9 @@ import { FORBIDDEN_PUBLIC_KEYS,
   serializePublicTogetherItem,
 } from '../src/lib/serializers';
 import { createPrivateArchiveReadSas } from '../src/lib/media/azure-blob';
-import { isAllowedEmbedUrl, isAllowedMediaUrl } from '../src/lib/validators';
+import { assertRateLimit } from '../src/lib/rate-limit';
+import { canViewPortfolio } from '../src/lib/services/portfolio';
+import { embedUrlSchema, isAllowedEmbedUrl, isAllowedMediaUrl } from '../src/lib/validators';
 
 function assertNoForbiddenKeys(obj: unknown, path = 'root'): void {
   if (obj === null || typeof obj !== 'object') return;
@@ -268,4 +270,70 @@ test('createPrivateArchiveReadSas rejects traversal paths and non-archive blob p
       }),
     /非法的私密檔案路徑/
   );
+});
+
+
+test('canViewPortfolio enforces public, campus_only, and private 1D visibility boundaries', () => {
+  const ownerId = '11111111-1111-4111-8111-111111111111';
+  const sameUniId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const otherUniId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+
+  const makeViewer = (id: string, uniId: string, verified: boolean) =>
+    ({
+      id,
+      universityId: uniId,
+      campusVerifiedAt: verified ? new Date() : null,
+      platformRole: 'user',
+    }) as Parameters<typeof canViewPortfolio>[0]['viewer'];
+
+  assert.equal(
+    canViewPortfolio({
+      visibility: 'public',
+      targetUserId: ownerId,
+      targetUniversityId: sameUniId,
+      viewer: null,
+    }),
+    true
+  );
+
+  assert.equal(
+    canViewPortfolio({
+      visibility: 'private',
+      targetUserId: ownerId,
+      targetUniversityId: sameUniId,
+      viewer: makeViewer('22222222-2222-4222-8222-222222222222', sameUniId, true),
+    }),
+    false
+  );
+
+  assert.equal(
+    canViewPortfolio({
+      visibility: 'campus_only',
+      targetUserId: ownerId,
+      targetUniversityId: sameUniId,
+      viewer: makeViewer('22222222-2222-4222-8222-222222222222', otherUniId, true),
+    }),
+    false
+  );
+
+  assert.equal(
+    canViewPortfolio({
+      visibility: 'campus_only',
+      targetUserId: ownerId,
+      targetUniversityId: sameUniId,
+      viewer: makeViewer('22222222-2222-4222-8222-222222222222', sameUniId, true),
+    }),
+    true
+  );
+});
+
+test('Alumni Ping rate limiter rejects 4th daily request and embedUrlSchema blocks non-allowlisted hosts', () => {
+  const key = `alumni-ping:test-${Date.now()}`;
+  assertRateLimit(key, 3, 24 * 60 * 60 * 1000);
+  assertRateLimit(key, 3, 24 * 60 * 60 * 1000);
+  assertRateLimit(key, 3, 24 * 60 * 60 * 1000);
+  assert.throws(() => assertRateLimit(key, 3, 24 * 60 * 60 * 1000), /操作過於頻繁/);
+
+  assert.equal(embedUrlSchema.safeParse('https://youtube.com/watch?v=dQw4w9WgXcQ').success, true);
+  assert.equal(embedUrlSchema.safeParse('https://untrusted-site.example.org/embed').success, false);
 });
