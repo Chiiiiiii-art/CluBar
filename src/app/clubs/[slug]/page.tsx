@@ -23,6 +23,7 @@ import { getCurrentUser } from '@/lib/auth/guards';
 import { CLUB_CATEGORIES, POST_KIND_LABELS } from '@/lib/constants';
 import { computeClubPulse } from '@/lib/discovery/fairness';
 import {
+  clampedAspectRatio,
   serializePublicClub,
   serializePublicQuestion,
   serializePublicStreamPost,
@@ -30,7 +31,6 @@ import {
 import { FollowButton } from '@/components/BookmarkFollowButtons';
 import { ClubDetailClient } from '@/components/ClubDetailClient';
 import { ClubOfficialLinks, ClubPageViewTracker } from '@/components/ClubExternalLinks';
-import { clampedAspectRatio } from '@/components/PostCard';
 import { ReportModal } from '@/components/ReportModal';
 import { ShareButton } from '@/components/ShareButton';
 

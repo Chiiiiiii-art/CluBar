@@ -480,3 +480,10 @@ export function serializePublicTogetherItem(row: {
     },
   };
 }
+
+
+export function clampedAspectRatio(width?: number, height?: number): string {
+  if (!width || !height || width <= 0 || height <= 0) return '4 / 5';
+  const ratio = Math.min(1.91, Math.max(0.56, width / height));
+  return `${ratio.toFixed(3)} / 1`;
+}

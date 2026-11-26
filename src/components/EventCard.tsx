@@ -5,8 +5,7 @@ import { Calendar, MapPin, Sparkles, Users } from 'lucide-react';
 import { formatTaipeiDateTime } from '@/lib/academic-year';
 import { trackAnalyticsEvent } from '@/lib/analytics-client';
 import { EVENT_THEME_PRESETS, LEARNING_HOURS_LABELS } from '@/lib/constants';
-import type { DiscoverEventCardDTO } from '@/lib/serializers';
-import { clampedAspectRatio } from './PostCard';
+import { clampedAspectRatio, type DiscoverEventCardDTO } from '@/lib/serializers';
 
 export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
   const theme = EVENT_THEME_PRESETS[event.theme_preset] ?? EVENT_THEME_PRESETS.warm_paper!;

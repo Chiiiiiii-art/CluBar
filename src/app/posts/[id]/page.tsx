@@ -7,10 +7,9 @@ import { clubEvents, clubs, posts, universities, userBookmarks } from '@/db/sche
 import { formatTaipeiDate } from '@/lib/academic-year';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { POST_KIND_LABELS } from '@/lib/constants';
-import { serializePublicStreamPost } from '@/lib/serializers';
+import { clampedAspectRatio, serializePublicStreamPost } from '@/lib/serializers';
 import { BookmarkButton } from '@/components/BookmarkFollowButtons';
 import { MarkdownView } from '@/components/MarkdownView';
-import { clampedAspectRatio } from '@/components/PostCard';
 import { ReportModal } from '@/components/ReportModal';
 import { ShareButton } from '@/components/ShareButton';
 

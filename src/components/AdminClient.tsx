@@ -47,6 +47,16 @@ export interface AdminPageData {
   }[];
 }
 
+const REPORT_TARGET_LABELS: Record<string, string> = {
+  post: '現場流／日常貼文',
+  event: '社團體驗活動',
+  event_comment: '活動留言',
+  album_photo: '活動共編相簿照片',
+  club_question: '社團公開問答',
+  together_item: '一起聚跨校貼文',
+  club: '社團專頁',
+};
+
 export function AdminClient({ data }: { data: AdminPageData }) {
   const router = useRouter();
   const [tab, setTab] = useState<'applications' | 'reports' | 'restore' | 'analytics'>(
@@ -310,7 +320,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     {REPORT_REASONS[rep.reason].label}
                   </span>
                   <span className="text-slate-500">
-                    對象：{rep.targetType} / <code>{rep.targetId}</code>
+                    對象：{REPORT_TARGET_LABELS[rep.targetType] ?? rep.targetType} (<code>{rep.targetType}</code>) / <code>{rep.targetId}</code>
                   </span>
                 </div>
                 {rep.detail && (
@@ -340,7 +350,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     onClick={() => void resolveReport(rep.id, 'takedown')}
                     className="rounded-xl bg-amber-600 px-3.5 py-2 text-xs font-bold text-white"
                   >
-                    下架該篇內容
+                    下架此項目內容
                   </button>
                   <button
                     type="button"
