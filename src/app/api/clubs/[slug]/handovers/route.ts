@@ -6,12 +6,14 @@ import { clubs } from '@/db/schema';
 import { requireClubOwner } from '@/lib/auth/guards';
 import { AppError, handleApiError } from '@/lib/errors';
 import { createHandover } from '@/lib/services/handover';
+import { handoverPitfallNoteSchema } from '@/lib/validators';
 
 const handoverCreateSchema = z
   .object({
     to_user_id: z.string().uuid().optional(),
     to_campus_email: z.string().trim().email().optional(),
-    note: z.string().trim().max(400).optional(),
+    pitfall_note: handoverPitfallNoteSchema.optional(),
+    share_deidentified: z.boolean().default(false),
   })
   .refine((data) => Boolean(data.to_user_id || data.to_campus_email), {
     message: '請選擇接任幹部或輸入接任者校園信箱。',
@@ -35,7 +37,8 @@ export async function POST(
       fromUserId: user.id,
       toUserId: parsed.to_user_id,
       toCampusEmail: parsed.to_campus_email,
-      note: parsed.note,
+      pitfallNote: parsed.pitfall_note ?? null,
+      shareDeidentified: parsed.share_deidentified,
     });
 
     return NextResponse.json(

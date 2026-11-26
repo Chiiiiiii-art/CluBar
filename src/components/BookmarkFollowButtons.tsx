@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import { Bookmark, Heart } from 'lucide-react';
 
 export function BookmarkButton({
-  postId,
+  targetType = 'post',
+  targetId,
   initialBookmarked,
   isLoggedIn,
 }: {
-  postId: string;
+  targetType?: 'post' | 'event';
+  targetId: string;
   initialBookmarked: boolean;
   isLoggedIn: boolean;
 }) {
@@ -26,8 +28,10 @@ export function BookmarkButton({
     setBookmarked(next);
     setPending(true);
     try {
-      const res = await fetch(`/api/me/bookmarks/${postId}`, {
+      const res = await fetch('/api/me/bookmarks', {
         method: next ? 'POST' : 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target_type: targetType, target_id: targetId }),
       });
       if (!res.ok) setBookmarked(!next);
     } catch {
@@ -42,7 +46,7 @@ export function BookmarkButton({
       type="button"
       disabled={pending}
       onClick={toggle}
-      className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors ${
+      className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors ${
         bookmarked
           ? 'border-[var(--primary)] bg-orange-50 text-[var(--primary)]'
           : 'border-[var(--border-strong)] bg-white text-slate-700 hover:bg-orange-50'
@@ -57,49 +61,67 @@ export function BookmarkButton({
 export function FollowButton({
   clubId,
   initialFollowed,
+  initialMode = 'all',
   isLoggedIn,
 }: {
   clubId: string;
   initialFollowed: boolean;
+  initialMode?: 'all' | 'events_only';
   isLoggedIn: boolean;
 }) {
   const router = useRouter();
   const [followed, setFollowed] = useState(initialFollowed);
+  const [followMode, setFollowMode] = useState<'all' | 'events_only'>(initialMode);
   const [pending, setPending] = useState(false);
 
-  const toggle = async () => {
+  const toggle = async (nextMode?: 'all' | 'events_only') => {
     if (!isLoggedIn) {
       router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
-    const next = !followed;
-    setFollowed(next);
+    const targetMode = nextMode ?? followMode;
+    const shouldDelete = !nextMode && followed;
     setPending(true);
     try {
       const res = await fetch(`/api/me/follows/${clubId}`, {
-        method: next ? 'POST' : 'DELETE',
+        method: shouldDelete ? 'DELETE' : 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: shouldDelete ? undefined : JSON.stringify({ follow_mode: targetMode }),
       });
-      if (!res.ok) setFollowed(!next);
-    } catch {
-      setFollowed(!next);
+      if (res.ok) {
+        setFollowed(!shouldDelete);
+        if (!shouldDelete) setFollowMode(targetMode);
+      }
     } finally {
       setPending(false);
     }
   };
 
   return (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={toggle}
-      className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
-        followed
-          ? 'border border-[var(--primary)] bg-orange-50 text-[var(--primary)]'
-          : 'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]'
-      }`}
-    >
-      <Heart className={`h-4 w-4 ${followed ? 'fill-current' : ''}`} aria-hidden="true" />
-      <span>{followed ? '已追蹤社團' : '追蹤社團'}</span>
-    </button>
+    <div className="inline-flex flex-wrap items-center gap-1.5">
+      <button
+        type="button"
+        disabled={pending}
+        onClick={() => toggle()}
+        className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
+          followed
+            ? 'border border-[var(--primary)] bg-orange-50 text-[var(--primary)]'
+            : 'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]'
+        }`}
+      >
+        <Heart className={`h-4 w-4 ${followed ? 'fill-current' : ''}`} aria-hidden="true" />
+        <span>{followed ? (followMode === 'events_only' ? '只追活動中' : '已追蹤全動態') : '追蹤社團'}</span>
+      </button>
+      {followed && (
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() => toggle(followMode === 'all' ? 'events_only' : 'all')}
+          className="min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-orange-50"
+        >
+          {followMode === 'all' ? '切換：只追活動' : '切換：追蹤全動態'}
+        </button>
+      )}
+    </div>
   );
 }

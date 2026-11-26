@@ -69,7 +69,7 @@ export default async function AdminPage() {
     db
       .select({
         id: posts.id,
-        title: posts.title,
+        title: posts.headline,
         status: posts.status,
         clubName: clubs.name,
       })

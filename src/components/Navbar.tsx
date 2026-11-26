@@ -4,18 +4,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   Compass,
-  MessageSquareText,
-  PlusCircle,
-  ShieldCheck,
+  Users,
+  Sparkles,
   User,
   LogIn,
-  Sparkles,
+  ShieldCheck,
+  FolderHeart,
 } from 'lucide-react';
 
 export interface NavbarUserProp {
   id: string;
   displayName: string;
-  platformRole: 'user' | 'platform_admin' | 'school_admin';
+  platformRole: 'user' | 'school_admin' | 'platform_admin';
   campusVerified: boolean;
 }
 
@@ -28,10 +28,15 @@ export function Navbar({
 }) {
   const pathname = usePathname();
 
-  const isDiscover = pathname === '/' || pathname.startsWith('/posts');
+  const isDiscover =
+    pathname === '/' ||
+    pathname.startsWith('/posts') ||
+    pathname.startsWith('/onboarding') ||
+    pathname.startsWith('/blend');
   const isTogether = pathname.startsWith('/together');
-  const isApply = pathname.startsWith('/clubs/apply');
-  const isMe = pathname.startsWith('/me') || pathname.startsWith('/login');
+  const isMyClubs = pathname.startsWith('/my-clubs') || pathname.startsWith('/clubs');
+  const isMe =
+    pathname.startsWith('/me') || pathname.startsWith('/u/') || pathname.startsWith('/login');
   const isAdmin = pathname.startsWith('/admin');
 
   return (
@@ -48,7 +53,7 @@ export function Navbar({
               </span>
               <span className="flex flex-col leading-none">
                 <span className="text-base font-extrabold">社團聚</span>
-                <span className="text-[11px] font-medium text-slate-500">CluBar</span>
+                <span className="text-[11px] font-medium text-slate-500">CluBar v2</span>
               </span>
             </Link>
 
@@ -74,14 +79,14 @@ export function Navbar({
                 一起聚
               </Link>
               <Link
-                href="/clubs/apply"
+                href="/my-clubs"
                 className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                  isApply
+                  isMyClubs
                     ? 'bg-orange-100 text-orange-900'
                     : 'text-slate-700 hover:bg-orange-50'
                 }`}
               >
-                社團認領與申請
+                我的社團
               </Link>
               {user?.platformRole === 'platform_admin' && (
                 <Link
@@ -102,7 +107,7 @@ export function Navbar({
             {user ? (
               <Link
                 href="/me"
-                className="relative inline-flex items-center gap-2 rounded-xl border border-[var(--border-strong)] bg-white px-3.5 py-2 text-sm font-semibold text-slate-900 shadow-xs transition-colors hover:bg-orange-50"
+                className="relative inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[var(--border-strong)] bg-white px-3.5 py-2 text-sm font-semibold text-slate-900 shadow-xs transition-colors hover:bg-orange-50"
               >
                 <User className="h-4 w-4 text-[var(--primary)]" aria-hidden="true" />
                 <span className="max-w-[120px] truncate">{user.displayName}</span>
@@ -121,7 +126,7 @@ export function Navbar({
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[var(--primary-hover)]"
+                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[var(--primary-hover)]"
               >
                 <LogIn className="h-4 w-4" aria-hidden="true" />
                 登入
@@ -131,14 +136,14 @@ export function Navbar({
         </div>
       </header>
 
-      {/* Mobile bottom navigation */}
+      {/* Mobile bottom 4-tab navigation (PRD v2 §3.2) */}
       <nav
         className="no-print fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-[var(--border-strong)] bg-white/95 backdrop-blur md:hidden"
         aria-label="行動版底部導覽"
       >
         <Link
           href="/"
-          className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-semibold ${
+          className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold ${
             isDiscover ? 'text-[var(--primary)]' : 'text-slate-600'
           }`}
         >
@@ -147,32 +152,32 @@ export function Navbar({
         </Link>
         <Link
           href="/together"
-          className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-semibold ${
+          className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold ${
             isTogether ? 'text-[var(--primary)]' : 'text-slate-600'
           }`}
         >
-          <MessageSquareText className="h-5 w-5" aria-hidden="true" />
+          <Users className="h-5 w-5" aria-hidden="true" />
           <span>一起聚</span>
         </Link>
         <Link
-          href="/clubs/apply"
-          className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-semibold ${
-            isApply ? 'text-[var(--primary)]' : 'text-slate-600'
+          href="/my-clubs"
+          className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold ${
+            isMyClubs ? 'text-[var(--primary)]' : 'text-slate-600'
           }`}
         >
-          <PlusCircle className="h-5 w-5" aria-hidden="true" />
-          <span>申請社團</span>
+          <FolderHeart className="h-5 w-5" aria-hidden="true" />
+          <span>我的社團</span>
         </Link>
         <Link
           href={user ? '/me' : '/login'}
-          className={`relative flex flex-col items-center justify-center gap-1 py-2.5 text-[11px] font-semibold ${
+          className={`relative flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold ${
             isMe ? 'text-[var(--primary)]' : 'text-slate-600'
           }`}
         >
           <User className="h-5 w-5" aria-hidden="true" />
-          <span>{user ? '個人中心' : '登入'}</span>
+          <span>{user ? '足跡與個人' : '登入'}</span>
           {user && unreadCount > 0 && (
-            <span className="absolute top-1.5 right-5 h-2 w-2 rounded-full bg-[var(--primary)]" />
+            <span className="absolute top-2 right-6 h-2 w-2 rounded-full bg-[var(--primary)]" />
           )}
         </Link>
       </nav>

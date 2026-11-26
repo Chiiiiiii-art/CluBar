@@ -2,11 +2,14 @@ import { and, eq, isNull, lte, sql } from 'drizzle-orm';
 import { db, type CluBarDb } from '@/db';
 import {
   auditLogs,
+  clubHandoverNotes,
   clubHandovers,
   clubMemberships,
   clubs,
   notifications,
+  practicalResources,
   users,
+  type HandoverPitfallNote,
 } from '@/db/schema';
 import { AppError } from '@/lib/errors';
 
@@ -30,7 +33,8 @@ export async function createHandover(params: {
   fromUserId: string;
   toUserId?: string;
   toCampusEmail?: string;
-  note?: string;
+  pitfallNote?: HandoverPitfallNote | null;
+  shareDeidentified?: boolean;
 }) {
   return db.transaction(async (tx) => {
     await expireStaleHandovers(tx, params.clubId);
@@ -59,6 +63,10 @@ export async function createHandover(params: {
       throw new AppError(404, 'CLUB_NOT_FOUND', '找不到指定社團。');
     }
 
+    if (target.universityId && target.universityId !== club.universityId) {
+      throw new AppError(403, 'UNIVERSITY_MISMATCH', '接任社長必須為同校已驗證學生。');
+    }
+
     try {
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       const [handover] = await tx
@@ -68,7 +76,8 @@ export async function createHandover(params: {
           fromUserId: params.fromUserId,
           toUserId: target.id,
           status: 'pending',
-          note: params.note?.trim() || null,
+          pendingNoteJson: params.pitfallNote ?? null,
+          shareDeidentified: params.shareDeidentified ?? false,
           expiresAt,
         })
         .returning();
@@ -91,7 +100,10 @@ export async function createHandover(params: {
 
       return handover;
     } catch (err: unknown) {
-      const code = typeof err === 'object' && err !== null && 'code' in err ? String((err as { code: unknown }).code) : '';
+      const code =
+        typeof err === 'object' && err !== null && 'code' in err
+          ? String((err as { code: unknown }).code)
+          : '';
       if (code === '23505') {
         throw new AppError(
           409,
@@ -122,16 +134,17 @@ export async function respondHandover(params: {
 
     await expireStaleHandovers(tx, peek.clubId);
 
-    // Row-level lock inside transaction prevents concurrent dual-accept race condition
     const lockedRows = await tx.execute<{
       id: string;
       club_id: string;
       from_user_id: string;
       to_user_id: string;
       status: string;
+      pending_note_json: HandoverPitfallNote | null;
+      share_deidentified: boolean;
       expires_at: Date;
     }>(sql`
-      SELECT id, club_id, from_user_id, to_user_id, status, expires_at
+      SELECT id, club_id, from_user_id, to_user_id, status, pending_note_json, share_deidentified, expires_at
       FROM club_handovers
       WHERE id = ${params.handoverId}
       FOR UPDATE
@@ -215,7 +228,6 @@ export async function respondHandover(params: {
       return updated;
     }
 
-    // action === 'accept'
     if (new Date(handover.expires_at).getTime() <= Date.now()) {
       throw new AppError(409, 'HANDOVER_EXPIRED', '此交接邀請已超過 7 天有效期限。');
     }
@@ -225,17 +237,16 @@ export async function respondHandover(params: {
       .from(users)
       .where(eq(users.id, handover.to_user_id))
       .limit(1);
-    if (!toUser || !toUser.campusVerifiedAt) {
+    if (!toUser || !toUser.campusVerifiedAt || toUser.universityId !== club.universityId) {
       throw new AppError(
         403,
         'CAMPUS_VERIFICATION_REQUIRED',
-        '接任社長須維持有效的 .edu.tw 校園驗證身分。'
+        '接任社長須維持同校有效的 .edu.tw 校園驗證身分。'
       );
     }
 
     const now = new Date();
 
-    // 1. Demote current owner to alumni (endedAt = now)
     await tx
       .update(clubMemberships)
       .set({ role: 'alumni', endedAt: now })
@@ -247,7 +258,6 @@ export async function respondHandover(params: {
         )
       );
 
-    // 2. Promote existing active editor record OR insert new active owner record
     const [existingActiveTarget] = await tx
       .select()
       .from(clubMemberships)
@@ -274,14 +284,51 @@ export async function respondHandover(params: {
       });
     }
 
-    // 3. Mark handover accepted
     const [accepted] = await tx
       .update(clubHandovers)
       .set({ status: 'accepted', resolvedAt: now })
       .where(eq(clubHandovers.id, handover.id))
       .returning();
 
-    // 4. Audit log + notifications to both parties
+    await tx
+      .update(clubs)
+      .set({ lastHandoverAt: now, updatedAt: now })
+      .where(eq(clubs.id, club.id));
+
+    const note = handover.pending_note_json;
+    if (
+      note &&
+      (note.venue_tips?.trim() ||
+        note.hours_and_deadlines?.trim() ||
+        note.contacts_and_vendors?.trim())
+    ) {
+      await tx.insert(clubHandoverNotes).values({
+        clubId: club.id,
+        handoverId: handover.id,
+        authorUserId: handover.from_user_id,
+        venueTips: note.venue_tips?.trim() || '',
+        hoursAndDeadlines: note.hours_and_deadlines?.trim() || '',
+        contactsAndVendors: note.contacts_and_vendors?.trim() || '',
+      });
+
+      if (handover.share_deidentified && club.domainIds.length > 0) {
+        const parts: string[] = [];
+        if (note.venue_tips?.trim()) parts.push(`### 場地借用眉角\n${note.venue_tips.trim()}`);
+        if (note.hours_and_deadlines?.trim()) {
+          parts.push(`### 時數與申報死線\n${note.hours_and_deadlines.trim()}`);
+        }
+        if (note.contacts_and_vendors?.trim()) {
+          parts.push(`### 外部廠商與活動實務提醒\n${note.contacts_and_vendors.trim()}`);
+        }
+        await tx.insert(practicalResources).values({
+          domainId: club.domainIds[0]!,
+          sourceUniversityId: club.universityId,
+          title: `社團交接實務避雷分享（去識別化）`,
+          contentMd: parts.join('\n\n'),
+        });
+      }
+    }
+
     await tx.insert(auditLogs).values({
       actorUserId: params.actingUserId,
       action: 'club.handover.accepted',
@@ -299,14 +346,14 @@ export async function respondHandover(params: {
         userId: handover.from_user_id,
         type: 'handover_resolved',
         title: `已完成換屆交接：${club.name}`,
-        body: `新任社長已接受「${club.name}」交接邀請，您的身分已轉為歷屆校友（保留只讀成果彙整權限）。`,
+        body: `新任社長已接受「${club.name}」交接邀請，您的身分已轉為歷屆校友。`,
         linkUrl: `/clubs/${club.slug}`,
       },
       {
         userId: handover.to_user_id,
         type: 'handover_resolved',
         title: `您已成為「${club.name}」新任社長`,
-        body: `交接已完成，現在可管理社團基本資料、成員與發布成果貼文。`,
+        body: `交接已完成，現在可檢視交接避雷便條並管理社團活動與評鑑檔案。`,
         linkUrl: `/clubs/${club.slug}/manage`,
       },
     ]);

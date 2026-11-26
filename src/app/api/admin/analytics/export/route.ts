@@ -45,7 +45,7 @@ export async function GET(req: Request) {
         date: dayExpr,
         universityName: universities.name,
         clubName: clubs.name,
-        category: analyticsEvents.category,
+        category: clubs.category,
         eventType: analyticsEvents.eventType,
         sourceSurface: analyticsEvents.sourceSurface,
         eventCount: count(),
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
         dayExpr,
         universities.name,
         clubs.name,
-        analyticsEvents.category,
+        clubs.category,
         analyticsEvents.eventType,
         analyticsEvents.sourceSurface
       )

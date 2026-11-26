@@ -1,12 +1,11 @@
 'use client';
 
-import type { AnalyticsEventType, ClubCategory } from '@/db/schema';
+import type { AnalyticsEventType } from '@/db/schema';
 
 export function trackAnalyticsEvent(payload: {
   event_type: AnalyticsEventType;
   club_id?: string | null;
-  post_id?: string | null;
-  category?: ClubCategory | null;
+  target_id?: string | null;
   source_surface?: string | null;
 }): void {
   if (typeof window === 'undefined') return;

@@ -3,26 +3,28 @@ import test from 'node:test';
 import {
   DiscoverLLMResponseSchema,
   runDiscoverQuery,
-  type DiscoverCandidate,
+  type DiscoverStreamCandidate,
 } from '../src/lib/discovery/service';
 
-function makeCandidate(id: string, clubId: string, similarityScore = 0.8): DiscoverCandidate {
+function makeCandidate(
+  id: string,
+  clubId: string,
+  similarityScore = 0.8
+): DiscoverStreamCandidate {
   return {
-    postId: id,
+    id,
     clubId,
-    title: `作品 ${id}`,
-    summary: `這是 ${clubId} 的成果摘要`,
-    postType: 'work',
-    academicYear: 115,
-    tags: ['攝影'],
-    mediaUrls: [],
-    publishedAt: new Date('2026-11-20T00:00:00Z'),
+    postKind: 'nrc_moment',
+    headline: `現場動態 ${id}`,
+    contentMd: `這是 ${clubId} 的日常紀錄`,
+    mediaItems: [],
+    publishedAt: new Date('2026-11-25T00:00:00Z'),
+    lastActivityAt: new Date('2026-11-25T00:00:00Z'),
     similarityScore,
     club: {
       id: clubId,
       slug: clubId,
       name: `社團 ${clubId}`,
-      category: 'arts',
       avatarUrl: null,
       isDemo: true,
       verificationStatus: 'verified',
@@ -37,7 +39,7 @@ const P2 = '11111111-1111-4111-8111-111111111102';
 const P3 = '11111111-1111-4111-8111-111111111103';
 const HALLUCINATED_ID = '99999999-9999-4999-8999-999999999999';
 
-test('runDiscoverQuery falls back cleanly with warning when LLM times out or throws', async () => {
+test('runDiscoverQuery degrades cleanly with warning when LLM times out or throws', async () => {
   const candidates = [
     makeCandidate(P1, 'club-1', 0.9),
     makeCandidate(P2, 'club-1', 0.88),
@@ -59,26 +61,22 @@ test('runDiscoverQuery falls back cleanly with warning when LLM times out or thr
   assert.equal(res.degraded, true);
   assert.ok(res.warning_message && res.warning_message.length > 0);
   assert.equal(res.items.length, 3);
-  assert.equal(res.items[0].reason, undefined);
-  // Fairness rule: club-1 cannot be back-to-back
-  assert.equal(res.items[0].club.id, 'club-1');
-  assert.equal(res.items[1].club.id, 'club-2');
-  assert.equal(res.items[2].club.id, 'club-1');
+  assert.equal(res.items[0]!.reason, undefined);
+  assert.equal(res.items[0]!.club.id, 'club-1');
+  assert.equal(res.items[1]!.club.id, 'club-2');
+  assert.equal(res.items[2]!.club.id, 'club-1');
 });
 
-test('runDiscoverQuery degrades when LLM returns invalid JSON structure', async () => {
+test('runDiscoverQuery degrades cleanly when LLM returns malformed JSON', async () => {
   const candidates = [makeCandidate(P1, 'club-1', 0.8), makeCandidate(P3, 'club-2', 0.7)];
 
   const res = await runDiscoverQuery(
-    { query: '找軟體專案夥伴' },
+    { query: '找遊戲開發夥伴' },
     {
-      embed: async () => null, // triggers keyword search + degraded=true
+      embed: async () => null,
       vectorSearch: async () => [],
       keywordSearch: async () => candidates,
-      rankWithLlm: async () => {
-        // Simulate Zod parse failure from bad JSON
-        return DiscoverLLMResponseSchema.parse({ bad_field: 123 });
-      },
+      rankWithLlm: async () => DiscoverLLMResponseSchema.parse({ bad_field: 123 }),
     }
   );
 
@@ -108,6 +106,6 @@ test('runDiscoverQuery strips hallucinated IDs and relevance_score < 55', async 
 
   assert.equal(res.degraded, false);
   assert.equal(res.items.length, 1);
-  assert.equal(res.items[0].post_id, P1);
-  assert.equal(res.items[0].reason, '提供零基礎暗房底片沖洗體驗課');
+  assert.equal(res.items[0]!.id, P1);
+  assert.equal(res.items[0]!.reason, '提供零基礎暗房底片沖洗體驗課');
 });

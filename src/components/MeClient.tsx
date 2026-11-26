@@ -34,7 +34,7 @@ export interface MePageData {
     name: string;
     universityShortName: string;
     category: keyof typeof CLUB_CATEGORIES;
-    role: 'owner' | 'editor' | 'alumni';
+    role: 'owner' | 'editor' | 'member' | 'alumni';
     title: string | null;
     verificationStatus: string;
   }[];
