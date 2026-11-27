@@ -14,11 +14,13 @@ export function ClubMark({
   name,
   seed,
   size = 'md',
+  round = false,
   className,
 }: {
   name: string;
   seed?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  round?: boolean;
   className?: string;
 }) {
   const ch = Array.from(name.replace(/^(國立|私立)?/, '').trim())[0] ?? '?';
@@ -27,7 +29,7 @@ export function ClubMark({
   return (
     <span
       aria-hidden="true"
-      className={cn('inline-flex shrink-0 items-center justify-center rounded-xl font-bold text-white', dims, className)}
+      className={cn('inline-flex shrink-0 items-center justify-center font-bold text-white', round ? 'rounded-full' : 'rounded-xl', dims, className)}
       style={{ backgroundColor: bg }}
     >
       {ch}

@@ -24,6 +24,7 @@ import type { FollowMode, PortfolioVisibility } from '@/db/schema';
 import { formatTaipeiDateTime } from '@/lib/academic-year';
 import { CLUB_CATEGORIES } from '@/lib/constants';
 import type { UserPortfolioDTO } from '@/lib/services/portfolio';
+import { Badge, Button, ClubMark, Tabs, tabPanelProps } from '@/components/ui';
 
 export interface MePageData {
   user: {
@@ -123,6 +124,8 @@ export function MeClient({
   const [coBusy, setCoBusy] = useState<string | null>(null);
 
   const [notifs, setNotifs] = useState(data.notifications);
+  const unreadCount = notifs.filter((n) => !n.readAt).length;
+  const [meTab, setMeTab] = useState<'notifications' | 'saved' | 'clubs' | 'settings'>('notifications');
   const [follows, setFollows] = useState(data.follows);
 
   // Portfolio & Calendar & Push settings
@@ -350,44 +353,32 @@ export function MeClient({
   return (
     <div className="space-y-6">
       {/* Account Profile + Campus Verification */}
-      <section className="rounded-xl border border-ink-300 bg-white p-5 sm:p-7">
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-          <div className="space-y-1.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold text-ink-900">{data.user.displayName}</h1>
+      <section>
+        <div className="flex items-start gap-4">
+          <ClubMark name={data.user.displayName} seed={data.user.email} size="lg" round />
+          <div className="min-w-0 flex-1 space-y-1">
+            <h1 className="text-2xl font-bold text-ink-900">{data.user.displayName}</h1>
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-600">
               {data.user.campusVerifiedAt ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-accent-50 px-3 py-0.5 text-sm font-semibold text-accent-700">
-                  <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                  已驗證：{data.user.universityName}
+                <span className="inline-flex items-center gap-1 text-accent-700">
+                  <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                  {data.user.universityName}
                 </span>
               ) : (
-                <span className="rounded-full bg-warning-100 px-3 py-0.5 text-sm font-semibold text-warning-900">
-                  一般會員（尚未驗證校園信箱）
-                </span>
+                <Badge tone="warning">尚未驗證學校信箱</Badge>
               )}
-              {data.user.platformRole === 'platform_admin' && (
-                <Link
-                  href="/admin"
-                  className="rounded-full bg-ink-900 px-3 py-0.5 text-sm font-semibold text-white"
-                >
-                  平台管理員 →
-                </Link>
-              )}
-            </div>
-            <p className="text-sm text-ink-500">
-              登入信箱：{data.user.email}
-              {data.user.campusEmail ? ` ｜ 校園信箱：${data.user.campusEmail}` : ''}
+              <span className="truncate">{data.user.campusEmail || data.user.email}</span>
             </p>
+            {data.user.platformRole === 'platform_admin' && (
+              <Link href="/admin" className="inline-flex min-h-8 items-center text-sm font-medium text-accent-700 hover:underline">
+                前往平台治理 →
+              </Link>
+            )}
           </div>
-
           <form action={signOutAction}>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-ink-300 bg-white px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
-            >
-              <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>登出帳號</span>
-            </button>
+            <Button type="submit" variant="ghost" size="sm" icon={<LogOut className="h-4 w-4" aria-hidden="true" />}>
+              登出
+            </Button>
           </form>
         </div>
 
@@ -574,6 +565,270 @@ export function MeClient({
         </section>
       )}
 
+      <Tabs
+        variant="underline"
+        label="個人頁分頁"
+        idPrefix="me"
+        value={meTab}
+        onChange={setMeTab}
+        items={[
+          {
+            id: 'notifications',
+            label: '通知',
+            badge:
+              unreadCount > 0 ? (
+                <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger-600 px-1.5 text-xs font-semibold text-white">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              ) : undefined,
+          },
+          { id: 'saved', label: '收藏與追蹤' },
+          { id: 'clubs', label: '我的社團' },
+          { id: 'settings', label: '足跡與訂閱' },
+        ]}
+      />
+
+      {meTab === 'notifications' && (
+        <div {...tabPanelProps('me', 'notifications')} className="space-y-6">
+      {/* Notifications */}
+      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+        <div className="mb-4 flex items-center gap-2">
+          <Bell className="h-4 w-4 text-accent-600" aria-hidden="true" />
+          <h2 className="text-base font-bold text-ink-900">站內通知</h2>
+        </div>
+
+        {notifs.length === 0 ? (
+          <p className="text-sm text-ink-500">目前沒有任何通知。</p>
+        ) : (
+          <div className="space-y-2.5">
+            {notifs.map((n) => (
+              <div
+                key={n.id}
+                className={`flex flex-col justify-between gap-2 rounded-xl border p-3.5 sm:flex-row sm:items-center ${
+                  n.readAt
+                    ? 'border-ink-200 bg-white'
+                    : 'border-accent-200 bg-accent-50/70'
+                }`}
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    {!n.readAt && <span className="h-2 w-2 rounded-full bg-accent-600" />}
+                    <p className="text-sm font-semibold text-ink-900">{n.title}</p>
+                  </div>
+                  <p className="text-sm text-ink-700">{n.body}</p>
+                  <p className="text-xs text-ink-500">
+                    {formatTaipeiDateTime(n.createdAt)}
+                  </p>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-2">
+                  {n.linkUrl && (
+                    <Link
+                      href={n.linkUrl}
+                      className="rounded-xl border border-ink-300 bg-white px-3 py-1.5 text-sm font-semibold text-ink-800 hover:bg-ink-50"
+                    >
+                      前往查看
+                    </Link>
+                  )}
+                  {!n.readAt && (
+                    <button
+                      type="button"
+                      onClick={() => void markRead(n.id)}
+                      className="inline-flex items-center gap-1 rounded-xl bg-ink-100 px-3 py-1.5 text-sm font-semibold text-ink-700 hover:bg-ink-200"
+                    >
+                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>已讀</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+        </div>
+      )}
+
+      {meTab === 'saved' && (
+        <div {...tabPanelProps('me', 'saved')} className="space-y-6">
+      {/* Bookmarks & Follows (with Follow Separation Mode selector) */}
+      <div className="grid gap-6 md:grid-cols-2">
+        <section className="rounded-xl border border-line bg-white p-5">
+          <div className="mb-3 flex items-center gap-2">
+            <Bookmark className="h-4 w-4 text-accent-600" aria-hidden="true" />
+            <h2 className="text-base font-bold text-ink-900">我的收藏</h2>
+          </div>
+          {data.bookmarks.length === 0 ? (
+            <div className="space-y-3 rounded-xl bg-ink-100/40 p-4 text-sm text-ink-600">
+              <p>還沒收藏任何作品或活動。</p>
+              <Link
+                href="/"
+                className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 font-bold text-ink-800 hover:bg-ink-50"
+              >
+                去別的聚逛逛 →
+              </Link>
+            </div>
+          ) : (
+            <ul className="space-y-2.5">
+              {data.bookmarks.map((b) => (
+                <li
+                  key={b.postId}
+                  className="rounded-xl border border-line bg-ink-100/40 p-3"
+                >
+                  <Link
+                    href={
+                      b.clubSlug.startsWith('../e/')
+                        ? `/e/${b.clubSlug.slice(5)}`
+                        : `/posts/${b.postId}`
+                    }
+                    className="block text-sm font-semibold text-ink-900 hover:text-accent-600"
+                  >
+                    {b.title}
+                  </Link>
+                  <span className="mt-1 block text-sm text-ink-600">
+                    {b.universityShortName} · {b.clubName}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="rounded-xl border border-line bg-white p-5">
+          <div className="mb-3 flex items-center gap-2">
+            <Heart className="h-4 w-4 text-accent-600" aria-hidden="true" />
+            <h2 className="text-base font-bold text-ink-900">我追蹤的社團（通知偏好）</h2>
+          </div>
+          {follows.length === 0 ? (
+            <div className="space-y-3 rounded-xl bg-ink-100/40 p-4 text-sm text-ink-600">
+              <p>尚未追蹤任何社團，追蹤後可選擇「只收新活動」或「全部動態」。</p>
+              <Link
+                href="/"
+                className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 font-bold text-ink-800 hover:bg-ink-50"
+              >
+                去別的聚找社團 →
+              </Link>
+            </div>
+          ) : (
+            <ul className="space-y-2.5">
+              {follows.map((f) => (
+                <li
+                  key={f.clubId}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-ink-100/40 p-3"
+                >
+                  <div>
+                    <Link
+                      href={`/clubs/${f.slug}`}
+                      className="text-sm font-semibold text-ink-900 hover:text-accent-600"
+                    >
+                      {f.name}
+                    </Link>
+                    <p className="text-sm text-ink-500">
+                      {f.universityShortName} · {CLUB_CATEGORIES[f.category].label}
+                    </p>
+                  </div>
+                  <select
+                    aria-label={`${f.name} 追蹤分流模式`}
+                    value={f.followMode}
+                    onChange={(e) =>
+                      handleChangeFollowMode(f.clubId, e.target.value as FollowMode)
+                    }
+                    className="min-h-[44px] rounded-xl border border-line-input bg-white px-3 py-1 text-sm font-semibold text-ink-700"
+                  >
+                    <option value="all">全部動態</option>
+                    <option value="events_only">只收新活動</option>
+                  </select>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+        </div>
+      )}
+
+      {meTab === 'clubs' && (
+        <div {...tabPanelProps('me', 'clubs')} className="space-y-6">
+      {/* Managed Clubs */}
+      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-ink-900">我加入的社團</h2>
+          <Link
+            href="/clubs/apply"
+            className="text-sm font-semibold text-accent-600 hover:underline"
+          >
+            認領或申請新社團 →
+          </Link>
+        </div>
+
+        {data.memberships.length === 0 ? (
+          <p className="text-sm text-ink-600">
+            你目前尚未加入任何認證社團。可至{' '}
+            <Link href="/my-clubs" className="font-bold text-accent-700 underline">
+              我的聚
+            </Link>{' '}
+            輸入邀請碼，或前往{' '}
+            <Link href="/clubs/apply" className="font-bold text-accent-700 underline">
+              認領名錄社團
+            </Link>
+            。
+          </p>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {data.memberships.map((m) => (
+              <div
+                key={`${m.clubId}-${m.role}`}
+                className="flex flex-col justify-between gap-3 rounded-xl border border-line bg-ink-100/50 p-4"
+              >
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <span className="font-bold text-ink-600">{m.universityShortName}</span>
+                    <span className="rounded-full bg-white px-2.5 py-0.5 font-bold text-ink-800">
+                      {m.role === 'owner'
+                        ? '現任社長'
+                        : m.role === 'editor'
+                          ? '現任幹部'
+                          : m.role === 'member'
+                            ? '認證社員'
+                            : '歷屆校友（只讀）'}
+                    </span>
+                  </div>
+                  <Link
+                    href={`/clubs/${m.slug}`}
+                    className="mt-1 block text-base font-bold text-ink-900 hover:text-accent-600"
+                  >
+                    {m.name}
+                  </Link>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  {m.role !== 'member' && (
+                    <Link
+                      href={`/clubs/${m.slug}/manage`}
+                      className="inline-flex min-h-[44px] items-center gap-1 rounded-xl bg-accent-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-accent-700"
+                    >
+                      <Settings className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>{m.role === 'alumni' ? '檢視年度成果' : '進入管理後台'}</span>
+                    </Link>
+                  )}
+                  <Link
+                    href={`/clubs/${m.slug}`}
+                    className="inline-flex min-h-[44px] items-center gap-1 rounded-xl border border-ink-300 bg-white px-3 py-1.5 text-sm font-semibold text-ink-700 hover:bg-ink-50"
+                  >
+                    <span>公開主頁</span>
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+        </div>
+      )}
+
+      {meTab === 'settings' && (
+        <div {...tabPanelProps('me', 'settings')} className="space-y-6">
       {/* 1D Portfolio, Webcal Subscription & Push Controls */}
       <section className="rounded-xl border border-ink-300 bg-white p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -705,233 +960,9 @@ export function MeClient({
           {pushMsg && <p className="font-semibold text-accent-700">{pushMsg}</p>}
         </form>
       </section>
-
-      {/* Managed Clubs */}
-      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-ink-900">我加入的社團</h2>
-          <Link
-            href="/clubs/apply"
-            className="text-sm font-semibold text-accent-600 hover:underline"
-          >
-            認領或申請新社團 →
-          </Link>
         </div>
+      )}
 
-        {data.memberships.length === 0 ? (
-          <p className="text-sm text-ink-600">
-            你目前尚未加入任何認證社團。可至{' '}
-            <Link href="/my-clubs" className="font-bold text-accent-700 underline">
-              我的聚
-            </Link>{' '}
-            輸入邀請碼，或前往{' '}
-            <Link href="/clubs/apply" className="font-bold text-accent-700 underline">
-              認領名錄社團
-            </Link>
-            。
-          </p>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {data.memberships.map((m) => (
-              <div
-                key={`${m.clubId}-${m.role}`}
-                className="flex flex-col justify-between gap-3 rounded-xl border border-line bg-ink-100/50 p-4"
-              >
-                <div>
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="font-bold text-ink-600">{m.universityShortName}</span>
-                    <span className="rounded-full bg-white px-2.5 py-0.5 font-bold text-ink-800">
-                      {m.role === 'owner'
-                        ? '現任社長'
-                        : m.role === 'editor'
-                          ? '現任幹部'
-                          : m.role === 'member'
-                            ? '認證社員'
-                            : '歷屆校友（只讀）'}
-                    </span>
-                  </div>
-                  <Link
-                    href={`/clubs/${m.slug}`}
-                    className="mt-1 block text-base font-bold text-ink-900 hover:text-accent-600"
-                  >
-                    {m.name}
-                  </Link>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {m.role !== 'member' && (
-                    <Link
-                      href={`/clubs/${m.slug}/manage`}
-                      className="inline-flex min-h-[44px] items-center gap-1 rounded-xl bg-accent-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-accent-700"
-                    >
-                      <Settings className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>{m.role === 'alumni' ? '檢視年度成果' : '進入管理後台'}</span>
-                    </Link>
-                  )}
-                  <Link
-                    href={`/clubs/${m.slug}`}
-                    className="inline-flex min-h-[44px] items-center gap-1 rounded-xl border border-ink-300 bg-white px-3 py-1.5 text-sm font-semibold text-ink-700 hover:bg-ink-50"
-                  >
-                    <span>公開主頁</span>
-                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* Bookmarks & Follows (with Follow Separation Mode selector) */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <section className="rounded-xl border border-line bg-white p-5">
-          <div className="mb-3 flex items-center gap-2">
-            <Bookmark className="h-4 w-4 text-accent-600" aria-hidden="true" />
-            <h2 className="text-base font-bold text-ink-900">我的收藏</h2>
-          </div>
-          {data.bookmarks.length === 0 ? (
-            <div className="space-y-3 rounded-xl bg-ink-100/40 p-4 text-sm text-ink-600">
-              <p>還沒收藏任何作品或活動。</p>
-              <Link
-                href="/"
-                className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 font-bold text-ink-800 hover:bg-ink-50"
-              >
-                去別的聚逛逛 →
-              </Link>
-            </div>
-          ) : (
-            <ul className="space-y-2.5">
-              {data.bookmarks.map((b) => (
-                <li
-                  key={b.postId}
-                  className="rounded-xl border border-line bg-ink-100/40 p-3"
-                >
-                  <Link
-                    href={
-                      b.clubSlug.startsWith('../e/')
-                        ? `/e/${b.clubSlug.slice(5)}`
-                        : `/posts/${b.postId}`
-                    }
-                    className="block text-sm font-semibold text-ink-900 hover:text-accent-600"
-                  >
-                    {b.title}
-                  </Link>
-                  <span className="mt-1 block text-sm text-ink-600">
-                    {b.universityShortName} · {b.clubName}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="rounded-xl border border-line bg-white p-5">
-          <div className="mb-3 flex items-center gap-2">
-            <Heart className="h-4 w-4 text-accent-600" aria-hidden="true" />
-            <h2 className="text-base font-bold text-ink-900">我追蹤的社團（通知偏好）</h2>
-          </div>
-          {follows.length === 0 ? (
-            <div className="space-y-3 rounded-xl bg-ink-100/40 p-4 text-sm text-ink-600">
-              <p>尚未追蹤任何社團，追蹤後可選擇「只收新活動」或「全部動態」。</p>
-              <Link
-                href="/"
-                className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 font-bold text-ink-800 hover:bg-ink-50"
-              >
-                去別的聚找社團 →
-              </Link>
-            </div>
-          ) : (
-            <ul className="space-y-2.5">
-              {follows.map((f) => (
-                <li
-                  key={f.clubId}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-ink-100/40 p-3"
-                >
-                  <div>
-                    <Link
-                      href={`/clubs/${f.slug}`}
-                      className="text-sm font-semibold text-ink-900 hover:text-accent-600"
-                    >
-                      {f.name}
-                    </Link>
-                    <p className="text-sm text-ink-500">
-                      {f.universityShortName} · {CLUB_CATEGORIES[f.category].label}
-                    </p>
-                  </div>
-                  <select
-                    aria-label={`${f.name} 追蹤分流模式`}
-                    value={f.followMode}
-                    onChange={(e) =>
-                      handleChangeFollowMode(f.clubId, e.target.value as FollowMode)
-                    }
-                    className="min-h-[44px] rounded-xl border border-line-input bg-white px-3 py-1 text-sm font-semibold text-ink-700"
-                  >
-                    <option value="all">全部動態</option>
-                    <option value="events_only">只收新活動</option>
-                  </select>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
-
-      {/* Notifications */}
-      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <Bell className="h-4 w-4 text-accent-600" aria-hidden="true" />
-          <h2 className="text-base font-bold text-ink-900">站內通知</h2>
-        </div>
-
-        {notifs.length === 0 ? (
-          <p className="text-sm text-ink-500">目前沒有任何通知。</p>
-        ) : (
-          <div className="space-y-2.5">
-            {notifs.map((n) => (
-              <div
-                key={n.id}
-                className={`flex flex-col justify-between gap-2 rounded-xl border p-3.5 sm:flex-row sm:items-center ${
-                  n.readAt
-                    ? 'border-ink-200 bg-white'
-                    : 'border-accent-200 bg-accent-50/70'
-                }`}
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    {!n.readAt && <span className="h-2 w-2 rounded-full bg-accent-600" />}
-                    <p className="text-sm font-semibold text-ink-900">{n.title}</p>
-                  </div>
-                  <p className="text-sm text-ink-700">{n.body}</p>
-                  <p className="text-xs text-ink-500">
-                    {formatTaipeiDateTime(n.createdAt)}
-                  </p>
-                </div>
-
-                <div className="flex shrink-0 items-center gap-2">
-                  {n.linkUrl && (
-                    <Link
-                      href={n.linkUrl}
-                      className="rounded-xl border border-ink-300 bg-white px-3 py-1.5 text-sm font-semibold text-ink-800 hover:bg-ink-50"
-                    >
-                      前往查看
-                    </Link>
-                  )}
-                  {!n.readAt && (
-                    <button
-                      type="button"
-                      onClick={() => void markRead(n.id)}
-                      className="inline-flex items-center gap-1 rounded-xl bg-ink-100 px-3 py-1.5 text-sm font-semibold text-ink-700 hover:bg-ink-200"
-                    >
-                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>已讀</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }
