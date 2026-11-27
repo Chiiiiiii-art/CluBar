@@ -148,7 +148,8 @@ export function generateEventIcs(
 export function generateUserFeedIcs(
   events: IcsEventInput[],
   baseUrl: string,
-  now = new Date()
+  now = new Date(),
+  calendarName = 'CluBar 我的社團活動'
 ): string {
   const lines = [
     'BEGIN:VCALENDAR',
@@ -156,7 +157,7 @@ export function generateUserFeedIcs(
     'PRODID:-//CluBar//My Club Calendar//ZH',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    foldIcsLine('X-WR-CALNAME:CluBar 我的社團活動'),
+    foldIcsLine(`X-WR-CALNAME:${escapeIcsText(calendarName)}`),
     'X-WR-TIMEZONE:Asia/Taipei',
   ];
 

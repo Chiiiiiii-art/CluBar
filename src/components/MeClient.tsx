@@ -97,6 +97,23 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   return outputArray;
 }
 
+// U-15: group the inbox by what the notification is about (docs/design/04-patterns.md §7).
+const NOTIFICATION_GROUPS: { label: string; types: string[] }[] = [
+  { label: '活動', types: ['event_broadcast'] },
+  { label: '社團與入社', types: ['member_request_approved', 'application_result', 'directory_claim', 'handover_invite', 'handover_resolved'] },
+  { label: '問答與交流', types: ['question_replied', 'alumni_ping', 'coclub_invite', 'coclub_responded'] },
+];
+
+function groupNotifications<T extends { type: string }>(items: T[]): [string, T[]][] {
+  const groups = new Map<string, T[]>();
+  for (const n of items) {
+    const label = NOTIFICATION_GROUPS.find((g) => g.types.includes(n.type) || n.type.startsWith('event_'))?.label ?? '平台通知';
+    groups.set(label, [...(groups.get(label) ?? []), n]);
+  }
+  const order = [...NOTIFICATION_GROUPS.map((g) => g.label), '平台通知'];
+  return order.filter((l) => groups.has(l)).map((l) => [l, groups.get(l)!]);
+}
+
 export function MeClient({
   data,
   signOutAction,
@@ -614,47 +631,60 @@ export function MeClient({
             }
           />
         ) : (
-          <div className="space-y-2.5">
-            {notifs.map((n) => (
-              <div
-                key={n.id}
-                className={`flex flex-col justify-between gap-2 rounded-xl border p-3.5 sm:flex-row sm:items-center ${
-                  n.readAt
-                    ? 'border-line bg-surface'
-                    : 'border-accent-200 bg-brand-soft/70'
-                }`}
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    {!n.readAt && <span className="h-2 w-2 rounded-full bg-brand" />}
-                    <p className="text-sm font-semibold text-fg">{n.title}</p>
-                  </div>
-                  <p className="text-sm text-fg-secondary">{n.body}</p>
-                  <p className="text-xs text-fg-subtle">
-                    {formatTaipeiDateTime(n.createdAt)}
-                  </p>
-                </div>
+          <div className="space-y-6">
+            {notifs.every((n) => n.readAt) && (
+              <p className="flex flex-wrap items-center gap-x-2 text-sm text-fg-muted">
+                都看完了。
+                <Link href="/?tab=events" className="font-semibold text-brand-soft-fg underline-offset-4 hover:underline">
+                  看看近期有什麼活動
+                </Link>
+              </p>
+            )}
+            {groupNotifications(notifs).map(([groupLabel, items]) => (
+              <div key={groupLabel} className="space-y-2.5">
+                <h3 className="text-sm font-semibold text-fg-muted">{groupLabel}</h3>
+                {items.map((n) => (
+                  <div
+                    key={n.id}
+                    className={`flex flex-col justify-between gap-2 rounded-xl border p-3.5 sm:flex-row sm:items-center ${
+                      n.readAt
+                        ? 'border-line bg-surface'
+                        : 'border-accent-200 bg-brand-soft/70'
+                    }`}
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        {!n.readAt && <span className="h-2 w-2 rounded-full bg-brand" />}
+                        <p className="text-sm font-semibold text-fg">{n.title}</p>
+                      </div>
+                      <p className="text-sm text-fg-secondary">{n.body}</p>
+                      <p className="text-xs text-fg-subtle">
+                        {formatTaipeiDateTime(n.createdAt)}
+                      </p>
+                    </div>
 
-                <div className="flex shrink-0 items-center gap-2">
-                  {n.linkUrl && (
-                    <Link
-                      href={n.linkUrl}
-                      className={buttonClasses({ variant: 'secondary', size: 'sm' })}
-                    >
-                      前往查看
-                    </Link>
-                  )}
-                  {!n.readAt && (
-                    <button
-                      type="button"
-                      onClick={() => void markRead(n.id)}
-                      className="inline-flex items-center gap-1 rounded-xl bg-surface-sunken px-3 py-1.5 text-sm font-semibold text-fg-secondary hover:bg-ink-200"
-                    >
-                      <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>已讀</span>
-                    </button>
-                  )}
-                </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {n.linkUrl && (
+                        <Link
+                          href={n.linkUrl}
+                          className={buttonClasses({ variant: 'secondary', size: 'sm' })}
+                        >
+                          前往查看
+                        </Link>
+                      )}
+                      {!n.readAt && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => void markRead(n.id)}
+                          icon={<CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />}
+                        >
+                          已讀
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             ))}
           </div>

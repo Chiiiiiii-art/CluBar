@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { and, asc, eq, isNotNull } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNotNull } from 'drizzle-orm';
 import { db } from '@/db';
 import { clubEvents, clubs, eventRsvps, users } from '@/db/schema';
 import { AppError, handleApiError } from '@/lib/errors';
@@ -38,7 +38,8 @@ export async function GET(
       .where(
         and(
           eq(eventRsvps.userId, user.id),
-          eq(eventRsvps.status, 'going'),
+          // Include "有興趣" too so pending plans show up in the personal feed (U-10).
+          inArray(eventRsvps.status, ['going', 'interested']),
           isNotNull(clubEvents.startsAt)
         )
       )

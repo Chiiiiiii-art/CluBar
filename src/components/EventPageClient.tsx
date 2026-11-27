@@ -134,6 +134,8 @@ export function EventPageClient({
   );
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  // U-12: per-channel promo copy, editable before copying (keyed by channel label).
+  const [promoEdits, setPromoEdits] = useState<Record<string, string>>({});
   // Bumped on a fresh RSVP so the stamp animation plays once (not on page load).
   const [stampKey, setStampKey] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -184,6 +186,13 @@ export function EventPageClient({
 
   // No public head counts (docs/design/01-brand.md); capacity is shown only as open / full.
   const isFull = Boolean(detail.capacity && detail.going_count >= detail.capacity);
+  // Ended = past ends_at, or 3h after starts_at when no end time was given.
+  const endMs = detail.ends_at
+    ? new Date(detail.ends_at).getTime()
+    : detail.starts_at
+      ? new Date(detail.starts_at).getTime() + 3 * 60 * 60 * 1000
+      : null;
+  const hasEnded = detail.status === 'completed' || (endMs !== null && endMs < Date.now());
   const hiddenGoingCount = Math.max(0, detail.going_count - detail.public_attendees.length);
   const featuredCount = album_photos.filter((p) => p.status === 'featured_stream').length;
   const googleUrl = buildGoogleCalendarHref(detail);
@@ -793,12 +802,23 @@ export function EventPageClient({
         <div id="rsvp-section" className="space-y-6 md:col-span-5">
           {/* RSVP Card */}
           <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
-            <h2 className="text-lg font-semibold text-fg">報名這場活動</h2>
+            <h2 className="text-lg font-semibold text-fg">{hasEnded ? '活動結束了' : '報名這場活動'}</h2>
             <p className="mt-1 text-sm text-fg-muted">
-              {isFull ? '名額已滿，可以先按「有興趣」追蹤這場活動。' : '還有位子，零基礎也歡迎直接報名。'}
+              {hasEnded
+                ? '謝謝大家來參加！把現場照片放進共享相簿，精選會回到社團頁。'
+                : isFull
+                  ? '名額已滿，可以先按「有興趣」追蹤這場活動。'
+                  : '還有位子，零基礎也歡迎直接報名。'}
             </p>
 
-            {!viewer.isLoggedIn ? (
+            {hasEnded ? (
+              <div className="mt-4">
+                <a href="#album" className={buttonClasses({ variant: 'primary', size: 'md', block: true })}>
+                  <ImagePlus className="h-4 w-4" aria-hidden="true" />
+                  {permissions.can_participate ? '上傳活動照片' : '看活動相簿'}
+                </a>
+              </div>
+            ) : !viewer.isLoggedIn ? (
               <div className="mt-4 space-y-3">
                 <Link
                   href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`}
@@ -1160,16 +1180,20 @@ export function EventPageClient({
                       <span className="font-bold text-fg-body">{item.label}</span>
                       <button
                         type="button"
-                        onClick={() => handleCopyPromoText(item.text, item.label)}
+                        onClick={() => handleCopyPromoText(promoEdits[item.label] ?? item.text, item.label)}
                         className={buttonClasses({ variant: 'soft', size: 'sm' })}
                       >
                         <Copy className="h-3.5 w-3.5" aria-hidden="true" />
                         複製
                       </button>
                     </div>
-                    <pre className="mt-2 max-h-36 overflow-auto whitespace-pre-wrap font-sans text-xs text-fg-muted">
-                      {item.text}
-                    </pre>
+                    <textarea
+                      aria-label={`${item.label}（可直接修改）`}
+                      value={promoEdits[item.label] ?? item.text}
+                      onChange={(e) => setPromoEdits((prev) => ({ ...prev, [item.label]: e.target.value }))}
+                      rows={6}
+                      className={`${controlClasses} mt-2 w-full py-2 text-sm leading-relaxed`}
+                    />
                   </div>
                 ))}
               </div>
@@ -1325,11 +1349,11 @@ export function EventPageClient({
       </section>
 
       {/* Post-Event Dual-Variant Lossless Album */}
-      <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+      <section id="album" className="rounded-xl border border-line bg-surface p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="text-lg font-semibold text-fg">
-              活動無損共編相簿（{album_photos.length}）
+              活動共享相簿
             </h2>
             <p className="text-sm text-fg-muted">
               保留原檔無損下載，並自動壓縮為流暢預覽圖；精選照片可登上平台現場流
@@ -1453,9 +1477,13 @@ export function EventPageClient({
             <p className="text-base font-semibold text-fg">
               {detail.fee_ntd === 0 ? '免費' : `NT$${detail.fee_ntd}`}
             </p>
-            <p className="text-sm text-fg-muted">{isFull ? '名額已滿' : '還有位子'}</p>
+            <p className="text-sm text-fg-muted">{hasEnded ? '活動已結束' : isFull ? '名額已滿' : '還有位子'}</p>
           </div>
-          {!viewer.isLoggedIn ? (
+          {hasEnded ? (
+            <a href="#album" className={buttonClasses({ variant: 'primary', size: 'lg' })}>
+              {permissions.can_participate ? '上傳照片' : '看相簿'}
+            </a>
+          ) : !viewer.isLoggedIn ? (
             <ButtonLink href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`} size="lg">
               登入報名
             </ButtonLink>

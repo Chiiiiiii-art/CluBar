@@ -6,8 +6,7 @@ import {
   BadgeCheck,
   Calendar,
   Settings,
-  ShieldAlert,
-} from 'lucide-react';
+  ShieldAlert, CalendarPlus } from 'lucide-react';
 import { db, isDatabaseConfigured } from '@/db';
 import {
   clubEvents,
@@ -238,6 +237,15 @@ export default async function ClubPublicPage({
               isLoggedIn={Boolean(currentUser)}
             />
             <ShareButton />
+            {!isUnclaimed && publicClub.verification_status !== 'suspended' && (
+              <a
+                href={`/api/calendar/clubs/${publicClub.slug}.ics`}
+                className={buttonClasses({ variant: 'secondary', size: 'md' })}
+              >
+                <CalendarPlus className="h-4 w-4" aria-hidden="true" />
+                訂閱社團行事曆
+              </a>
+            )}
             <ReportModal targetType="club" targetId={publicClub.id} isLoggedIn={Boolean(currentUser)} />
           </div>
         </div>
