@@ -56,7 +56,7 @@ export default async function PublicPortfolioPage({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pb-12">
-      <section className="rounded-xl border border-ink-300 bg-white p-6 shadow-xs sm:p-8">
+      <section className="rounded-xl border border-ink-300 bg-white p-6 sm:p-8">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-sm font-semibold text-ink-500">

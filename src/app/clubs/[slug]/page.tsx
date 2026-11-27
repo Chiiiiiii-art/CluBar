@@ -373,7 +373,7 @@ export default async function ClubPublicPage({
                 <Link
                   key={post.id}
                   href={`/posts/${post.id}`}
-                  className="group flex flex-col overflow-hidden rounded-xl border border-line bg-white shadow-xs hover:shadow-md"
+                  className="group flex flex-col overflow-hidden rounded-xl border border-line bg-white hover:shadow-md"
                 >
                   <div
                     className="relative bg-ink-100"

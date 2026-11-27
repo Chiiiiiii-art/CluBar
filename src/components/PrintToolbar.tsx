@@ -13,7 +13,7 @@ export function PrintToolbar({
   clubName: string;
 }) {
   return (
-    <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-300 bg-white p-4 shadow-xs">
+    <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-300 bg-white p-4">
       <div className="flex items-center gap-3">
         <Link
           href={`/clubs/${slug}/manage`}

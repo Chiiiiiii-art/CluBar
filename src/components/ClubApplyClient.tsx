@@ -114,7 +114,7 @@ export function ClubApplyClient({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <section className="rounded-xl border border-ink-300 bg-white p-6 shadow-xs">
+      <section className="rounded-xl border border-ink-300 bg-white p-6">
         <div className="inline-flex items-center gap-1.5 rounded-full bg-accent-100 px-3 py-1 text-sm font-semibold text-accent-900">
           <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
           <span>社團開頁與認證中心</span>
@@ -205,7 +205,7 @@ export function ClubApplyClient({
 
       <form
         onSubmit={handleSubmit}
-        className="space-y-5 rounded-xl border border-ink-300 bg-white p-6 shadow-xs"
+        className="space-y-5 rounded-xl border border-ink-300 bg-white p-6"
       >
         <fieldset disabled={!campusVerified} className="space-y-5 disabled:opacity-60">
         {tab === 'new_club' ? (

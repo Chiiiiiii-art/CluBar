@@ -65,7 +65,7 @@ export function BlendClient({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <section className="rounded-xl border border-ink-300 bg-gradient-to-br from-accent-50 via-white to-accent-50 p-6 shadow-xs sm:p-8">
+      <section className="rounded-xl border border-ink-300 bg-white p-6 sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -141,7 +141,7 @@ export function BlendClient({
             </div>
           </div>
 
-          <div className="mx-auto w-36 shrink-0 overflow-hidden rounded-xl border border-ink-300 bg-white shadow-sm sm:mx-0 sm:w-40">
+          <div className="mx-auto w-36 shrink-0 overflow-hidden rounded-xl border border-ink-300 bg-white sm:mx-0 sm:w-40">
             <img
               src={`/api/og/blend/${shortCode}?format=story`}
               alt="IG 限動 9:16 合拍分享卡預覽"

@@ -104,7 +104,7 @@ export default async function PostDetailPage({
         </Link>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-ink-300 bg-white p-5 shadow-xs sm:p-8">
+      <div className="overflow-hidden rounded-xl border border-ink-300 bg-white p-5 sm:p-8">
         <div className="flex flex-wrap items-center gap-2">
           <span className={`rounded-full px-3 py-0.5 text-sm font-semibold ${kindMeta.badgeClass}`}>
             {kindMeta.label}
@@ -188,7 +188,7 @@ export default async function PostDetailPage({
         </div>
       </div>
 
-      <div className="flex flex-col justify-between gap-4 rounded-xl border border-ink-300 bg-white p-5 shadow-xs sm:flex-row sm:items-center">
+      <div className="flex flex-col justify-between gap-4 rounded-xl border border-ink-300 bg-white p-5 sm:flex-row sm:items-center">
         <div>
           <p className="text-sm font-semibold text-ink-500">這則現場紀錄來自</p>
           <div className="mt-1 flex items-center gap-1.5">

@@ -153,7 +153,7 @@ export function MyClubsClient({
   return (
     <div className="space-y-6">
       {/* Membership Cards */}
-      <div className="rounded-xl border border-ink-300 bg-white p-6 shadow-xs">
+      <div className="rounded-xl border border-ink-300 bg-white p-6">
         <h1 className="text-xl font-bold text-ink-900">我的聚｜社團切換與日常紀錄</h1>
         <p className="mt-1 text-sm text-ink-600">
           認證社員可直接發一篇社團日常；幹部可進入管理後台發起活動或整理評鑑資料。
@@ -205,7 +205,7 @@ export function MyClubsClient({
       </div>
 
       {/* Invite Code Redeem */}
-      <div className="rounded-xl border border-line bg-white p-6 shadow-xs">
+      <div className="rounded-xl border border-line bg-white p-6">
         <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
           <KeyRound className="h-4 w-4 text-accent-600" aria-hidden="true" />
           輸入幹部邀請碼，成為認證社員
@@ -247,7 +247,7 @@ export function MyClubsClient({
       {selectedClub && (
         <form
           onSubmit={handlePublishPost}
-          className="space-y-4 rounded-xl border border-ink-300 bg-white p-6 shadow-xs"
+          className="space-y-4 rounded-xl border border-ink-300 bg-white p-6"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">

@@ -350,7 +350,7 @@ export function MeClient({
   return (
     <div className="space-y-6">
       {/* Account Profile + Campus Verification */}
-      <section className="rounded-xl border border-ink-300 bg-white p-5 shadow-xs sm:p-7">
+      <section className="rounded-xl border border-ink-300 bg-white p-5 sm:p-7">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
@@ -482,7 +482,7 @@ export function MeClient({
 
       {/* Pending Co-Club Invitations */}
       {coInvites.length > 0 && (
-        <section className="rounded-xl border border-accent-200 bg-accent-50/70 p-5 shadow-xs">
+        <section className="rounded-xl border border-accent-200 bg-accent-50/70 p-5">
           <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
             <Sparkles className="h-4 w-4 text-accent-700" aria-hidden="true" />
             待回應的 Co-Club 友社共辦邀請 ({coInvites.length})
@@ -522,7 +522,7 @@ export function MeClient({
 
       {/* Pending Handover Invitations */}
       {(handovers.length > 0 || handoverMsg) && (
-        <section className="rounded-xl border border-accent-300 bg-accent-50 p-5 shadow-xs">
+        <section className="rounded-xl border border-accent-300 bg-accent-50 p-5">
           <div className="mb-3 flex items-center gap-2">
             <UserCheck className="h-5 w-5 text-accent-600" aria-hidden="true" />
             <h2 className="text-base font-bold text-ink-900">待確認的社長交接邀請</h2>
@@ -575,7 +575,7 @@ export function MeClient({
       )}
 
       {/* 1D Portfolio, Webcal Subscription & Push Controls */}
-      <section className="rounded-xl border border-ink-300 bg-white p-5 shadow-xs sm:p-6">
+      <section className="rounded-xl border border-ink-300 bg-white p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <h2 className="flex items-center gap-2 text-lg font-bold text-ink-900">
@@ -707,7 +707,7 @@ export function MeClient({
       </section>
 
       {/* Managed Clubs */}
-      <section className="rounded-xl border border-line bg-white p-5 shadow-xs sm:p-6">
+      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-ink-900">我加入的社團</h2>
           <Link
@@ -784,7 +784,7 @@ export function MeClient({
 
       {/* Bookmarks & Follows (with Follow Separation Mode selector) */}
       <div className="grid gap-6 md:grid-cols-2">
-        <section className="rounded-xl border border-line bg-white p-5 shadow-xs">
+        <section className="rounded-xl border border-line bg-white p-5">
           <div className="mb-3 flex items-center gap-2">
             <Bookmark className="h-4 w-4 text-accent-600" aria-hidden="true" />
             <h2 className="text-base font-bold text-ink-900">我的收藏</h2>
@@ -825,7 +825,7 @@ export function MeClient({
           )}
         </section>
 
-        <section className="rounded-xl border border-line bg-white p-5 shadow-xs">
+        <section className="rounded-xl border border-line bg-white p-5">
           <div className="mb-3 flex items-center gap-2">
             <Heart className="h-4 w-4 text-accent-600" aria-hidden="true" />
             <h2 className="text-base font-bold text-ink-900">我追蹤的社團（通知偏好）</h2>
@@ -877,7 +877,7 @@ export function MeClient({
       </div>
 
       {/* Notifications */}
-      <section className="rounded-xl border border-line bg-white p-5 shadow-xs sm:p-6">
+      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
         <div className="mb-4 flex items-center gap-2">
           <Bell className="h-4 w-4 text-accent-600" aria-hidden="true" />
           <h2 className="text-base font-bold text-ink-900">站內通知</h2>

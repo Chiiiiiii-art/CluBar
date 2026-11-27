@@ -141,7 +141,7 @@ export function OnboardingClient({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div className="rounded-xl border border-ink-300 bg-white p-6 shadow-xs sm:p-8">
+      <div className="rounded-xl border border-ink-300 bg-white p-6 sm:p-8">
         <div className="flex items-center gap-2 text-sm font-semibold text-accent-600">
           <Sparkles className="h-4 w-4" aria-hidden="true" />
           <span>免登入找社團方向（步驟 {step} / 3）</span>
@@ -270,7 +270,7 @@ export function OnboardingClient({
 
         {step === 3 && result && (
           <div className="mt-4 space-y-6">
-            <div className="rounded-xl bg-gradient-to-r from-accent-100 via-warning-50 to-accent-50 p-5">
+            <div className="rounded-xl bg-white p-5">
               <p className="text-sm font-semibold text-accent-800">你的個人校園探索特質</p>
               <h1 className="mt-1 text-2xl font-bold text-ink-900">{result.persona_archetype}</h1>
               <div className="mt-4 flex flex-wrap gap-2">

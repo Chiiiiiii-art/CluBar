@@ -15,6 +15,7 @@ import {
 import { TOGETHER_ITEM_TYPE_LABELS } from '@/lib/constants';
 import type { PublicTogetherItemDTO } from '@/lib/serializers';
 
+import { Notice } from '@/components/ui';
 export interface TogetherJamDTO {
   id: string;
   title: string;
@@ -269,7 +270,7 @@ export function TogetherClient({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-ink-300 bg-white p-5 shadow-xs sm:p-6">
+      <section className="rounded-xl border border-ink-300 bg-white p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
@@ -336,14 +337,10 @@ export function TogetherClient({
       </section>
 
       {msg && (
-        <div className="rounded-xl border border-success-200 bg-success-50 px-4 py-3 text-sm font-semibold text-success-800">
-          {msg}
-        </div>
+        <Notice tone="success">{msg}</Notice>
       )}
       {err && (
-        <div className="rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 text-sm font-semibold text-danger-800">
-          {err}
-        </div>
+        <Notice tone="danger">{err}</Notice>
       )}
 
       {/* SUBTAB 1: STAGE */}
@@ -454,7 +451,7 @@ export function TogetherClient({
                 <Link
                   key={item.id}
                   href={`/together/${item.id}`}
-                  className="flex flex-col gap-3 rounded-xl border border-line bg-white p-5 shadow-xs transition hover:border-accent-300"
+                  className="flex flex-col gap-3 rounded-xl border border-line bg-white p-5 transition hover:border-accent-300"
                 >
                   <div className="flex flex-wrap items-center gap-2 text-sm">
                     <span className="rounded-full bg-accent-100 px-2.5 py-0.5 font-bold text-accent-900">
@@ -587,7 +584,7 @@ export function TogetherClient({
               {filteredJams.map((jam) => (
                 <div
                   key={jam.id}
-                  className="flex flex-col gap-3 rounded-xl border border-line bg-white p-5 shadow-xs"
+                  className="flex flex-col gap-3 rounded-xl border border-line bg-white p-5"
                 >
                   <div className="flex flex-wrap items-center gap-2 text-sm">
                     <span className="rounded-full bg-accent-100 px-2.5 py-0.5 font-bold text-accent-900">

@@ -28,7 +28,7 @@ import { uploadDualAlbumPhoto } from '@/lib/media/client-upload';
 import type { EventFullViewDTO } from '@/lib/services/events';
 import { ImageUploader } from '@/components/ImageUploader';
 import { MarkdownView } from '@/components/MarkdownView';
-import { Badge, Button, ButtonLink, ClubMark, Notice, buttonClasses } from '@/components/ui';
+import { Badge, Button, ButtonLink, ClubMark, Notice, buttonClasses, useConfirm } from '@/components/ui';
 import { realMediaUrl } from '@/lib/media/placeholder';
 
 function formatUtcStamp(iso: string): string {
@@ -109,6 +109,7 @@ export function EventPageClient({
     enableDevLogin: boolean;
   };
 }) {
+  const confirm = useConfirm();
   const [data, setData] = useState<EventFullViewDTO>(initialData);
   const [privacyMode, setPrivacyMode] = useState<RsvpPrivacyMode>(
     initialData.viewer_rsvp?.privacy_mode ?? 'public_to_attendees'
@@ -506,7 +507,14 @@ export function EventPageClient({
   }
 
   async function handleCancelEvent() {
-    if (!window.confirm('確定要取消這場活動嗎？取消後行事曆同步檔會標記為 CANCELLED。')) {
+    if (
+      !(await confirm({
+        title: '取消這場活動？',
+        description: '已報名的人會在行事曆看到活動被取消。',
+        confirmLabel: '取消活動',
+        cancelLabel: '先不要',
+      }))
+    ) {
       return;
     }
     setBusyAction('cancel-event');

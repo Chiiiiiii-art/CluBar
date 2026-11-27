@@ -6,6 +6,7 @@ import { BarChart3, CheckCircle2, Download, ShieldAlert, XCircle } from 'lucide-
 import { formatTaipeiDateTime } from '@/lib/academic-year';
 import { REPORT_REASONS } from '@/lib/constants';
 
+import { Notice, Tabs, useConfirm } from '@/components/ui';
 export interface AdminPageData {
   applications: {
     id: string;
@@ -59,6 +60,7 @@ const REPORT_TARGET_LABELS: Record<string, string> = {
 
 export function AdminClient({ data }: { data: AdminPageData }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [tab, setTab] = useState<'applications' | 'reports' | 'restore' | 'analytics'>(
     'applications'
   );
@@ -71,8 +73,11 @@ export function AdminClient({ data }: { data: AdminPageData }) {
   const reviewApp = async (id: string, action: 'approve' | 'reject') => {
     if (
       action === 'reject' &&
-      typeof window !== 'undefined' &&
-      !window.confirm('確定要駁回此社團申請嗎？系統將通知申請人。')
+      !(await confirm({
+        title: '駁回這份社團申請？',
+        description: '系統會通知申請人。',
+        confirmLabel: '駁回',
+      }))
     ) {
       return;
     }
@@ -100,12 +105,13 @@ export function AdminClient({ data }: { data: AdminPageData }) {
     id: string,
     resolution: 'keep' | 'takedown' | 'suspend_club'
   ) => {
-    if (resolution !== 'keep' && typeof window !== 'undefined') {
-      const promptMsg =
+    if (resolution !== 'keep') {
+      const ok = await confirm(
         resolution === 'suspend_club'
-          ? '確定要停權此社團嗎？停權後公開門面與活動將無法檢視。'
-          : '確定要下架此則檢舉內容嗎？';
-      if (!window.confirm(promptMsg)) return;
+          ? { title: '停權這個社團？', description: '停權後，社團主頁與活動都無法公開檢視。', confirmLabel: '停權' }
+          : { title: '下架這則內容？', confirmLabel: '下架' }
+      );
+      if (!ok) return;
     }
     setBusyId(id);
     setMsg(null);
@@ -167,7 +173,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-ink-300 bg-white p-6 shadow-xs">
+      <section className="rounded-xl border border-ink-300 bg-white p-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-accent-700">社團認證與平台審核</p>
@@ -185,58 +191,22 @@ export function AdminClient({ data }: { data: AdminPageData }) {
       </section>
 
       {msg && (
-        <div className="rounded-xl border border-success-300 bg-success-50 px-4 py-3 text-sm font-semibold text-success-900">
-          {msg}
-        </div>
+        <Notice tone="success">{msg}</Notice>
       )}
 
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => setTab('applications')}
-          className={`min-h-[44px] rounded-xl px-4 py-2 text-sm font-bold ${
-            tab === 'applications'
-              ? 'bg-accent-600 text-white'
-              : 'border border-ink-300 bg-white text-ink-700'
-          }`}
-        >
-          社團申請審核 ({data.applications.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab('reports')}
-          className={`min-h-[44px] rounded-xl px-4 py-2 text-sm font-bold ${
-            tab === 'reports'
-              ? 'bg-accent-600 text-white'
-              : 'border border-ink-300 bg-white text-ink-700'
-          }`}
-        >
-          檢舉處置佇列 ({data.reports.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab('restore')}
-          className={`min-h-[44px] rounded-xl px-4 py-2 text-sm font-bold ${
-            tab === 'restore'
-              ? 'bg-accent-600 text-white'
-              : 'border border-ink-300 bg-white text-ink-700'
-          }`}
-        >
-          停權解除與貼文復原
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab('analytics')}
-          className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold ${
-            tab === 'analytics'
-              ? 'bg-accent-600 text-white'
-              : 'border border-ink-300 bg-white text-ink-700'
-          }`}
-        >
-          <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>Power BI 匿名轉換指標</span>
-        </button>
-      </div>
+      <Tabs
+        variant="underline"
+        label="平台治理分頁"
+        idPrefix="admin"
+        value={tab}
+        onChange={setTab}
+        items={[
+          { id: 'applications', label: `社團申請（${data.applications.length}）` },
+          { id: 'reports', label: `檢舉（${data.reports.length}）` },
+          { id: 'restore', label: '停權與復原' },
+          { id: 'analytics', label: '匿名指標', icon: <BarChart3 className="h-4 w-4" aria-hidden="true" /> },
+        ]}
+      />
 
       {tab === 'applications' && (
         <div className="space-y-4">
@@ -248,7 +218,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
             data.applications.map((app) => (
               <div
                 key={app.id}
-                className="space-y-3 rounded-xl border border-line bg-white p-5 shadow-xs"
+                className="space-y-3 rounded-xl border border-line bg-white p-5"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="rounded-full bg-accent-50 px-3 py-0.5 text-sm font-semibold text-accent-800">
@@ -326,7 +296,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
             data.reports.map((rep) => (
               <div
                 key={rep.id}
-                className="space-y-3 rounded-xl border border-line bg-white p-5 shadow-xs"
+                className="space-y-3 rounded-xl border border-line bg-white p-5"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
                   <span className="inline-flex items-center gap-1 rounded-full bg-danger-50 px-3 py-0.5 font-bold text-danger-800">
@@ -383,7 +353,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
 
       {tab === 'restore' && (
         <div className="grid gap-6 md:grid-cols-2">
-          <section className="rounded-xl border border-line bg-white p-5 shadow-xs">
+          <section className="rounded-xl border border-line bg-white p-5">
             <h2 className="mb-3 text-base font-bold text-ink-900">
               停權中社團（{data.suspendedClubs.length}）
             </h2>
@@ -413,7 +383,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
             )}
           </section>
 
-          <section className="rounded-xl border border-line bg-white p-5 shadow-xs">
+          <section className="rounded-xl border border-line bg-white p-5">
             <h2 className="mb-3 text-base font-bold text-ink-900">
               已下架／隱藏貼文復原（{data.removedPosts.length}）
             </h2>
@@ -449,7 +419,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
       )}
 
       {tab === 'analytics' && (
-        <section className="space-y-5 rounded-xl border border-ink-300 bg-white p-6 shadow-xs">
+        <section className="space-y-5 rounded-xl border border-ink-300 bg-white p-6">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <h2 className="text-lg font-bold text-ink-900">

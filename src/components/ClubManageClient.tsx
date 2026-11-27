@@ -33,6 +33,7 @@ import { uploadShortVideo } from '@/lib/media/client-upload';
 import { POST_KIND_LABELS } from '@/lib/constants';
 import { ImageUploader } from '@/components/ImageUploader';
 
+import { Notice, Tabs, useConfirm } from '@/components/ui';
 export interface ManageClubData {
   club: {
     id: string;
@@ -105,6 +106,7 @@ interface VisionDraftState {
 }
 
 export function ClubManageClient({ data }: { data: ManageClubData }) {
+  const confirm = useConfirm();
   const isReadOnlyAlumni = data.myRole === 'alumni';
   const canWrite = !isReadOnlyAlumni;
   const isOwner = data.myRole === 'owner';
@@ -636,10 +638,11 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
   async function handleStartHandover(e: React.FormEvent) {
     e.preventDefault();
     if (
-      typeof window !== 'undefined' &&
-      !window.confirm(
-        `確定要向 ${handoverEmail.trim()} 發起社長交接嗎？對方接受後，社長管理權限將正式移交。`
-      )
+      !(await confirm({
+        title: '發起社長交接？',
+        description: `對方（${handoverEmail.trim()}）接受後，社長管理權限會正式移交。`,
+        confirmLabel: '發起交接',
+      }))
     ) {
       return;
     }
@@ -672,7 +675,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-300 bg-white p-5 shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-300 bg-white p-5">
         <div>
           <p className="text-sm font-semibold text-ink-500">
             {data.club.universityName} · 您的權限：{data.myRole}
@@ -694,43 +697,27 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
       )}
 
       {bannerMsg && (
-        <div className="rounded-xl border border-success-200 bg-success-50 px-4 py-3 text-sm font-semibold text-success-800">
-          {bannerMsg}
-        </div>
+        <Notice tone="success">{bannerMsg}</Notice>
       )}
       {bannerErr && (
-        <div className="rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 text-sm font-semibold text-danger-800">
-          {bannerErr}
-        </div>
+        <Notice tone="danger">{bannerErr}</Notice>
       )}
 
-      <div className="flex flex-wrap gap-2">
-        {[
-          { key: 'events', label: '活動與投票時間', icon: Calendar },
-          { key: 'posts', label: '海報轉草稿 & 發文', icon: FileText },
-          { key: 'members', label: '社員邀請碼 & 幹部', icon: Users },
-          { key: 'questions', label: '問答箱 & FAQ', icon: HelpCircle },
-          { key: 'evaluation', label: '評鑑密件 & 報告匯出', icon: Archive },
-          { key: 'handover', label: '3 步換屆 & 避雷便條', icon: ArrowRightLeft },
-        ].map((t) => {
-          const Icon = t.icon;
-          return (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => switchTab(t.key as typeof tab)}
-              className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 text-sm font-bold ${
-                tab === t.key
-                  ? 'bg-accent-600 text-white'
-                  : 'border border-ink-300 bg-white text-ink-700 hover:bg-ink-50'
-              }`}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
+      <Tabs
+        variant="underline"
+        label="社團管理分頁"
+        idPrefix="manage"
+        value={tab}
+        onChange={(next) => void switchTab(next)}
+        items={[
+          { id: 'events', label: '活動', icon: <Calendar className="h-4 w-4" aria-hidden="true" /> },
+          { id: 'posts', label: '發文', icon: <FileText className="h-4 w-4" aria-hidden="true" /> },
+          { id: 'members', label: '成員', icon: <Users className="h-4 w-4" aria-hidden="true" /> },
+          { id: 'questions', label: '問答', icon: <HelpCircle className="h-4 w-4" aria-hidden="true" /> },
+          { id: 'evaluation', label: '評鑑', icon: <Archive className="h-4 w-4" aria-hidden="true" /> },
+          { id: 'handover', label: '換屆交接', icon: <ArrowRightLeft className="h-4 w-4" aria-hidden="true" /> },
+        ]}
+      />
 
       {/* EVENTS TAB */}
       {tab === 'events' && (

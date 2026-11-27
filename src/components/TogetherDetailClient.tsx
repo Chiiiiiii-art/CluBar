@@ -149,7 +149,7 @@ export function TogetherDetailClient({
         </div>
       )}
 
-      <article className="space-y-4 rounded-xl border border-ink-300 bg-white p-6 shadow-xs sm:p-8">
+      <article className="space-y-4 rounded-xl border border-ink-300 bg-white p-6 sm:p-8">
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="rounded-full bg-accent-100 px-3 py-0.5 font-bold text-accent-900">
             #{item.domain_name}

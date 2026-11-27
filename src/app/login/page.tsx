@@ -48,7 +48,7 @@ export default async function LoginPage({
 
   return (
     <div className="mx-auto max-w-lg py-6">
-      <div className="rounded-xl border border-ink-300 bg-white p-6 shadow-sm sm:p-8">
+      <div className="rounded-xl border border-ink-300 bg-white p-6 sm:p-8">
         <div className="flex items-center gap-3">
           <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-600 text-white">
             <Sparkles className="h-6 w-6" aria-hidden="true" />
