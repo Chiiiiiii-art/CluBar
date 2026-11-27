@@ -2,37 +2,35 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
-  AlertTriangle,
-  ArrowRight,
+  Archive,
+  ArrowRightLeft,
   Calendar,
+  Check,
+  Copy,
   Download,
   FileText,
-  Plus,
+  Film,
+  HelpCircle,
+  KeyRound,
   Printer,
-  Settings,
   Sparkles,
-  Trash2,
-  UserPlus,
+  Upload,
   Users,
-  Wand2,
 } from 'lucide-react';
 import type {
+  ArchiveFileCategory,
   ClubCategory,
   ClubMemberRole,
-  ExternalLink,
+  LearningHoursCategory,
   MediaItem,
+  PostKind,
   PostStatus,
-  PostType,
 } from '@/db/schema';
-import { formatTaipeiDate, formatTaipeiDateTime } from '@/lib/academic-year';
-import {
-  CLUB_CATEGORY_LIST,
-  CURATED_INTEREST_TAGS,
-  POST_TYPES,
-} from '@/lib/constants';
-import { ImageUploader } from './ImageUploader';
+import { formatTaipeiDate } from '@/lib/academic-year';
+import { uploadShortVideo } from '@/lib/media/client-upload';
+import { POST_KIND_LABELS } from '@/lib/constants';
+import { ImageUploader } from '@/components/ImageUploader';
 
 export interface ManageClubData {
   club: {
@@ -42,1463 +40,1551 @@ export interface ManageClubData {
     category: ClubCategory;
     tagline: string;
     description: string;
-    avatarUrl: string | null;
-    coverUrl: string | null;
-    externalLinks: ExternalLink[];
     verificationStatus: string;
-    isDemo: boolean;
     universityName: string;
   };
   myRole: ClubMemberRole | 'platform_admin';
-  myUserId: string;
-  currentAcademicYear: number;
   posts: {
     id: string;
-    authorUserId: string;
-    academicYear: number;
-    postType: PostType;
-    title: string;
-    summary: string;
-    contentMd: string;
-    tags: string[];
-    mediaUrls: MediaItem[];
-    externalLinks: ExternalLink[];
-    collaborators: string | null;
-    originalityConfirmed: boolean;
+    postKind: PostKind;
+    headline: string;
     status: PostStatus;
+    includeInEvaluation: boolean;
     publishedAt: string | null;
-    updatedAt: string;
   }[];
-  opportunities: {
+  events: {
     id: string;
+    shortCode: string;
     title: string;
-    summary: string;
-    scheduleText: string | null;
-    deadlineAt: string | null;
-    externalUrl: string;
-    isActive: boolean;
+    scheduleMode: string;
+    startsAt: string | null;
+    status: string;
+    includeInEvaluation: boolean;
   }[];
   members: {
     userId: string;
     displayName: string;
     role: ClubMemberRole;
     title: string | null;
-    joinedAt: string;
     endedAt: string | null;
   }[];
   pendingHandover: {
     id: string;
-    toUserId: string;
     toUserName: string;
-    note: string | null;
     expiresAt: string;
   } | null;
+  handoverNotes: {
+    id: string;
+    venueTips: string;
+    hoursAndDeadlines: string;
+    contactsAndVendors: string;
+    createdAt: string;
+  }[];
 }
 
-type TabKey = 'posts' | 'opportunities' | 'profile' | 'members' | 'summary';
+interface VisionDraftState {
+  degraded: boolean;
+  warnings: string[];
+  draft: {
+    title: string;
+    summary: string;
+    content_md: string;
+    post_kind: 'nrc_moment' | 'wip_work';
+    extracted_event: {
+      starts_at_hint?: string | null;
+      location_text?: string | null;
+      fee_ntd?: number | null;
+      beginner_friendly?: boolean | null;
+      non_members_welcome?: boolean | null;
+      learning_hours_hint?: string | null;
+    };
+    missing_beginner_fields: string[];
+    poster_text_heavy: boolean;
+  };
+}
 
 export function ClubManageClient({ data }: { data: ManageClubData }) {
-  const router = useRouter();
   const isReadOnlyAlumni = data.myRole === 'alumni';
+  const canWrite = !isReadOnlyAlumni;
   const isOwner = data.myRole === 'owner';
-  const isSuspended = data.club.verificationStatus === 'suspended';
-  const canEdit = !isReadOnlyAlumni && !isSuspended && data.myRole !== 'platform_admin';
 
-  const [tab, setTab] = useState<TabKey>(isReadOnlyAlumni ? 'summary' : 'posts');
-  const [notice, setNotice] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState<
+    'events' | 'posts' | 'members' | 'questions' | 'evaluation' | 'handover'
+  >(isReadOnlyAlumni ? 'evaluation' : 'events');
 
-  // ---- Post Form & AI Drawer ----
-  const [editingPostId, setEditingPostId] = useState<string | null>(null);
-  const [postTitle, setPostTitle] = useState('');
-  const [postType, setPostType] = useState<PostType>('work');
-  const [postYear, setPostYear] = useState(data.currentAcademicYear);
-  const [postSummary, setPostSummary] = useState('');
+  const [bannerMsg, setBannerMsg] = useState<string | null>(null);
+  const [bannerErr, setBannerErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  // Events state
+  const [eventsList, setEventsList] = useState(data.events);
+  const [evTitle, setEvTitle] = useState('');
+  const [evSummary, setEvSummary] = useState('');
+  const [evDesc, setEvDesc] = useState('');
+  const [evTheme, setEvTheme] = useState<
+    'warm_paper' | 'campus_blue' | 'forest_trail' | 'midnight_jam'
+  >('warm_paper');
+  const [evMode, setEvMode] = useState<'scheduled' | 'tbd' | 'voting'>('scheduled');
+  const [evStart, setEvStart] = useState('');
+  const [evEnd, setEvEnd] = useState('');
+  const [evLocation, setEvLocation] = useState('TBD 待定');
+  const [evFee, setEvFee] = useState('0');
+  const [evBeginner, setEvBeginner] = useState(true);
+  const [evNonMember, setEvNonMember] = useState(true);
+  const [evCampusOnly, setEvCampusOnly] = useState(false);
+  const [evHoursCat, setEvHoursCat] = useState<LearningHoursCategory>('none');
+  const [evHoursCount, setEvHoursCount] = useState('0');
+  const [evPreNotes, setEvPreNotes] = useState('');
+  const [evExtUrl, setEvExtUrl] = useState('');
+  const [evIncludeEval, setEvIncludeEval] = useState(true);
+  const [evCover, setEvCover] = useState<MediaItem[]>([]);
+  const [pollLabels, setPollLabels] = useState(['週三 19:00 體驗場', '週五 19:00 體驗場', '']);
+
+  // Posts + Vision AI state
+  const [postsList, setPostsList] = useState(data.posts);
+  const [aiRawText, setAiRawText] = useState('');
+  const [aiResult, setAiResult] = useState<VisionDraftState | null>(null);
+  const [postKind, setPostKind] = useState<'nrc_moment' | 'wip_work'>('wip_work');
+  const [postHeadline, setPostHeadline] = useState('');
   const [postContentMd, setPostContentMd] = useState('');
-  const [postTags, setPostTags] = useState<string[]>([]);
-  const [customTagInput, setCustomTagInput] = useState('');
   const [postMedia, setPostMedia] = useState<MediaItem[]>([]);
-  const [postLinks, setPostLinks] = useState<ExternalLink[]>([]);
-  const [postCollaborators, setPostCollaborators] = useState('');
-  const [originalityConfirmed, setOriginalityConfirmed] = useState(false);
-  const [postBusy, setPostBusy] = useState(false);
+  const [postOrig, setPostOrig] = useState(false);
+  const [postEval, setPostEval] = useState(false);
 
-  // AI Quick Organize state
-  const [aiDrawerOpen, setAiDrawerOpen] = useState(false);
-  const [rawText, setRawText] = useState('');
-  const [rawFile, setRawFile] = useState<File | null>(null);
-  const [aiBusy, setAiBusy] = useState(false);
-  const [aiMsg, setAiMsg] = useState<string | null>(null);
+  // Members, Invites, Requests
+  const [inviteCodes, setInviteCodes] = useState<
+    { id: string; code: string; expires_at: string; used_count: number; max_uses: number | null }[]
+  >([]);
+  const [joinRequests, setJoinRequests] = useState<
+    { id: string; display_name: string; note: string | null; status: string; created_at: string }[]
+  >([]);
+  const [targetMemberEmail, setTargetMemberEmail] = useState('');
+  const [targetMemberRole, setTargetMemberRole] = useState<'editor' | 'member'>('member');
+  const [targetMemberTitle, setTargetMemberTitle] = useState('');
 
-  // Soft-delete confirm modal
-  const [deleteTargetPost, setDeleteTargetPost] = useState<{ id: string; title: string } | null>(
-    null
-  );
+  // Q&A Inbox
+  const [questionsInbox, setQuestionsInbox] = useState<
+    {
+      id: string;
+      display_asker: string;
+      question_text: string;
+      answer_text: string | null;
+      status: string;
+      is_pinned_faq: boolean;
+    }[]
+  >([]);
+  const [replyDrafts, setReplyDrafts] = useState<
+    Record<string, { text: string; pub: boolean; pin: boolean; highlight: boolean }>
+  >({});
 
-  // ---- Opportunities state ----
-  const [oppTitle, setOppTitle] = useState('');
-  const [oppSummary, setOppSummary] = useState('');
-  const [oppSchedule, setOppSchedule] = useState('');
-  const [oppDeadline, setOppDeadline] = useState('');
-  const [oppUrl, setOppUrl] = useState('');
-  const [oppBusy, setOppBusy] = useState(false);
+  // Private Eval Archive
+  const [archiveFiles, setArchiveFiles] = useState<
+    {
+      id: string;
+      archive_category: ArchiveFileCategory;
+      title: string;
+      occurred_on: string;
+      mime_type: string;
+      size_bytes: number;
+    }[]
+  >([]);
+  const [archTitle, setArchTitle] = useState('');
+  const [archCategory, setArchCategory] = useState<ArchiveFileCategory>('meeting_minutes');
+  const [archDate, setArchDate] = useState(new Date().toISOString().slice(0, 10));
 
-  // ---- Profile state ----
-  const [clubCategory, setClubCategory] = useState<ClubCategory>(data.club.category);
-  const [clubTagline, setClubTagline] = useState(data.club.tagline);
-  const [clubDesc, setClubDesc] = useState(data.club.description);
-  const [clubAvatar, setClubAvatar] = useState<MediaItem[]>(
-    data.club.avatarUrl ? [{ url: data.club.avatarUrl, alt: `${data.club.name} 頭像` }] : []
-  );
-  const [clubCover, setClubCover] = useState<MediaItem[]>(
-    data.club.coverUrl ? [{ url: data.club.coverUrl, alt: `${data.club.name} 封面` }] : []
-  );
-  const [clubLinks, setClubLinks] = useState<ExternalLink[]>(data.club.externalLinks);
-  const [profileBusy, setProfileBusy] = useState(false);
-
-  // ---- Members & Handover state ----
-  const [newMemberEmail, setNewMemberEmail] = useState('');
-  const [newMemberTitle, setNewMemberTitle] = useState('幹部');
-  const [handoverTargetId, setHandoverTargetId] = useState('');
+  // Handover
   const [handoverEmail, setHandoverEmail] = useState('');
-  const [handoverNote, setHandoverNote] = useState('');
-  const [memberBusy, setMemberBusy] = useState(false);
+  const [venueTips, setVenueTips] = useState('');
+  const [hoursDeadlines, setHoursDeadlines] = useState('');
+  const [contactsVendors, setContactsVendors] = useState('');
+  const [shareDeid, setShareDeid] = useState(false);
 
-  // ---- Summary Year ----
-  const availableYears = Array.from(
-    new Set([data.currentAcademicYear, ...data.posts.map((p) => p.academicYear)])
-  ).sort((a, b) => b - a);
-  const [summaryYear, setSummaryYear] = useState(availableYears[0] ?? data.currentAcademicYear);
-
-  const resetPostForm = () => {
-    setEditingPostId(null);
-    setPostTitle('');
-    setPostType('work');
-    setPostYear(data.currentAcademicYear);
-    setPostSummary('');
-    setPostContentMd('');
-    setPostTags([]);
-    setPostMedia([]);
-    setPostLinks([]);
-    setPostCollaborators('');
-    setOriginalityConfirmed(false);
-  };
-
-  const loadPostIntoForm = (p: ManageClubData['posts'][number]) => {
-    setEditingPostId(p.id);
-    setPostTitle(p.title);
-    setPostType(p.postType);
-    setPostYear(p.academicYear);
-    setPostSummary(p.summary);
-    setPostContentMd(p.contentMd);
-    setPostTags(p.tags);
-    setPostMedia(p.mediaUrls);
-    setPostLinks(p.externalLinks);
-    setPostCollaborators(p.collaborators ?? '');
-    setOriginalityConfirmed(p.originalityConfirmed);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const runAiOrganize = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAiBusy(true);
-    setAiMsg(null);
-    setError(null);
-    try {
-      const fd = new FormData();
-      fd.set('club_id', data.club.id);
-      if (rawText.trim()) fd.set('raw_text', rawText.trim());
-      if (rawFile) fd.set('file', rawFile);
-
-      const res = await fetch('/api/ai/draft-from-raw', {
-        method: 'POST',
-        body: fd,
-      });
-      const json = await res.json();
-      if (!res.ok) {
-        setAiMsg(json?.error?.message || 'AI 整理失敗，已保留您的原始文字。');
-        return;
+  async function switchTab(next: typeof tab) {
+    setTab(next);
+    setBannerErr(null);
+    setBannerMsg(null);
+    if (next === 'members') {
+      const [codesRes, reqRes] = await Promise.all([
+        fetch(`/api/clubs/${data.club.slug}/invite-code`),
+        fetch(`/api/clubs/${data.club.slug}/member-requests`),
+      ]);
+      if (codesRes.ok) {
+        const j = await codesRes.json();
+        setInviteCodes(j.invite_codes ?? []);
       }
-
-      const d = json.draft;
-      setEditingPostId(null);
-      setPostTitle(d.title);
-      setPostType(d.post_type);
-      setPostSummary(d.summary);
-      setPostContentMd(d.content_md);
-      setPostTags(d.suggested_tags ?? []);
-      setOriginalityConfirmed(false);
-      setAiDrawerOpen(false);
-      setNotice(
-        `AI 已將零散紀錄整理為草稿填入下方表單${
-          json.warnings?.length ? `（${json.warnings.join(' ')}）` : ''
-        }，請審閱微調並勾選授權聲明後再發布。`
-      );
-    } catch {
-      setAiMsg('網路連線異常，已保留原始輸入，請稍後重試。');
-    } finally {
-      setAiBusy(false);
+      if (reqRes.ok) {
+        const j = await reqRes.json();
+        setJoinRequests(j.requests ?? []);
+      }
+    } else if (next === 'questions') {
+      const res = await fetch(`/api/clubs/${data.club.slug}/questions?scope=inbox`);
+      if (res.ok) {
+        const j = await res.json();
+        const inbox = j.inbox ?? [];
+        setQuestionsInbox(inbox);
+        const init: typeof replyDrafts = {};
+        for (const q of inbox) {
+          init[q.id] = {
+            text: q.answer_text ?? '',
+            pub: true,
+            pin: q.is_pinned_faq,
+            highlight: false,
+          };
+        }
+        setReplyDrafts(init);
+      }
+    } else if (next === 'evaluation') {
+      const res = await fetch(`/api/clubs/${data.club.slug}/archive-files`);
+      if (res.ok) {
+        const j = await res.json();
+        setArchiveFiles(j.files ?? []);
+      }
     }
-  };
+  }
 
-  const submitPost = async (targetStatus: 'draft' | 'published') => {
-    setPostBusy(true);
-    setError(null);
-    setNotice(null);
+  async function handleCreateEvent(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy('create-event');
+    setBannerErr(null);
+    setBannerMsg(null);
     try {
+      const cover = evCover[0];
       const payload = {
-        title: postTitle,
-        post_type: postType,
-        academic_year: Number(postYear),
-        summary: postSummary.trim() || undefined,
-        content_md: postContentMd,
-        tags: postTags,
-        media_urls: postMedia,
-        external_links: postLinks.filter((l) => l.label.trim() && l.url.trim()),
-        collaborators: postCollaborators.trim() || null,
-        originality_confirmed: originalityConfirmed,
-        status: targetStatus,
+        title: evTitle.trim(),
+        summary: evSummary.trim(),
+        description_md: evDesc.trim(),
+        theme_preset: evTheme,
+        cover_media: cover
+          ? {
+              url: cover.url,
+              width: cover.width ?? 1280,
+              height: cover.height ?? 720,
+              alt: cover.alt ?? evTitle.trim(),
+            }
+          : null,
+        schedule_mode: evMode,
+        starts_at: evMode === 'scheduled' && evStart ? new Date(evStart).toISOString() : null,
+        ends_at: evMode === 'scheduled' && evEnd ? new Date(evEnd).toISOString() : null,
+        location_text: evLocation.trim() || 'TBD 待定',
+        beginner_friendly: evBeginner,
+        non_members_welcome: evNonMember,
+        campus_only: evCampusOnly,
+        fee_ntd: Math.max(0, Number(evFee) || 0),
+        learning_hours_category: evHoursCat,
+        learning_hours_count: Math.max(0, Number(evHoursCount) || 0),
+        pre_event_notes: evPreNotes.trim() || null,
+        external_registration_url: evExtUrl.trim() || null,
+        include_in_evaluation: evIncludeEval,
+        poll_options:
+          evMode === 'voting'
+            ? pollLabels
+                .map((l) => l.trim())
+                .filter(Boolean)
+                .map((label) => ({ option_type: 'topic' as const, label }))
+            : undefined,
       };
-
-      const url = editingPostId
-        ? `/api/clubs/${data.club.slug}/posts/${editingPostId}`
-        : `/api/clubs/${data.club.slug}/posts`;
-      const method = editingPostId ? 'PATCH' : 'POST';
-
-      const res = await fetch(url, {
-        method,
+      const res = await fetch(`/api/clubs/${data.club.slug}/events`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       const json = await res.json();
-      if (!res.ok) {
-        setError(json?.error?.message || '儲存貼文失敗。');
-        return;
-      }
-      setNotice(targetStatus === 'published' ? '成果貼文已發布公開！' : '已儲存為草稿。');
-      resetPostForm();
-      router.refresh();
-    } catch {
-      setError('網路連線異常。');
-    } finally {
-      setPostBusy(false);
-    }
-  };
-
-  const confirmSoftDeletePost = async () => {
-    if (!deleteTargetPost) return;
-    setPostBusy(true);
-    setError(null);
-    try {
-      const res = await fetch(
-        `/api/clubs/${data.club.slug}/posts/${deleteTargetPost.id}`,
+      if (!res.ok) throw new Error(json?.error?.message || '建立活動失敗');
+      setEventsList((prev) => [
         {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ confirm: true }),
-        }
-      );
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json?.error?.message || '下架失敗。');
-        return;
-      }
-      setDeleteTargetPost(null);
-      setNotice('已下架該篇貼文（保留歷屆稽核軌跡，必要時可聯繫管理員復原）。');
-      router.refresh();
+          id: json.event.id,
+          shortCode: json.event.short_code,
+          title: json.event.title,
+          scheduleMode: evMode,
+          startsAt: payload.starts_at,
+          status: json.event.status,
+          includeInEvaluation: evIncludeEval,
+        },
+        ...prev,
+      ]);
+      setEvTitle('');
+      setEvSummary('');
+      setEvDesc('');
+      setEvCover([]);
+      setBannerMsg(`活動已發布！專屬短網址：/e/${json.event.short_code}`);
+    } catch (err) {
+      setBannerErr(err instanceof Error ? err.message : '建立活動失敗');
     } finally {
-      setPostBusy(false);
+      setBusy(null);
     }
-  };
+  }
 
-  const createOpportunity = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setOppBusy(true);
-    setError(null);
+  async function handleAiDraftSubmit(file: File | null) {
+    setBusy('ai-draft');
+    setBannerErr(null);
+    setBannerMsg(null);
     try {
-      const res = await fetch(`/api/clubs/${data.club.slug}/opportunities`, {
+      const fd = new FormData();
+      fd.append('club_id', data.club.id);
+      if (aiRawText.trim()) fd.append('raw_text', aiRawText.trim());
+      if (file) fd.append('file', file);
+
+      const res = await fetch('/api/ai/draft-from-raw', { method: 'POST', body: fd });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || 'AI 解析失敗');
+      setAiResult(json);
+    } catch (err) {
+      setBannerErr(err instanceof Error ? err.message : 'AI 解析失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  function applyAiToPost() {
+    if (!aiResult) return;
+    setPostHeadline(aiResult.draft.title.slice(0, 120));
+    setPostContentMd(aiResult.draft.content_md);
+    setPostKind(aiResult.draft.post_kind);
+    setBannerMsg('已帶入上方貼文表單，上傳圖片與確認原創後即可發布。');
+  }
+
+  function applyAiToEvent() {
+    if (!aiResult) return;
+    const d = aiResult.draft;
+    setEvTitle(d.title.slice(0, 80));
+    setEvSummary(d.summary.slice(0, 160));
+    setEvDesc(d.content_md);
+    if (d.extracted_event.location_text) setEvLocation(d.extracted_event.location_text);
+    if (typeof d.extracted_event.fee_ntd === 'number') {
+      setEvFee(String(d.extracted_event.fee_ntd));
+    }
+    if (typeof d.extracted_event.beginner_friendly === 'boolean') {
+      setEvBeginner(d.extracted_event.beginner_friendly);
+    }
+    if (typeof d.extracted_event.non_members_welcome === 'boolean') {
+      setEvNonMember(d.extracted_event.non_members_welcome);
+    }
+    if (!d.extracted_event.starts_at_hint) setEvMode('tbd');
+    setTab('events');
+    setBannerMsg('已將海報／文案解析欄位帶入活動建立表單，請補齊正確時間後送出！');
+  }
+
+  async function handlePublishPost(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy('post');
+    setBannerErr(null);
+    setBannerMsg(null);
+    try {
+      const res = await fetch(`/api/clubs/${data.club.slug}/posts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          title: oppTitle,
-          summary: oppSummary,
-          schedule_text: oppSchedule.trim() || null,
-          deadline_at: oppDeadline ? new Date(`${oppDeadline}T23:59:59+08:00`).toISOString() : null,
-          external_url: oppUrl,
-          is_active: true,
+          post_kind: postKind,
+          headline: postHeadline.trim(),
+          content_md: postContentMd.trim(),
+          media_items: postMedia,
+          originality_confirmed: postOrig,
+          include_in_evaluation: postEval,
+          status: 'published',
         }),
       });
       const json = await res.json();
-      if (!res.ok) {
-        setError(json?.error?.message || '新增參與機會失敗。');
-        return;
+      if (!res.ok) throw new Error(json?.error?.message || '發布失敗');
+      setPostsList((prev) => [
+        {
+          id: json.post.id,
+          postKind: json.post.post_kind,
+          headline: json.post.headline,
+          status: 'published',
+          includeInEvaluation: postEval,
+          publishedAt: json.post.published_at,
+        },
+        ...prev,
+      ]);
+      setPostHeadline('');
+      setPostContentMd('');
+      setPostMedia([]);
+      setPostOrig(false);
+      setBannerMsg('內容已發布！');
+    } catch (err) {
+      setBannerErr(err instanceof Error ? err.message : '發布失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleVideoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setBusy('video');
+    setBannerErr(null);
+    try {
+      const item = await uploadShortVideo(data.club.id, file);
+      setPostMedia((prev) => [...prev, item].slice(0, 6));
+    } catch (err) {
+      setBannerErr(err instanceof Error ? err.message : '短影上傳失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleGenerateInviteCode() {
+    setBusy('invite-code');
+    setBannerErr(null);
+    try {
+      const res = await fetch(`/api/clubs/${data.club.slug}/invite-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ expires_in_days: 7, max_uses: 50 }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || '產生邀請碼失敗');
+      setInviteCodes((prev) => [
+        { ...json.invite_code, used_count: 0, max_uses: 50 },
+        ...prev,
+      ]);
+      setBannerMsg(`新邀請碼已產生：${json.invite_code.code}`);
+    } catch (err) {
+      setBannerErr(err instanceof Error ? err.message : '失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleReviewMemberRequest(id: string, decision: 'approve' | 'reject') {
+    setBusy(`req-${id}`);
+    try {
+      const res = await fetch(`/api/clubs/${data.club.slug}/member-requests/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision }),
+      });
+      if (res.ok) {
+        setJoinRequests((prev) =>
+          prev.map((r) => (r.id === id ? { ...r, status: decision === 'approve' ? 'approved' : 'rejected' } : r))
+        );
       }
-      setOppTitle('');
-      setOppSummary('');
-      setOppSchedule('');
-      setOppDeadline('');
-      setOppUrl('');
-      setNotice('已新增參與機會至社團公開主頁！');
-      router.refresh();
     } finally {
-      setOppBusy(false);
+      setBusy(null);
     }
-  };
+  }
 
-  const deleteOpportunity = async (id: string) => {
-    setOppBusy(true);
-    try {
-      await fetch(`/api/clubs/${data.club.slug}/opportunities/${id}`, { method: 'DELETE' });
-      router.refresh();
-    } finally {
-      setOppBusy(false);
-    }
-  };
-
-  const saveProfile = async (e: React.FormEvent) => {
+  async function handleAddMember(e: React.FormEvent) {
     e.preventDefault();
-    setProfileBusy(true);
-    setError(null);
-    setNotice(null);
+    setBusy('add-member');
+    setBannerErr(null);
     try {
-      const res = await fetch(`/api/clubs/${data.club.slug}`, {
+      const res = await fetch(`/api/clubs/${data.club.slug}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_campus_email_or_id: targetMemberEmail.trim(),
+          role: targetMemberRole,
+          title: targetMemberTitle.trim() || null,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || '新增成員失敗');
+      setTargetMemberEmail('');
+      setTargetMemberTitle('');
+      setBannerMsg(`已新增 ${json.member.display_name}（${json.member.role}）！`);
+    } catch (err) {
+      setBannerErr(err instanceof Error ? err.message : '新增失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleReplyQuestion(qId: string) {
+    const draft = replyDrafts[qId];
+    if (!draft?.text.trim()) return;
+    setBusy(`reply-${qId}`);
+    setBannerErr(null);
+    try {
+      const res = await fetch(`/api/clubs/${data.club.slug}/questions/${qId}/reply`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          category: clubCategory,
-          tagline: clubTagline,
-          description: clubDesc,
-          avatar_url: clubAvatar[0]?.url ?? null,
-          cover_url: clubCover[0]?.url ?? null,
-          external_links: clubLinks.filter((l) => l.label.trim() && l.url.trim()),
+          answer_text: draft.text.trim(),
+          publish_publicly: draft.pub,
+          pin_as_faq: draft.pin,
+          also_publish_qa_highlight: draft.highlight,
         }),
       });
       const json = await res.json();
-      if (!res.ok) {
-        setError(json?.error?.message || '更新社團資料失敗。');
-        return;
-      }
-      setNotice('社團基本資料與聯絡連結已更新！');
-      router.refresh();
+      if (!res.ok) throw new Error(json?.error?.message || '回覆失敗');
+      setQuestionsInbox((prev) =>
+        prev.map((q) =>
+          q.id === qId
+            ? {
+                ...q,
+                answer_text: draft.text.trim(),
+                status: json.question.status,
+                is_pinned_faq: json.question.is_pinned_faq,
+              }
+            : q
+        )
+      );
+      setBannerMsg('問題已回覆！');
+    } catch (err) {
+      setBannerErr(err instanceof Error ? err.message : '回覆失敗');
     } finally {
-      setProfileBusy(false);
+      setBusy(null);
     }
-  };
+  }
 
-  const addMember = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMemberBusy(true);
-    setError(null);
-    setNotice(null);
+  async function handleArchiveUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!archTitle.trim()) {
+      setBannerErr('請先輸入檔案標題再選擇檔案上傳。');
+      return;
+    }
+    setBusy('arch-up');
+    setBannerErr(null);
     try {
-      const res = await fetch(`/api/clubs/${data.club.slug}/members`, {
+      const sasRes = await fetch('/api/media/sas', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          user_campus_email_or_id: newMemberEmail,
-          role: 'editor',
-          title: newMemberTitle,
+          purpose: 'archive_file',
+          club_id: data.club.id,
+          content_type: file.type || 'application/pdf',
+          size_bytes: file.size,
         }),
       });
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json?.error?.message || '新增幹部失敗。');
-        return;
-      }
-      setNewMemberEmail('');
-      setNotice(`已指派 ${json.member.display_name} 為現任幹部。`);
-      router.refresh();
-    } finally {
-      setMemberBusy(false);
-    }
-  };
+      const sas = await sasRes.json();
+      if (!sasRes.ok) throw new Error(sas?.error?.message || '取得密件上傳憑證失敗');
 
-  const removeMember = async (userId: string, archiveAsAlumni: boolean) => {
-    setMemberBusy(true);
-    setError(null);
-    try {
-      const res = await fetch(`/api/clubs/${data.club.slug}/members`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: userId, archive_as_alumni: archiveAsAlumni }),
+      const putRes = await fetch(sas.upload_url, {
+        method: 'PUT',
+        headers: { 'x-ms-blob-type': 'BlockBlob', 'Content-Type': file.type || 'application/pdf' },
+        body: file,
       });
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json?.error?.message || '移除幹部失敗。');
-        return;
-      }
-      setNotice(archiveAsAlumni ? '已將幹部轉列為歷屆校友（保留只讀權）。' : '已移除幹部權限。');
-      router.refresh();
-    } finally {
-      setMemberBusy(false);
-    }
-  };
+      if (!putRes.ok) throw new Error('私人容器寫入失敗');
 
-  const initiateHandover = async (e: React.FormEvent) => {
+      const saveRes = await fetch(`/api/clubs/${data.club.slug}/archive-files`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          archive_category: archCategory,
+          title: archTitle.trim(),
+          blob_path: sas.blob_path,
+          mime_type: file.type || 'application/pdf',
+          size_bytes: file.size,
+          occurred_on: archDate,
+        }),
+      });
+      const saved = await saveRes.json();
+      if (!saveRes.ok) throw new Error(saved?.error?.message || '歸檔紀錄建立失敗');
+
+      setArchiveFiles((prev) => [
+        {
+          id: saved.file.id,
+          archive_category: archCategory,
+          title: archTitle.trim(),
+          occurred_on: archDate,
+          mime_type: file.type || 'application/pdf',
+          size_bytes: file.size,
+        },
+        ...prev,
+      ]);
+      setArchTitle('');
+      setBannerMsg('內部評鑑檔案已加密歸檔（僅幹部／歷屆／校方承辦憑限時簽章存取）。');
+    } catch (err) {
+      setBannerErr(err instanceof Error ? err.message : '歸檔失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleDownloadArchive(id: string) {
+    setBusy(`dl-${id}`);
+    try {
+      const res = await fetch(`/api/clubs/${data.club.slug}/archive-files/${id}/download`);
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || '無法取得限時下載憑證');
+      window.open(json.download_url, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      setBannerErr(err instanceof Error ? err.message : '下載失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleToggleEvalItem(kind: 'event' | 'post', id: string, nextVal: boolean) {
+    const res = await fetch(`/api/clubs/${data.club.slug}/evaluation/batch-select`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(
+        kind === 'event'
+          ? { events: [{ id, include: nextVal }] }
+          : { posts: [{ id, include: nextVal }] }
+      ),
+    });
+    if (res.ok) {
+      if (kind === 'event') {
+        setEventsList((prev) =>
+          prev.map((e) => (e.id === id ? { ...e, includeInEvaluation: nextVal } : e))
+        );
+      } else {
+        setPostsList((prev) =>
+          prev.map((p) => (p.id === id ? { ...p, includeInEvaluation: nextVal } : p))
+        );
+      }
+    }
+  }
+
+  async function handleStartHandover(e: React.FormEvent) {
     e.preventDefault();
-    setMemberBusy(true);
-    setError(null);
-    setNotice(null);
+    setBusy('handover');
+    setBannerErr(null);
     try {
       const res = await fetch(`/api/clubs/${data.club.slug}/handovers`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...(handoverTargetId ? { to_user_id: handoverTargetId } : {}),
-          ...(handoverEmail.trim() ? { to_campus_email: handoverEmail.trim() } : {}),
-          note: handoverNote.trim() || undefined,
+          to_campus_email: handoverEmail.trim(),
+          pitfall_note: {
+            venue_tips: venueTips.trim(),
+            hours_and_deadlines: hoursDeadlines.trim(),
+            contacts_and_vendors: contactsVendors.trim(),
+          },
+          share_deidentified: shareDeid,
         }),
       });
       const json = await res.json();
-      if (!res.ok) {
-        setError(json?.error?.message || '發起換屆交接失敗。');
-        return;
-      }
-      setHandoverNote('');
+      if (!res.ok) throw new Error(json?.error?.message || '發起交接失敗');
+      setBannerMsg('社長交接邀請與避雷便條已送出！待接任人於個人中心確認後生效。');
       setHandoverEmail('');
-      setNotice('已發送社長交接邀請！對方於個人中心確認接受後，權限將自動完成交接。');
-      router.refresh();
+    } catch (err) {
+      setBannerErr(err instanceof Error ? err.message : '發起交接失敗');
     } finally {
-      setMemberBusy(false);
+      setBusy(null);
     }
-  };
-
-  const cancelHandover = async (handoverId: string) => {
-    setMemberBusy(true);
-    try {
-      const res = await fetch(`/api/handovers/${handoverId}/respond`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'cancel' }),
-      });
-      if (res.ok) {
-        setNotice('已撤回社長交接邀請。');
-        router.refresh();
-      }
-    } finally {
-      setMemberBusy(false);
-    }
-  };
-
-  const activeEditors = data.members.filter((m) => m.endedAt === null && m.role === 'editor');
-  const summaryPosts = data.posts.filter(
-    (p) => p.academicYear === summaryYear && p.status === 'published'
-  );
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <section className="flex flex-col justify-between gap-4 rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs sm:flex-row sm:items-center sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs">
         <div>
-          <p className="text-xs font-bold text-slate-500">
-            {data.club.universityName} ｜{' '}
-            {data.myRole === 'owner'
-              ? '現任社長管理權限'
-              : data.myRole === 'editor'
-                ? '現任幹部編輯權限'
-                : data.myRole === 'alumni'
-                  ? '歷屆校友只讀權限'
-                  : '平台管理員檢視'}
+          <p className="text-xs font-semibold text-slate-500">
+            {data.club.universityName} · 您的權限：{data.myRole}
           </p>
-          <h1 className="mt-1 text-2xl font-extrabold text-slate-900">
-            {data.club.name} 管理後台
-          </h1>
+          <h1 className="text-xl font-extrabold text-slate-900">{data.club.name} 管理後台</h1>
         </div>
         <Link
           href={`/clubs/${data.club.slug}`}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-50"
+          className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-50"
         >
-          <span>查看公開主頁</span>
-          <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+          查看公開門面
         </Link>
-      </section>
-
-      {isSuspended && (
-        <div className="flex items-start gap-2.5 rounded-2xl border border-red-300 bg-red-50 p-4 text-xs text-red-950">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-700" aria-hidden="true" />
-          <span>
-            此社團目前處於停權狀態，暫停新增與編輯貼文或參與機會；仍可檢視學年度成果彙整。
-          </span>
-        </div>
-      )}
-
-      {notice && (
-        <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-900">
-          {notice}
-        </div>
-      )}
-      {error && (
-        <div className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-xs font-bold text-red-900">
-          {error}
-        </div>
-      )}
-
-      {/* Navigation Tabs */}
-      <div className="flex flex-wrap gap-2">
-        {!isReadOnlyAlumni && data.myRole !== 'platform_admin' && (
-          <>
-            <button
-              type="button"
-              onClick={() => setTab('posts')}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold ${
-                tab === 'posts'
-                  ? 'bg-[var(--primary)] text-white'
-                  : 'border border-[var(--border-strong)] bg-white text-slate-700'
-              }`}
-            >
-              <FileText className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>成果貼文與快速整理</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('opportunities')}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold ${
-                tab === 'opportunities'
-                  ? 'bg-[var(--primary)] text-white'
-                  : 'border border-[var(--border-strong)] bg-white text-slate-700'
-              }`}
-            >
-              <Calendar className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>參與機會招募</span>
-            </button>
-          </>
-        )}
-        {isOwner && (
-          <>
-            <button
-              type="button"
-              onClick={() => setTab('profile')}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold ${
-                tab === 'profile'
-                  ? 'bg-[var(--primary)] text-white'
-                  : 'border border-[var(--border-strong)] bg-white text-slate-700'
-              }`}
-            >
-              <Settings className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>基本資料與連結</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setTab('members')}
-              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold ${
-                tab === 'members'
-                  ? 'bg-[var(--primary)] text-white'
-                  : 'border border-[var(--border-strong)] bg-white text-slate-700'
-              }`}
-            >
-              <Users className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>幹部與雙向換屆</span>
-            </button>
-          </>
-        )}
-        <button
-          type="button"
-          onClick={() => setTab('summary')}
-          className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold ${
-            tab === 'summary'
-              ? 'bg-[#2563EB] text-white'
-              : 'border border-[var(--border-strong)] bg-white text-slate-700'
-          }`}
-        >
-          <Printer className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>學年度成果總覽</span>
-        </button>
       </div>
 
-      {/* TAB 1: POSTS & AI QUICK DRAFT */}
-      {tab === 'posts' && canEdit && (
+      {isReadOnlyAlumni && (
+        <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs font-bold text-blue-900">
+          您目前為歷屆幹部／校友（只讀檢視權限）：可查閱私密評鑑歸檔、匯出年度成果報告與歷屆避雷便條，無法異動現任活動或成員權限。
+        </div>
+      )}
+
+      {bannerMsg && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-800">
+          {bannerMsg}
+        </div>
+      )}
+      {bannerErr && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-bold text-red-800">
+          {bannerErr}
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        {[
+          { key: 'events', label: '活動與喬時間', icon: Calendar },
+          { key: 'posts', label: 'Vision 海報 AI & 發文', icon: FileText },
+          { key: 'members', label: '社員邀請碼 & 幹部', icon: Users },
+          { key: 'questions', label: '問答箱 & FAQ', icon: HelpCircle },
+          { key: 'evaluation', label: '評鑑密件 & 報告匯出', icon: Archive },
+          { key: 'handover', label: '3 步換屆 & 避雷便條', icon: ArrowRightLeft },
+        ].map((t) => {
+          const Icon = t.icon;
+          return (
+            <button
+              key={t.key}
+              type="button"
+              onClick={() => switchTab(t.key as typeof tab)}
+              className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-xl px-4 text-xs font-bold ${
+                tab === t.key
+                  ? 'bg-[var(--brand)] text-white'
+                  : 'border border-[var(--border-strong)] bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <Icon className="h-3.5 w-3.5" />
+              {t.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* EVENTS TAB */}
+      {tab === 'events' && (
         <div className="space-y-6">
-          {/* AI Quick Organize Drawer */}
-          <section className="rounded-3xl border border-orange-300 bg-gradient-to-r from-orange-50 to-white p-5 shadow-xs">
-            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-              <div className="space-y-1">
-                <div className="inline-flex items-center gap-1.5 text-xs font-extrabold text-[var(--primary)]">
-                  <Wand2 className="h-4 w-4" aria-hidden="true" />
-                  <span>零散紀錄快速整理成貼文草稿（FR-MY-03）</span>
-                </div>
-                <p className="text-xs text-slate-600">
-                  貼上活動企劃書、IG 舊貼文、筆記或上傳 PDF/TXT/MD（≤ 4 MB），AI 會產出可編輯草稿並填入表單，由您確認後再發布。
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAiDrawerOpen((v) => !v)}
-                className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
-              >
-                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>{aiDrawerOpen ? '收合整理工具' : '打開快速整理'}</span>
-              </button>
-            </div>
-
-            {aiDrawerOpen && (
-              <form onSubmit={runAiOrganize} className="mt-4 space-y-3 border-t border-orange-200 pt-4">
-                <textarea
-                  rows={5}
-                  value={rawText}
-                  onChange={(e) => setRawText(e.target.value)}
-                  placeholder="直接貼上社團活動紀錄、會議摘要或宣傳文案（至少 20 字）..."
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
-                />
-                <div className="flex flex-wrap items-center justify-between gap-3">
+          {canWrite && (
+            <form
+              onSubmit={handleCreateEvent}
+              className="space-y-4 rounded-3xl border border-[var(--border-strong)] bg-white p-6"
+            >
+              <h2 className="text-base font-extrabold text-slate-900">建立 Partiful 風格體驗活動</h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-700">活動名稱 *</label>
                   <input
-                    type="file"
-                    accept=".pdf,.txt,.md,application/pdf,text/plain,text/markdown"
-                    onChange={(e) => setRawFile(e.target.files?.[0] ?? null)}
-                    className="text-xs text-slate-700"
-                  />
-                  <button
-                    type="submit"
-                    disabled={aiBusy}
-                    className="rounded-xl bg-[#2563EB] px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50"
-                  >
-                    {aiBusy ? 'AI 整理草稿中...' : '一鍵整理成草稿'}
-                  </button>
-                </div>
-                {aiMsg && (
-                  <p className="rounded-xl bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-950">
-                    {aiMsg}
-                  </p>
-                )}
-              </form>
-            )}
-          </section>
-
-          {/* Post Form */}
-          <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs sm:p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-extrabold text-slate-900">
-                {editingPostId ? '編輯成果貼文' : '新增成果貼文'}
-              </h2>
-              {editingPostId && (
-                <button
-                  type="button"
-                  onClick={resetPostForm}
-                  className="text-xs font-semibold text-slate-600 underline"
-                >
-                  改為新增貼文
-                </button>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-4">
-                <div className="sm:col-span-2">
-                  <label className="mb-1 block text-xs font-bold text-slate-700">標題（必填）</label>
-                  <input
-                    type="text"
-                    value={postTitle}
-                    onChange={(e) => setPostTitle(e.target.value)}
-                    placeholder="例如：115-1 期末暗房銀鹽攝影展回顧"
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    required
+                    minLength={2}
+                    maxLength={80}
+                    value={evTitle}
+                    onChange={(e) => setEvTitle(e.target.value)}
+                    placeholder="例如：零基礎底片沖洗之夜"
+                    className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700">分類（必填）</label>
+                  <label className="mb-1 block text-xs font-bold text-slate-700">主題底色</label>
                   <select
-                    value={postType}
-                    onChange={(e) => setPostType(e.target.value as PostType)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
+                    value={evTheme}
+                    onChange={(e) => setEvTheme(e.target.value as typeof evTheme)}
+                    className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
                   >
-                    {Object.entries(POST_TYPES).map(([k, v]) => (
-                      <option key={k} value={k}>
-                        {v.label}
-                      </option>
-                    ))}
+                    <option value="warm_paper">暖陽松果 (Warm Paper)</option>
+                    <option value="campus_blue">晴空講義 (Campus Blue)</option>
+                    <option value="forest_trail">山林野營 (Forest Trail)</option>
+                    <option value="midnight_jam">暗房霓虹 (Midnight Jam)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-3">
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-700">時程模式</label>
+                  <select
+                    value={evMode}
+                    onChange={(e) => setEvMode(e.target.value as typeof evMode)}
+                    className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+                  >
+                    <option value="scheduled">已確定時間 (Scheduled)</option>
+                    <option value="tbd">先刊登再定時間 (TBD)</option>
+                    <option value="voting">讓同學投票喬時間／主題 (Voting)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700">民國學年度</label>
+                  <label className="mb-1 block text-xs font-bold text-slate-700">地點 *</label>
+                  <input
+                    required
+                    value={evLocation}
+                    onChange={(e) => setEvLocation(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-slate-700">單次費用 (NT$)</label>
                   <input
                     type="number"
-                    min={100}
-                    max={150}
-                    value={postYear}
-                    onChange={(e) => setPostYear(Number(e.target.value))}
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    min={0}
+                    value={evFee}
+                    onChange={(e) => setEvFee(e.target.value)}
+                    className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">
-                  一句話摘要（選填，留白將自動由內文前 140 字擷取）
-                </label>
+              {evMode === 'scheduled' && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-700">開始時間 *</label>
+                    <input
+                      type="datetime-local"
+                      required
+                      value={evStart}
+                      onChange={(e) => setEvStart(e.target.value)}
+                      className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-slate-700">結束時間（選填）</label>
+                    <input
+                      type="datetime-local"
+                      value={evEnd}
+                      onChange={(e) => setEvEnd(e.target.value)}
+                      className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {evMode === 'voting' && (
+                <div className="space-y-2 rounded-2xl bg-[var(--surface-warm)] p-4">
+                  <p className="text-xs font-bold text-slate-800">設定投票選項（最多填 3 個候選項目）：</p>
+                  {pollLabels.map((lbl, idx) => (
+                    <input
+                      key={idx}
+                      value={lbl}
+                      onChange={(e) =>
+                        setPollLabels((prev) => prev.map((v, i) => (i === idx ? e.target.value : v)))
+                      }
+                      placeholder={`投票選項 ${idx + 1}`}
+                      className="w-full rounded-xl border border-[var(--border)] bg-white px-3 py-1.5 text-xs"
+                    />
+                  ))}
+                </div>
+              )}
+
+              <div className="grid gap-3 sm:grid-cols-2">
                 <input
-                  type="text"
-                  maxLength={200}
-                  value={postSummary}
-                  onChange={(e) => setPostSummary(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  value={evSummary}
+                  onChange={(e) => setEvSummary(e.target.value)}
+                  maxLength={160}
+                  placeholder="一句話亮點摘要（將顯示在探索頁與分享預覽卡）"
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+                />
+                <input
+                  value={evPreNotes}
+                  onChange={(e) => setEvPreNotes(e.target.value)}
+                  placeholder="行前提醒（例如：請穿好走運動鞋、社團會提供道具）"
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
                 />
               </div>
 
-              <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">
-                  成果正文（必填，支援 Markdown）
-                </label>
-                <textarea
-                  rows={7}
-                  value={postContentMd}
-                  onChange={(e) => setPostContentMd(e.target.value)}
-                  placeholder="記錄活動流程、作品亮點、學習收穫或社員心得..."
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              <div className="grid gap-3 sm:grid-cols-3">
+                <select
+                  value={evHoursCat}
+                  onChange={(e) => setEvHoursCat(e.target.value as LearningHoursCategory)}
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-medium"
+                >
+                  <option value="none">無認證時數</option>
+                  <option value="art">可認證藝文時數</option>
+                  <option value="life">可認證生活知能時數</option>
+                  <option value="service">可認證服務學習時數</option>
+                </select>
+                <input
+                  type="number"
+                  step="0.5"
+                  min={0}
+                  value={evHoursCount}
+                  onChange={(e) => setEvHoursCount(e.target.value)}
+                  placeholder="時數小時數"
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                />
+                <input
+                  type="url"
+                  value={evExtUrl}
+                  onChange={(e) => setEvExtUrl(e.target.value)}
+                  placeholder="選填：外部報名 Google 表單網址"
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
                 />
               </div>
 
-              {/* Tags */}
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-700">
-                  興趣與主題標籤（最多 8 個）
+              <textarea
+                rows={3}
+                value={evDesc}
+                onChange={(e) => setEvDesc(e.target.value)}
+                placeholder="完整活動介紹 Markdown（也可從「Vision 海報 AI」分頁一鍵抽取填入）"
+                className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+              />
+
+              <ImageUploader
+                clubId={data.club.id}
+                value={evCover}
+                onChange={setEvCover}
+                maxImages={1}
+                purpose="club_cover"
+              />
+
+              <div className="flex flex-wrap gap-4 text-xs font-medium text-slate-700">
+                <label className="flex cursor-pointer items-center gap-1.5">
+                  <input type="checkbox" checked={evBeginner} onChange={(e) => setEvBeginner(e.target.checked)} />
+                  零基礎友善
                 </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {CURATED_INTEREST_TAGS.map((tag) => {
-                    const active = postTags.includes(tag);
-                    return (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() =>
-                          setPostTags((prev) =>
-                            active
-                              ? prev.filter((t) => t !== tag)
-                              : prev.length < 8
-                                ? [...prev, tag]
-                                : prev
-                          )
-                        }
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          active
-                            ? 'bg-[var(--primary)] text-white'
-                            : 'bg-[var(--muted)] text-slate-700'
-                        }`}
-                      >
-                        #{tag}
-                      </button>
-                    );
-                  })}
+                <label className="flex cursor-pointer items-center gap-1.5">
+                  <input type="checkbox" checked={evNonMember} onChange={(e) => setEvNonMember(e.target.checked)} />
+                  非社員歡迎體驗
+                </label>
+                <label className="flex cursor-pointer items-center gap-1.5">
+                  <input type="checkbox" checked={evCampusOnly} onChange={(e) => setEvCampusOnly(e.target.checked)} />
+                  限本校 .edu.tw 報名
+                </label>
+                <label className="flex cursor-pointer items-center gap-1.5">
+                  <input type="checkbox" checked={evIncludeEval} onChange={(e) => setEvIncludeEval(e.target.checked)} />
+                  納入本學年評鑑報表
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={busy === 'create-event' || evTitle.trim().length < 2}
+                className="rounded-full bg-[var(--brand)] px-5 py-2 text-xs font-extrabold text-white disabled:opacity-50"
+              >
+                {busy === 'create-event' ? '建立中...' : '發布活動並產生專屬短網址'}
+              </button>
+            </form>
+          )}
+
+          <div className="space-y-3 rounded-3xl border border-[var(--border)] bg-white p-5">
+            <h2 className="text-base font-extrabold text-slate-900">近期活動清單</h2>
+            {eventsList.map((ev) => (
+              <div
+                key={ev.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-[var(--muted)] p-4"
+              >
+                <div>
+                  <p className="text-sm font-bold text-slate-900">{ev.title}</p>
+                  <p className="text-xs text-slate-500">
+                    模式：{ev.scheduleMode} · 狀態：{ev.status}
+                  </p>
                 </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={customTagInput}
-                    onChange={(e) => setCustomTagInput(e.target.value)}
-                    placeholder="自訂標籤（輸入後按新增）"
-                    className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs"
-                  />
+                <div className="flex items-center gap-3">
+                  {canWrite && (
+                    <label className="flex cursor-pointer items-center gap-1 text-xs font-semibold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={ev.includeInEvaluation}
+                        onChange={(e) => handleToggleEvalItem('event', ev.id, e.target.checked)}
+                      />
+                      列入評鑑
+                    </label>
+                  )}
+                  <Link
+                    href={`/e/${ev.shortCode}`}
+                    className="rounded-xl bg-white px-3 py-1.5 text-xs font-bold text-blue-700"
+                  >
+                    /e/{ev.shortCode}
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* POSTS & VISION AI TAB */}
+      {tab === 'posts' && (
+        <div className="space-y-6">
+          {canWrite && (
+            <>
+              <div className="space-y-3 rounded-3xl border border-orange-200 bg-[var(--surface-warm)] p-6">
+                <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
+                  <Sparkles className="h-4 w-4 text-[var(--brand)]" />
+                  Vision AI 海報辨識 ＆ 零散文案整理（不捏造日期與費用）
+                </h2>
+                <textarea
+                  rows={3}
+                  value={aiRawText}
+                  onChange={(e) => setAiRawText(e.target.value)}
+                  placeholder="貼上活動零散筆記、LINE 公告或上傳海報／企劃 PDF (≤4MB)..."
+                  className="w-full rounded-xl border border-[var(--border)] bg-white p-3 text-xs"
+                />
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white">
+                    <Upload className="h-3.5 w-3.5" />
+                    {busy === 'ai-draft' ? '解析中...' : '上傳海報圖 / PDF 自動辨識'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,.pdf,.txt,.md"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] ?? null;
+                        e.target.value = '';
+                        if (f) handleAiDraftSubmit(f);
+                      }}
+                      className="hidden"
+                    />
+                  </label>
                   <button
                     type="button"
-                    onClick={() => {
-                      const clean = customTagInput.trim();
-                      if (clean && !postTags.includes(clean) && postTags.length < 8) {
-                        setPostTags([...postTags, clean]);
-                        setCustomTagInput('');
-                      }
-                    }}
-                    className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-bold text-slate-700"
+                    disabled={busy === 'ai-draft' || aiRawText.trim().length < 20}
+                    onClick={() => handleAiDraftSubmit(null)}
+                    className="rounded-full border border-[var(--border-strong)] bg-white px-4 py-2 text-xs font-bold text-slate-800 disabled:opacity-50"
                   >
-                    新增標籤
+                    僅解析文字草稿
                   </button>
                 </div>
+
+                {aiResult && (
+                  <div className="space-y-2 rounded-2xl bg-white p-4 text-xs">
+                    {aiResult.degraded && (
+                      <p className="font-bold text-amber-800">
+                        {aiResult.warnings.join(' ')}
+                      </p>
+                    )}
+                    <p className="font-bold text-slate-900">抽出標題：{aiResult.draft.title}</p>
+                    <p className="text-slate-700">{aiResult.draft.summary}</p>
+                    {aiResult.draft.missing_beginner_fields.length > 0 && (
+                      <p className="font-semibold text-orange-800">
+                        ⚠️ 海報未載明新手資訊建議補填：{aiResult.draft.missing_beginner_fields.join('、')}
+                      </p>
+                    )}
+                    {aiResult.draft.poster_text_heavy && (
+                      <p className="font-semibold text-blue-800">
+                        💡 偵測到海報文字密集，建議於活動頁補純文字時間地點以利螢幕閱讀與搜尋。
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={applyAiToEvent}
+                        className="rounded-full bg-[var(--brand)] px-3.5 py-1.5 font-bold text-white"
+                      >
+                        帶入「建立活動」表單
+                      </button>
+                      <button
+                        type="button"
+                        onClick={applyAiToPost}
+                        className="rounded-full border border-[var(--border-strong)] px-3.5 py-1.5 font-bold text-slate-800"
+                      >
+                        帶入下方「作品／日常」表單
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">合作單位（選填）</label>
-                <input
-                  type="text"
-                  maxLength={200}
-                  value={postCollaborators}
-                  onChange={(e) => setPostCollaborators(e.target.value)}
-                  placeholder="例如：臺科大攝影社、中大課外活動組"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+              <form
+                onSubmit={handlePublishPost}
+                className="space-y-4 rounded-3xl border border-[var(--border)] bg-white p-6"
+              >
+                <h2 className="text-base font-extrabold text-slate-900">發布社團日常／實作作品</h2>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <select
+                    value={postKind}
+                    onChange={(e) => setPostKind(e.target.value as 'nrc_moment' | 'wip_work')}
+                    className="rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+                  >
+                    <option value="wip_work">實作作品 (WIP Work)</option>
+                    <option value="nrc_moment">社員日常 (NRC Moment)</option>
+                  </select>
+                  <input
+                    required
+                    minLength={2}
+                    maxLength={120}
+                    value={postHeadline}
+                    onChange={(e) => setPostHeadline(e.target.value)}
+                    placeholder="一句話亮點標題 *"
+                    className="sm:col-span-2 rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+                  />
+                </div>
+                <textarea
+                  rows={3}
+                  value={postContentMd}
+                  onChange={(e) => setPostContentMd(e.target.value)}
+                  placeholder="內容 Markdown..."
+                  className="w-full rounded-xl border border-[var(--border)] p-3 text-sm"
                 />
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                  成果圖片（最多 6 張）
-                </label>
                 <ImageUploader
                   clubId={data.club.id}
                   value={postMedia}
                   onChange={setPostMedia}
+                  maxImages={6}
+                  purpose="post_image"
                 />
-              </div>
-
-              {/* External Links */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-700">
-                    外部作品或影音連結（選填）
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setPostLinks((prev) =>
-                        prev.length < 5 ? [...prev, { label: '', url: '' }] : prev
-                      )
-                    }
-                    className="inline-flex items-center gap-1 text-xs font-bold text-blue-700"
-                  >
-                    <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>新增連結</span>
-                  </button>
-                </div>
-                {postLinks.map((link, idx) => (
-                  <div key={idx} className="grid gap-2 sm:grid-cols-5">
-                    <input
-                      type="text"
-                      placeholder="名稱（如 YouTube 影片）"
-                      value={link.label}
-                      onChange={(e) =>
-                        setPostLinks((prev) =>
-                          prev.map((l, i) => (i === idx ? { ...l, label: e.target.value } : l))
-                        )
-                      }
-                      className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs sm:col-span-2"
-                    />
-                    <input
-                      type="url"
-                      placeholder="https://..."
-                      value={link.url}
-                      onChange={(e) =>
-                        setPostLinks((prev) =>
-                          prev.map((l, i) => (i === idx ? { ...l, url: e.target.value } : l))
-                        )
-                      }
-                      className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs sm:col-span-2"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setPostLinks((prev) => prev.filter((_, i) => i !== idx))}
-                      className="rounded-xl border border-slate-200 px-2 py-1.5 text-xs text-red-600"
-                    >
-                      移除
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              <label className="flex items-start gap-2.5 rounded-2xl border border-slate-200 bg-[var(--muted)] p-3.5 text-xs text-slate-800">
-                <input
-                  type="checkbox"
-                  checked={originalityConfirmed}
-                  onChange={(e) => setOriginalityConfirmed(e.target.checked)}
-                  className="mt-0.5"
-                />
-                <span>
-                  <strong>原創與素材授權確認（發布必勾）：</strong>
-                  內容為社團原創或已取得合法授權使用，且不含未經同意揭露之非公開個人資料。
-                </span>
-              </label>
-
-              <div className="flex flex-wrap justify-end gap-2">
-                <button
-                  type="button"
-                  disabled={postBusy}
-                  onClick={() => void submitPost('draft')}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs font-bold text-slate-800 hover:bg-slate-50"
-                >
-                  儲存草稿
-                </button>
-                <button
-                  type="button"
-                  disabled={postBusy}
-                  onClick={() => void submitPost('published')}
-                  className="rounded-xl bg-[var(--primary)] px-5 py-2.5 text-xs font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
-                >
-                  {postBusy ? '處理中...' : '確認發布公開'}
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {/* Existing Posts List */}
-          <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs sm:p-6">
-            <h2 className="mb-4 text-base font-extrabold text-slate-900">
-              社團歷來貼文管理（共 {data.posts.length} 篇）
-            </h2>
-            <div className="space-y-3">
-              {data.posts.map((p) => {
-                const canDelete =
-                  isOwner || (p.status === 'draft' && p.authorUserId === data.myUserId);
-                return (
-                  <div
-                    key={p.id}
-                    className="flex flex-col justify-between gap-3 rounded-2xl border border-[var(--border)] p-4 sm:flex-row sm:items-center"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span
-                          className={`rounded-full px-2.5 py-0.5 font-bold ${
-                            p.status === 'published'
-                              ? 'bg-emerald-100 text-emerald-900'
-                              : p.status === 'draft'
-                                ? 'bg-slate-200 text-slate-800'
-                                : 'bg-red-100 text-red-900'
-                          }`}
-                        >
-                          {p.status === 'published'
-                            ? '已發布'
-                            : p.status === 'draft'
-                              ? '草稿'
-                              : p.status === 'hidden_by_owner'
-                                ? '社長已下架'
-                                : '管理員下架'}
-                        </span>
-                        <span className="font-semibold text-slate-600">
-                          {p.academicYear} 學年 · {POST_TYPES[p.postType].label}
-                        </span>
-                      </div>
-                      <p className="text-sm font-bold text-slate-900">{p.title}</p>
-                      <p className="text-xs text-slate-500">
-                        更新於 {formatTaipeiDateTime(p.updatedAt)}
-                      </p>
-                    </div>
-
-                    <div className="flex shrink-0 gap-2">
-                      {p.status === 'published' && (
-                        <Link
-                          href={`/posts/${p.id}`}
-                          className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700"
-                        >
-                          查看
-                        </Link>
-                      )}
-                      {p.status !== 'removed_by_admin' && (
-                        <button
-                          type="button"
-                          onClick={() => loadPostIntoForm(p)}
-                          className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 hover:bg-orange-50"
-                        >
-                          編輯
-                        </button>
-                      )}
-                      {canDelete && p.status !== 'hidden_by_owner' && p.status !== 'removed_by_admin' && (
-                        <button
-                          type="button"
-                          onClick={() => setDeleteTargetPost({ id: p.id, title: p.title })}
-                          className="inline-flex items-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                          <span>下架</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
-        </div>
-      )}
-
-      {/* TAB 2: OPPORTUNITIES */}
-      {tab === 'opportunities' && canEdit && (
-        <div className="space-y-6">
-          <form
-            onSubmit={createOpportunity}
-            className="space-y-4 rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs sm:p-6"
-          >
-            <h2 className="text-lg font-extrabold text-slate-900">新增近期參與機會／體驗招募</h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <input
-                type="text"
-                required
-                placeholder="標題（如：秋季底片暗房體驗社課旁聽）"
-                value={oppTitle}
-                onChange={(e) => setOppTitle(e.target.value)}
-                className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              />
-              <input
-                type="text"
-                placeholder="時間／地點（如：每週三 19:00 志希館）"
-                value={oppSchedule}
-                onChange={(e) => setOppSchedule(e.target.value)}
-                className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              />
-            </div>
-            <input
-              type="text"
-              required
-              maxLength={160}
-              placeholder="一句話說明（≤ 160 字）"
-              value={oppSummary}
-              onChange={(e) => setOppSummary(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-            />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <input
-                type="url"
-                required
-                placeholder="外部報名表單或聯絡連結（https:// 或 mailto:）"
-                value={oppUrl}
-                onChange={(e) => setOppUrl(e.target.value)}
-                className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              />
-              <input
-                type="date"
-                value={oppDeadline}
-                onChange={(e) => setOppDeadline(e.target.value)}
-                className="rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={oppBusy}
-              className="rounded-xl bg-[var(--primary)] px-5 py-2 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
-            >
-              新增參與機會
-            </button>
-          </form>
-
-          <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs">
-            <h3 className="mb-3 text-base font-extrabold text-slate-900">目前參與機會項目</h3>
-            {data.opportunities.length === 0 ? (
-              <p className="text-xs text-slate-500">尚未建立任何參與機會（公開主頁將自動收合此區塊）。</p>
-            ) : (
-              <div className="space-y-3">
-                {data.opportunities.map((o) => (
-                  <div
-                    key={o.id}
-                    className="flex flex-col justify-between gap-2 rounded-2xl border border-[var(--border)] p-4 sm:flex-row sm:items-center"
-                  >
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">{o.title}</p>
-                      <p className="text-xs text-slate-600">{o.summary}</p>
-                    </div>
-                    <button
-                      type="button"
-                      disabled={oppBusy}
-                      onClick={() => void deleteOpportunity(o.id)}
-                      className="shrink-0 rounded-xl border border-red-200 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-50"
-                    >
-                      刪除
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
-      )}
-
-      {/* TAB 3: CLUB PROFILE */}
-      {tab === 'profile' && isOwner && (
-        <form
-          onSubmit={saveProfile}
-          className="space-y-4 rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs sm:p-6"
-        >
-          <h2 className="text-lg font-extrabold text-slate-900">編輯社團公開資料與聯絡管道</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-bold text-slate-700">社團分類</label>
-              <select
-                value={clubCategory}
-                onChange={(e) => setClubCategory(e.target.value as ClubCategory)}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
-              >
-                {CLUB_CATEGORY_LIST.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-bold text-slate-700">
-                一句話簡介（≤ 120 字）
-              </label>
-              <input
-                type="text"
-                maxLength={120}
-                value={clubTagline}
-                onChange={(e) => setClubTagline(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-bold text-slate-700">社團詳細介紹</label>
-            <textarea
-              rows={5}
-              value={clubDesc}
-              onChange={(e) => setClubDesc(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                社團頭像（選填）
-              </label>
-              <ImageUploader
-                clubId={data.club.id}
-                value={clubAvatar}
-                onChange={setClubAvatar}
-                maxImages={1}
-                purpose="club_avatar"
-              />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                公開主頁封面圖（選填）
-              </label>
-              <ImageUploader
-                clubId={data.club.id}
-                value={clubCover}
-                onChange={setClubCover}
-                maxImages={1}
-                purpose="club_cover"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <label className="text-xs font-bold text-slate-700">
-                公開外部聯絡與社群連結（IG / FB / Email / 表單）
-              </label>
-              <button
-                type="button"
-                onClick={() =>
-                  setClubLinks((prev) => [...prev, { type: 'website', label: '', url: '' }])
-                }
-                className="text-xs font-bold text-blue-700"
-              >
-                + 新增連結
-              </button>
-            </div>
-            {clubLinks.map((l, idx) => (
-              <div key={idx} className="grid gap-2 sm:grid-cols-5">
-                <input
-                  type="text"
-                  placeholder="標籤（如 Instagram）"
-                  value={l.label}
-                  onChange={(e) =>
-                    setClubLinks((prev) =>
-                      prev.map((item, i) => (i === idx ? { ...item, label: e.target.value } : item))
-                    )
-                  }
-                  className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs sm:col-span-2"
-                />
-                <input
-                  type="url"
-                  placeholder="https://... 或 mailto:..."
-                  value={l.url}
-                  onChange={(e) =>
-                    setClubLinks((prev) =>
-                      prev.map((item, i) => (i === idx ? { ...item, url: e.target.value } : item))
-                    )
-                  }
-                  className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs sm:col-span-2"
-                />
-                <button
-                  type="button"
-                  onClick={() => setClubLinks((prev) => prev.filter((_, i) => i !== idx))}
-                  className="rounded-xl border border-slate-200 px-2 py-1.5 text-xs text-red-600"
-                >
-                  移除
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <button
-            type="submit"
-            disabled={profileBusy}
-            className="rounded-xl bg-[var(--primary)] px-5 py-2.5 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
-          >
-            {profileBusy ? '儲存中...' : '儲存社團資料'}
-          </button>
-        </form>
-      )}
-
-      {/* TAB 4: MEMBERS & HANDOVER */}
-      {tab === 'members' && isOwner && (
-        <div className="space-y-6">
-          <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs sm:p-6">
-            <h2 className="mb-3 text-lg font-extrabold text-slate-900">指派幹部（Editor）</h2>
-            <form onSubmit={addMember} className="flex flex-col gap-2 sm:flex-row">
-              <input
-                type="text"
-                required
-                value={newMemberEmail}
-                onChange={(e) => setNewMemberEmail(e.target.value)}
-                placeholder="輸入已完成 .edu.tw 驗證之幹部校園信箱"
-                className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm"
-              />
-              <input
-                type="text"
-                value={newMemberTitle}
-                onChange={(e) => setNewMemberTitle(e.target.value)}
-                placeholder="職稱（如 活動長）"
-                className="rounded-xl border border-slate-300 px-3 py-2 text-sm sm:w-36"
-              />
-              <button
-                type="submit"
-                disabled={memberBusy}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
-              >
-                <UserPlus className="h-4 w-4" aria-hidden="true" />
-                <span>新增幹部</span>
-              </button>
-            </form>
-
-            <div className="mt-5 space-y-2.5">
-              {data.members.map((m) => (
-                <div
-                  key={`${m.userId}-${m.role}-${m.joinedAt}`}
-                  className="flex flex-col justify-between gap-2 rounded-2xl border border-[var(--border)] p-3.5 sm:flex-row sm:items-center"
-                >
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">
-                      {m.displayName}{' '}
-                      <span className="text-xs font-semibold text-slate-600">
-                        （
-                        {m.role === 'owner'
-                          ? '現任社長'
-                          : m.role === 'editor'
-                            ? '現任幹部'
-                            : '歷屆校友'}
-                        {m.title ? ` · ${m.title}` : ''}）
-                      </span>
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      加入：{formatTaipeiDate(m.joinedAt)}
-                      {m.endedAt ? ` ｜ 卸任：${formatTaipeiDate(m.endedAt)}` : ''}
-                    </p>
-                  </div>
-                  {m.endedAt === null && m.role === 'editor' && (
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        disabled={memberBusy}
-                        onClick={() => void removeMember(m.userId, true)}
-                        className="rounded-xl border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                      >
-                        卸任轉為歷屆校友
-                      </button>
-                      <button
-                        type="button"
-                        disabled={memberBusy}
-                        onClick={() => void removeMember(m.userId, false)}
-                        className="rounded-xl border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
-                      >
-                        移除
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Handover Section */}
-          <section className="rounded-3xl border border-orange-300 bg-orange-50/60 p-5 shadow-xs sm:p-6">
-            <h2 className="text-lg font-extrabold text-slate-900">雙向確認換屆交接（FR-MY-05）</h2>
-            <p className="mt-1 text-xs text-slate-600">
-              發起移交後，對方須於 7 天內在個人中心確認接受；完成後新社長即刻接手，您將轉為歷屆校友（保留只讀成果彙整權限），社團貼文完整保留不中斷。
-            </p>
-
-            {data.pendingHandover ? (
-              <div className="mt-4 flex flex-col justify-between gap-3 rounded-2xl border border-orange-200 bg-white p-4 sm:flex-row sm:items-center">
-                <div className="text-xs">
-                  <p className="text-sm font-bold text-slate-900">
-                    等待「{data.pendingHandover.toUserName}」確認接受交接
-                  </p>
-                  <p className="mt-0.5 text-slate-500">
-                    有效期限：{formatTaipeiDateTime(data.pendingHandover.expiresAt)}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  disabled={memberBusy}
-                  onClick={() => void cancelHandover(data.pendingHandover!.id)}
-                  className="rounded-xl border border-red-300 bg-white px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
-                >
-                  撤回交接邀請
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={initiateHandover} className="mt-4 space-y-3 rounded-2xl bg-white p-4">
-                {activeEditors.length > 0 && (
-                  <div>
-                    <label className="mb-1 block text-xs font-bold text-slate-700">
-                      從現任幹部選擇接任社長
-                    </label>
-                    <select
-                      value={handoverTargetId}
-                      onChange={(e) => setHandoverTargetId(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
-                    >
-                      <option value="">— 改用下方校園信箱指定其他驗證學生 —</option>
-                      {activeEditors.map((ed) => (
-                        <option key={ed.userId} value={ed.userId}>
-                          {ed.displayName} {ed.title ? `(${ed.title})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {!handoverTargetId && (
-                  <div>
-                    <label className="mb-1 block text-xs font-bold text-slate-700">
-                      或輸入接任者 `.edu.tw` 校園信箱
-                    </label>
-                    <input
-                      type="email"
-                      required={!handoverTargetId}
-                      value={handoverEmail}
-                      onChange={(e) => setHandoverEmail(e.target.value)}
-                      placeholder="new-president@ncu.edu.tw"
-                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                    />
-                  </div>
-                )}
-
-                <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700">
-                    交接備註（選填）
-                  </label>
+                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[var(--border-strong)] px-3 py-1.5 text-xs font-bold text-slate-700">
+                  <Film className="h-3.5 w-3.5 text-[var(--brand)]" />
+                  上傳 ≤15 秒短影 (MP4/WebM)
                   <input
-                    type="text"
-                    maxLength={400}
-                    value={handoverNote}
-                    onChange={(e) => setHandoverNote(e.target.value)}
-                    placeholder="例如：116 學年度社長權限移交"
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                    type="file"
+                    accept="video/mp4,video/webm"
+                    onChange={handleVideoUpload}
+                    className="hidden"
                   />
+                </label>
+                <div className="flex flex-wrap gap-4 text-xs">
+                  <label className="flex cursor-pointer items-center gap-1.5 font-semibold">
+                    <input type="checkbox" checked={postOrig} onChange={(e) => setPostOrig(e.target.checked)} />
+                    原創與肖像授權聲明（必勾）
+                  </label>
+                  <label className="flex cursor-pointer items-center gap-1.5">
+                    <input type="checkbox" checked={postEval} onChange={(e) => setPostEval(e.target.checked)} />
+                    收進評鑑成果
+                  </label>
                 </div>
-
                 <button
                   type="submit"
-                  disabled={memberBusy}
-                  className="rounded-xl bg-[var(--primary)] px-5 py-2 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
+                  disabled={busy === 'post' || postMedia.length === 0 || !postOrig}
+                  className="rounded-full bg-[var(--brand)] px-5 py-2 text-xs font-extrabold text-white disabled:opacity-50"
                 >
-                  發起社長權限移交邀請
+                  立即發布
                 </button>
               </form>
-            )}
-          </section>
-        </div>
-      )}
+            </>
+          )}
 
-      {/* TAB 5: ACADEMIC YEAR SUMMARY */}
-      {tab === 'summary' && (
-        <section className="space-y-4 rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs sm:p-6">
-          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-extrabold text-slate-900">學年度成果總覽</h2>
-              <select
-                value={summaryYear}
-                onChange={(e) => setSummaryYear(Number(e.target.value))}
-                className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold"
+          <div className="space-y-3 rounded-3xl border border-[var(--border)] bg-white p-5">
+            <h2 className="text-base font-extrabold text-slate-900">已發布內容與評鑑標記</h2>
+            {postsList.map((p) => (
+              <div
+                key={p.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-[var(--muted)] p-4"
               >
-                {availableYears.map((y) => (
-                  <option key={y} value={y}>
-                    {y} 學年度
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <a
-                href={`/api/clubs/${data.club.slug}/summary/${summaryYear}/export?format=md`}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-50"
-              >
-                <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>下載 Markdown</span>
-              </a>
-              <Link
-                href={`/clubs/${data.club.slug}/summary/${summaryYear}/print`}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#2563EB] px-4 py-2 text-xs font-bold text-white hover:bg-blue-700"
-              >
-                <Printer className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>開啟列印／另存 PDF 報告</span>
-              </Link>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
-            <div className="rounded-2xl bg-[var(--muted)] p-3 text-center">
-              <p className="text-xs text-slate-600">總公開貼文</p>
-              <p className="mt-1 text-xl font-extrabold text-slate-900">{summaryPosts.length}</p>
-            </div>
-            {Object.entries(POST_TYPES).map(([k, m]) => (
-              <div key={k} className="rounded-2xl border border-[var(--border)] p-3 text-center">
-                <p className="text-xs text-slate-600">{m.label}</p>
-                <p className="mt-1 text-xl font-extrabold text-slate-900">
-                  {summaryPosts.filter((p) => p.postType === k).length}
-                </p>
+                <div>
+                  <span className="text-[11px] font-bold text-orange-800">
+                    {POST_KIND_LABELS[p.postKind].label}
+                  </span>
+                  <p className="text-sm font-bold text-slate-900">{p.headline}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  {canWrite && (
+                    <label className="flex cursor-pointer items-center gap-1 text-xs font-semibold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={p.includeInEvaluation}
+                        onChange={(e) => handleToggleEvalItem('post', p.id, e.target.checked)}
+                      />
+                      列入評鑑
+                    </label>
+                  )}
+                  <Link
+                    href={`/posts/${p.id}`}
+                    className="rounded-xl bg-white px-3 py-1.5 text-xs font-bold text-slate-800"
+                  >
+                    檢視
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
+        </div>
+      )}
 
-          <div className="space-y-2.5">
-            {summaryPosts.length === 0 ? (
-              <p className="text-xs text-slate-500">此學年度尚無已發布成果貼文。</p>
+      {/* MEMBERS TAB */}
+      {tab === 'members' && (
+        <div className="space-y-6">
+          {canWrite && (
+            <div className="space-y-4 rounded-3xl border border-[var(--border)] bg-white p-6">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
+                  <KeyRound className="h-4 w-4 text-[var(--brand)]" />
+                  軌一：產生社員限時邀請碼（嚴格限同校 .edu.tw）
+                </h2>
+                <button
+                  type="button"
+                  onClick={handleGenerateInviteCode}
+                  disabled={busy === 'invite-code'}
+                  className="rounded-full bg-[var(--brand)] px-4 py-1.5 text-xs font-bold text-white"
+                >
+                  產生 7 天邀請碼
+                </button>
+              </div>
+              {inviteCodes.length > 0 && (
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {inviteCodes.map((c) => (
+                    <div
+                      key={c.id}
+                      className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-slate-50 px-3 py-2 text-xs"
+                    >
+                      <div>
+                        <span className="font-mono font-bold text-slate-900">{c.code}</span>
+                        <p className="text-[11px] text-slate-500">
+                          已使用 {c.used_count} 次 · 到期 {c.expires_at.slice(0, 10)}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => navigator.clipboard.writeText(c.code)}
+                        className="inline-flex items-center gap-1 font-bold text-[var(--brand)]"
+                      >
+                        <Copy className="h-3 w-3" />
+                        複製
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {canWrite && (
+            <div className="space-y-3 rounded-3xl border border-[var(--border)] bg-white p-6">
+              <h2 className="text-base font-extrabold text-slate-900">軌二：待審入社認證申請</h2>
+              {joinRequests.length === 0 ? (
+                <p className="text-xs text-slate-500">尚無待審入社申請。</p>
+              ) : (
+                joinRequests.map((r) => (
+                  <div
+                    key={r.id}
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 p-3 text-xs"
+                  >
+                    <div>
+                      <p className="font-bold text-slate-900">{r.display_name}</p>
+                      {r.note && <p className="text-slate-600">{r.note}</p>}
+                    </div>
+                    {r.status === 'pending' ? (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleReviewMemberRequest(r.id, 'approve')}
+                          className="rounded-full bg-emerald-600 px-3 py-1 font-bold text-white"
+                        >
+                          核准為認證社員
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleReviewMemberRequest(r.id, 'reject')}
+                          className="rounded-full border border-red-200 px-3 py-1 font-bold text-red-700"
+                        >
+                          婉拒
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="font-bold text-slate-600">{r.status}</span>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+
+          {canWrite && (
+            <form
+              onSubmit={handleAddMember}
+              className="space-y-3 rounded-3xl border border-[var(--border)] bg-white p-6"
+            >
+              <h2 className="text-base font-extrabold text-slate-900">手動新增幹部／社員</h2>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <input
+                  required
+                  value={targetMemberEmail}
+                  onChange={(e) => setTargetMemberEmail(e.target.value)}
+                  placeholder="對方同校 .edu.tw 信箱"
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                />
+                <select
+                  value={targetMemberRole}
+                  onChange={(e) => setTargetMemberRole(e.target.value as 'editor' | 'member')}
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                >
+                  <option value="member">認證社員 (Member)</option>
+                  {isOwner && <option value="editor">幹部 (Editor)</option>}
+                </select>
+                <input
+                  value={targetMemberTitle}
+                  onChange={(e) => setTargetMemberTitle(e.target.value)}
+                  placeholder="職稱（如 教學長／社員）"
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={busy === 'add-member'}
+                className="rounded-full bg-slate-900 px-4 py-1.5 text-xs font-bold text-white"
+              >
+                確認新增
+              </button>
+            </form>
+          )}
+
+          <div className="space-y-2 rounded-3xl border border-[var(--border)] bg-white p-5">
+            <h2 className="text-base font-extrabold text-slate-900">成員與歷屆名單</h2>
+            {data.members.map((m, idx) => (
+              <div
+                key={`${m.userId}-${idx}`}
+                className="flex items-center justify-between rounded-2xl bg-[var(--muted)] px-4 py-3 text-sm"
+              >
+                <span className="font-bold text-slate-900">
+                  {m.displayName} {m.title ? `（${m.title}）` : ''}
+                </span>
+                <span className="text-xs font-semibold text-slate-600">
+                  {m.role} {m.endedAt ? '· 已卸任' : '· 現行有效'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* QUESTIONS & FAQ TAB */}
+      {tab === 'questions' && (
+        <div className="space-y-4 rounded-3xl border border-[var(--border)] bg-white p-6">
+          <h2 className="text-base font-extrabold text-slate-900">新生問答收件匣 ＆ 置頂 FAQ 管理</h2>
+          {questionsInbox.length === 0 ? (
+            <p className="text-xs text-slate-500">目前尚無提問。</p>
+          ) : (
+            questionsInbox.map((q) => {
+              const draft = replyDrafts[q.id] ?? {
+                text: '',
+                pub: true,
+                pin: false,
+                highlight: false,
+              };
+              return (
+                <div key={q.id} className="space-y-2 rounded-2xl bg-slate-50 p-4 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900">
+                      {q.display_asker}：{q.question_text}
+                    </span>
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                      {q.status}
+                    </span>
+                  </div>
+                  {canWrite && (
+                    <>
+                      <textarea
+                        rows={2}
+                        value={draft.text}
+                        onChange={(e) =>
+                          setReplyDrafts((prev) => ({
+                            ...prev,
+                            [q.id]: { ...draft, text: e.target.value },
+                          }))
+                        }
+                        placeholder="輸入社團幹部回覆..."
+                        className="w-full rounded-xl border border-[var(--border)] bg-white p-2"
+                      />
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex flex-wrap gap-3">
+                          <label className="flex cursor-pointer items-center gap-1">
+                            <input
+                              type="checkbox"
+                              checked={draft.pub}
+                              onChange={(e) =>
+                                setReplyDrafts((prev) => ({
+                                  ...prev,
+                                  [q.id]: { ...draft, pub: e.target.checked },
+                                }))
+                              }
+                            />
+                            公開於社團 FAQ
+                          </label>
+                          <label className="flex cursor-pointer items-center gap-1">
+                            <input
+                              type="checkbox"
+                              checked={draft.pin}
+                              onChange={(e) =>
+                                setReplyDrafts((prev) => ({
+                                  ...prev,
+                                  [q.id]: { ...draft, pin: e.target.checked },
+                                }))
+                              }
+                            />
+                            置頂精華
+                          </label>
+                          <label className="flex cursor-pointer items-center gap-1">
+                            <input
+                              type="checkbox"
+                              checked={draft.highlight}
+                              onChange={(e) =>
+                                setReplyDrafts((prev) => ({
+                                  ...prev,
+                                  [q.id]: { ...draft, highlight: e.target.checked },
+                                }))
+                              }
+                            />
+                            同步推文至現場流
+                          </label>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleReplyQuestion(q.id)}
+                          disabled={busy === `reply-${q.id}`}
+                          className="rounded-full bg-[var(--brand)] px-4 py-1 font-bold text-white"
+                        >
+                          儲存並回覆
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {/* PRIVATE EVAL ARCHIVE & EXPORT TAB */}
+      {tab === 'evaluation' && (
+        <div className="space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-[var(--border-strong)] bg-white p-6">
+            <div>
+              <h2 className="text-base font-extrabold text-slate-900">
+                一鍵匯出年度評鑑報告（含 Co-Club 共辦實績與內部索引）
+              </h2>
+              <p className="text-xs text-slate-600">
+                預設採計上學年 5 月 1 日至當年 5 月 31 日，僅整合有勾選「納入評鑑」之內容。
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href={`/clubs/${data.club.slug}/evaluation/print`}
+                className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white"
+              >
+                <Printer className="h-3.5 w-3.5" />
+                開啟列印版 / 另存 PDF
+              </Link>
+              <a
+                href={`/api/clubs/${data.club.slug}/evaluation/export?format=markdown`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-strong)] bg-white px-4 py-2 text-xs font-bold text-slate-800"
+              >
+                <Download className="h-3.5 w-3.5" />
+                下載 Markdown (.md)
+              </a>
+            </div>
+          </div>
+
+          {canWrite && (
+            <div className="space-y-3 rounded-3xl border border-[var(--border)] bg-white p-6">
+              <h3 className="text-sm font-extrabold text-slate-900">
+                上傳私密內部評鑑檔案（Private Azure 容器，至少保存 6 年）
+              </h3>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <input
+                  value={archTitle}
+                  onChange={(e) => setArchTitle(e.target.value)}
+                  placeholder="檔案標題（如 115-1 期末大會會議記錄）*"
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                />
+                <select
+                  value={archCategory}
+                  onChange={(e) => setArchCategory(e.target.value as ArchiveFileCategory)}
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                >
+                  <option value="meeting_minutes">會議記錄</option>
+                  <option value="finance_ledger">經費收支核銷</option>
+                  <option value="equipment_inventory">財產器材清冊</option>
+                  <option value="evaluation_evidence">評鑑佐證文件</option>
+                  <option value="other">其他密件</option>
+                </select>
+                <input
+                  type="date"
+                  value={archDate}
+                  onChange={(e) => setArchDate(e.target.value)}
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                />
+              </div>
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white">
+                <Upload className="h-3.5 w-3.5" />
+                {busy === 'arch-up' ? '上傳私密容器中...' : '選擇 PDF / DOCX / XLSX / CSV / ZIP (≤20MB)'}
+                <input
+                  type="file"
+                  accept=".pdf,.docx,.xlsx,.csv,.zip,image/*"
+                  onChange={handleArchiveUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
+          )}
+
+          <div className="space-y-2 rounded-3xl border border-[var(--border)] bg-white p-6">
+            <h3 className="text-sm font-extrabold text-slate-900">社團私密檔案清冊（下載皆寫入稽核紀錄）</h3>
+            {archiveFiles.length === 0 ? (
+              <p className="text-xs text-slate-500">目前尚無私密評鑑歸檔檔案。</p>
             ) : (
-              summaryPosts.map((p) => (
+              archiveFiles.map((f) => (
                 <div
-                  key={p.id}
-                  className="flex items-center justify-between rounded-2xl border border-[var(--border)] p-3.5"
+                  key={f.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 p-3 text-xs"
                 >
                   <div>
-                    <span className="text-xs font-bold text-[var(--primary)]">
-                      {POST_TYPES[p.postType].label}
-                    </span>
-                    <Link
-                      href={`/posts/${p.id}`}
-                      className="ml-2 text-sm font-bold text-slate-900 hover:underline"
-                    >
-                      {p.title}
-                    </Link>
-                    <p className="mt-0.5 text-xs text-slate-600">{p.summary}</p>
+                    <p className="font-bold text-slate-900">{f.title}</p>
+                    <p className="text-slate-500">
+                      分類：{f.archive_category} · 發生日：{f.occurred_on} ·{' '}
+                      {Math.round(f.size_bytes / 1024)} KB
+                    </p>
                   </div>
-                  <span className="shrink-0 text-xs text-slate-500">
-                    {formatTaipeiDate(p.publishedAt)}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadArchive(f.id)}
+                    disabled={busy === `dl-${f.id}`}
+                    className="inline-flex items-center gap-1 rounded-full border border-[var(--border-strong)] bg-white px-3 py-1 font-bold text-slate-800"
+                  >
+                    <Download className="h-3 w-3" />
+                    5 分鐘簽章下載
+                  </button>
                 </div>
               ))
             )}
           </div>
-        </section>
+        </div>
       )}
 
-      {/* 2-Step Soft Delete Confirmation Modal */}
-      {deleteTargetPost && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <h3 className="text-base font-extrabold text-slate-900">確認下架這篇社團成果？</h3>
-            <p className="mt-2 text-xs leading-relaxed text-slate-600">
-              即將下架「<strong>{deleteTargetPost.title}</strong>
-              」。為保護社團跨屆歷史資產，貼文不會從資料庫永久抹除，必要時可聯繫平台管理員協助復原。
-            </p>
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => setDeleteTargetPost(null)}
-                className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700"
-              >
-                取消
-              </button>
-              <button
-                type="button"
-                disabled={postBusy}
-                onClick={() => void confirmSoftDeletePost()}
-                className="rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700"
-              >
-                確認下架
-              </button>
+      {/* HANDOVER TAB */}
+      {tab === 'handover' && (
+        <div className="space-y-6">
+          {data.pendingHandover && (
+            <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs font-bold text-amber-950">
+              目前有進行中的社長交接邀請：等待 {data.pendingHandover.toUserName} 於{' '}
+              {formatTaipeiDate(data.pendingHandover.expiresAt)} 前接受。
             </div>
+          )}
+
+          {isOwner && !data.pendingHandover && (
+            <form
+              onSubmit={handleStartHandover}
+              className="space-y-4 rounded-3xl border border-[var(--border-strong)] bg-white p-6"
+            >
+              <h2 className="text-base font-extrabold text-slate-900">
+                發起 3 步換屆交接 ＆ 撰寫下屆避雷便條
+              </h2>
+              <p className="text-xs text-slate-600">
+                填寫下屆接任社長同校 .edu.tw 信箱，並留下場地／核銷／廠商實務備忘；對方確認後系統自動將您轉為歷屆校友保留歸檔權限。
+              </p>
+              <input
+                type="email"
+                required
+                value={handoverEmail}
+                onChange={(e) => setHandoverEmail(e.target.value)}
+                placeholder="接任社長的同校 .edu.tw 信箱 *"
+                className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+              />
+              <textarea
+                rows={2}
+                value={venueTips}
+                onChange={(e) => setVenueTips(e.target.value)}
+                placeholder="場地申請與器材眉角（例如：活動中心投影機借用要提前一週）"
+                className="w-full rounded-xl border border-[var(--border)] p-3 text-xs"
+              />
+              <textarea
+                rows={2}
+                value={hoursDeadlines}
+                onChange={(e) => setHoursDeadlines(e.target.value)}
+                placeholder="學習時數認證與經費核銷死線"
+                className="w-full rounded-xl border border-[var(--border)] p-3 text-xs"
+              />
+              <textarea
+                rows={2}
+                value={contactsVendors}
+                onChange={(e) => setContactsVendors(e.target.value)}
+                placeholder="常用廠商／器材維修窗口備忘"
+                className="w-full rounded-xl border border-[var(--border)] p-3 text-xs"
+              />
+              <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={shareDeid}
+                  onChange={(e) => setShareDeid(e.target.checked)}
+                />
+                <Check className="h-3.5 w-3.5 text-emerald-600" />
+                同意將上述通用經驗去識別化後公開至「一起聚 → 實務經驗清單」造福他校幹部
+              </label>
+              <button
+                type="submit"
+                disabled={busy === 'handover'}
+                className="rounded-full bg-[var(--brand)] px-5 py-2 text-xs font-extrabold text-white"
+              >
+                送出交接邀請與避雷便條
+              </button>
+            </form>
+          )}
+
+          <div className="space-y-3 rounded-3xl border border-[var(--border)] bg-white p-5">
+            <h2 className="text-base font-extrabold text-slate-900">歷屆交接避雷便條（僅幹部／校友可見）</h2>
+            {data.handoverNotes.length === 0 ? (
+              <p className="text-xs text-slate-500">尚無交接備忘錄。</p>
+            ) : (
+              data.handoverNotes.map((n) => (
+                <div
+                  key={n.id}
+                  className="space-y-1 rounded-2xl bg-[var(--muted)] p-4 text-xs text-slate-700"
+                >
+                  <p className="font-bold text-slate-900">記錄日期：{formatTaipeiDate(n.createdAt)}</p>
+                  {n.venueTips && <p>場地眉角：{n.venueTips}</p>}
+                  {n.hoursAndDeadlines && <p>時數與死線：{n.hoursAndDeadlines}</p>}
+                  {n.contactsAndVendors && <p>廠商窗口：{n.contactsAndVendors}</p>}
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}

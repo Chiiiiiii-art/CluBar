@@ -1,11 +1,13 @@
 import { redirect } from 'next/navigation';
-import { and, desc, eq, gt, isNull, or } from 'drizzle-orm';
+import { and, desc, eq, gt, inArray, isNull, or } from 'drizzle-orm';
 import { signOut } from '@/auth';
 import { db, isDatabaseConfigured } from '@/db';
 import {
+  clubEvents,
   clubHandovers,
   clubMemberships,
   clubs,
+  coClubLinks,
   notifications,
   posts,
   universities,
@@ -14,6 +16,7 @@ import {
   users,
 } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
+import { buildUserPortfolio } from '@/lib/services/portfolio';
 import { MeClient, type MePageData } from '@/components/MeClient';
 
 export const dynamic = 'force-dynamic';
@@ -29,8 +32,10 @@ export default async function MePage() {
     membershipRows,
     pendingHandoverRows,
     notifRows,
-    bookmarkRows,
+    postBookmarkRows,
+    eventBookmarkRows,
     followRows,
+    portfolioRes,
   ] = await Promise.all([
     user.universityId
       ? db
@@ -65,7 +70,7 @@ export default async function MePage() {
         clubName: clubs.name,
         clubSlug: clubs.slug,
         fromUserName: users.displayName,
-        note: clubHandovers.note,
+        pendingNoteJson: clubHandovers.pendingNoteJson,
         expiresAt: clubHandovers.expiresAt,
       })
       .from(clubHandovers)
@@ -87,16 +92,36 @@ export default async function MePage() {
     db
       .select({
         postId: posts.id,
-        title: posts.title,
+        title: posts.headline,
         clubName: clubs.name,
         clubSlug: clubs.slug,
         universityShortName: universities.shortName,
       })
       .from(userBookmarks)
-      .innerJoin(posts, eq(userBookmarks.postId, posts.id))
+      .innerJoin(posts, eq(userBookmarks.targetId, posts.id))
       .innerJoin(clubs, eq(posts.clubId, clubs.id))
       .innerJoin(universities, eq(clubs.universityId, universities.id))
-      .where(and(eq(userBookmarks.userId, user.id), eq(posts.status, 'published')))
+      .where(
+        and(
+          eq(userBookmarks.userId, user.id),
+          eq(userBookmarks.targetType, 'post'),
+          eq(posts.status, 'published')
+        )
+      )
+      .orderBy(desc(userBookmarks.createdAt)),
+    db
+      .select({
+        eventId: clubEvents.id,
+        shortCode: clubEvents.shortCode,
+        title: clubEvents.title,
+        clubName: clubs.name,
+        universityShortName: universities.shortName,
+      })
+      .from(userBookmarks)
+      .innerJoin(clubEvents, eq(userBookmarks.targetId, clubEvents.id))
+      .innerJoin(clubs, eq(clubEvents.clubId, clubs.id))
+      .innerJoin(universities, eq(clubs.universityId, universities.id))
+      .where(and(eq(userBookmarks.userId, user.id), eq(userBookmarks.targetType, 'event')))
       .orderBy(desc(userBookmarks.createdAt)),
     db
       .select({
@@ -105,13 +130,38 @@ export default async function MePage() {
         name: clubs.name,
         universityShortName: universities.shortName,
         category: clubs.category,
+        followMode: userFollows.followMode,
       })
       .from(userFollows)
       .innerJoin(clubs, eq(userFollows.clubId, clubs.id))
       .innerJoin(universities, eq(clubs.universityId, universities.id))
       .where(eq(userFollows.userId, user.id))
       .orderBy(desc(userFollows.createdAt)),
+    buildUserPortfolio({ targetUserId: user.id, viewer: user }),
   ]);
+
+  const officerClubIds = membershipRows
+    .filter((m) => m.role === 'owner' || m.role === 'editor')
+    .map((m) => m.clubId);
+
+  const pendingCoClubRows =
+    officerClubIds.length > 0
+      ? await db
+          .select({
+            id: coClubLinks.id,
+            targetType: coClubLinks.targetType,
+            targetId: coClubLinks.targetId,
+            hostClubName: clubs.name,
+          })
+          .from(coClubLinks)
+          .innerJoin(clubs, eq(coClubLinks.hostClubId, clubs.id))
+          .where(
+            and(
+              inArray(coClubLinks.partnerClubId, officerClubIds),
+              eq(coClubLinks.status, 'pending')
+            )
+          )
+      : [];
 
   const data: MePageData = {
     user: {
@@ -129,8 +179,13 @@ export default async function MePage() {
       clubName: h.clubName,
       clubSlug: h.clubSlug,
       fromUserName: h.fromUserName,
-      note: h.note,
+      note: h.pendingNoteJson?.venue_tips || null,
       expiresAt: h.expiresAt.toISOString(),
+    })),
+    pendingCoClubInvitations: pendingCoClubRows.map((c) => ({
+      id: c.id,
+      targetType: c.targetType,
+      hostClubName: c.hostClubName,
     })),
     notifications: notifRows.map((n) => ({
       id: n.id,
@@ -141,8 +196,18 @@ export default async function MePage() {
       readAt: n.readAt ? n.readAt.toISOString() : null,
       createdAt: n.createdAt.toISOString(),
     })),
-    bookmarks: bookmarkRows,
+    bookmarks: [
+      ...postBookmarkRows,
+      ...eventBookmarkRows.map((e) => ({
+        postId: e.eventId,
+        title: `活動：${e.title}`,
+        clubName: e.clubName,
+        clubSlug: `../e/${e.shortCode}`,
+        universityShortName: e.universityShortName,
+      })),
+    ],
     follows: followRows,
+    portfolio: portfolioRes.portfolio,
   };
 
   return (

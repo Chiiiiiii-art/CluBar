@@ -7,9 +7,24 @@ import { handleApiError } from '@/lib/errors';
 import { assertRateLimit } from '@/lib/rate-limit';
 
 const reportSchema = z.object({
-  target_type: z.enum(['post', 'club', 'forum_thread', 'forum_reply']),
+  target_type: z.enum([
+    'post',
+    'event',
+    'event_comment',
+    'album_photo',
+    'club_question',
+    'together_item',
+    'club',
+  ]),
   target_id: z.string().uuid('無效的檢舉目標識別碼。'),
-  reason: z.enum(['impersonation', 'copyright', 'privacy_leak', 'inappropriate', 'other']),
+  reason: z.enum([
+    'impersonation',
+    'copyright',
+    'privacy_leak',
+    'portrait_violation',
+    'inappropriate',
+    'other',
+  ]),
   detail: z.string().trim().max(1000).optional().nullable(),
 });
 

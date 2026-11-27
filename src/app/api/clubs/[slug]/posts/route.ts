@@ -2,13 +2,11 @@ import { eq } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { clubs, posts, universities } from '@/db/schema';
-import { getCurrentAcademicYear } from '@/lib/academic-year';
-import { buildPostEmbeddingText, generateEmbedding } from '@/lib/ai/client';
-import { requireClubRole } from '@/lib/auth/guards';
-import { CLUB_CATEGORIES, POST_TYPES } from '@/lib/constants';
+import { generateEmbedding } from '@/lib/ai/client';
+import { requireClubMember, requireClubOfficer } from '@/lib/auth/guards';
 import { AppError, handleApiError } from '@/lib/errors';
-import { serializePublicPost } from '@/lib/serializers';
-import { postWriteSchema, stripMarkdownSummary } from '@/lib/validators';
+import { serializePublicStreamPost } from '@/lib/serializers';
+import { postWriteSchema } from '@/lib/validators';
 
 export async function POST(
   req: Request,
@@ -27,70 +25,58 @@ export async function POST(
       .limit(1);
 
     if (!clubRow) throw new AppError(404, 'CLUB_NOT_FOUND', '找不到指定社團。');
-    const { user, club } = await requireClubRole(clubRow.club.id, ['owner', 'editor']);
 
     const rawBody = await req.json();
-    if (rawBody?.status === 'published' && rawBody?.originality_confirmed !== true) {
-      throw new AppError(
-        400,
-        'ORIGINALITY_REQUIRED',
-        '發布前必須勾選原創與素材授權確認聲明。'
-      );
-    }
-
     const parsed = postWriteSchema.parse(rawBody);
-    const summary = parsed.summary?.trim() || stripMarkdownSummary(parsed.content_md, 140);
-    const academicYear = parsed.academic_year ?? getCurrentAcademicYear();
-    const isPublished = parsed.status === 'published';
 
-    let embedding: number[] | null = null;
-    if (isPublished) {
-      embedding = await generateEmbedding(
-        buildPostEmbeddingText({
-          universityShortName: clubRow.universityShortName,
-          clubName: club.name,
-          categoryLabel: CLUB_CATEGORIES[club.category].label,
-          postTypeLabel: POST_TYPES[parsed.post_type].label,
-          title: parsed.title,
-          summary,
-          tags: parsed.tags,
-          contentMd: parsed.content_md,
-        })
-      );
-    }
+    const { user, club } =
+      parsed.post_kind === 'nrc_moment'
+        ? await requireClubMember(clubRow.club.id)
+        : await requireClubOfficer(clubRow.club.id);
+
+    const isPublished = parsed.status === 'published';
+    const embedding = isPublished
+      ? await generateEmbedding(
+          `[${clubRow.universityShortName} ${club.name}] ${parsed.headline}\n${parsed.content_md.slice(0, 1000)}`
+        )
+      : null;
 
     const now = new Date();
-    const [created] = await db
-      .insert(posts)
-      .values({
-        clubId: club.id,
-        authorUserId: user.id,
-        academicYear,
-        postType: parsed.post_type,
-        title: parsed.title,
-        summary,
-        contentMd: parsed.content_md,
-        tags: parsed.tags,
-        mediaUrls: parsed.media_urls,
-        externalLinks: parsed.external_links,
-        collaborators: parsed.collaborators ?? null,
-        originalityConfirmed: parsed.originality_confirmed,
-        status: parsed.status,
-        embedding,
-        embeddingUpdatedAt: embedding ? now : null,
-        publishedAt: isPublished ? now : null,
-      })
-      .returning();
+    const [created] = await db.transaction(async (tx) => {
+      const rows = await tx
+        .insert(posts)
+        .values({
+          clubId: club.id,
+          authorUserId: user.id,
+          postKind: parsed.post_kind,
+          headline: parsed.headline,
+          contentMd: parsed.content_md,
+          mediaItems: parsed.media_items,
+          relatedEventId: parsed.related_event_id ?? null,
+          moodTag: parsed.mood_tag ?? null,
+          domainIds: parsed.domain_ids.length > 0 ? parsed.domain_ids : club.domainIds,
+          originalityConfirmed: parsed.originality_confirmed,
+          includeInEvaluation: parsed.include_in_evaluation,
+          status: parsed.status,
+          embedding,
+          publishedAt: isPublished ? now : null,
+        })
+        .returning();
+
+      if (isPublished) {
+        await tx.update(clubs).set({ lastActivityAt: now, updatedAt: now }).where(eq(clubs.id, club.id));
+      }
+      return rows;
+    });
 
     return NextResponse.json(
       {
-        post: serializePublicPost({
+        post: serializePublicStreamPost({
           ...created,
           club: {
             id: club.id,
             slug: club.slug,
             name: club.name,
-            category: club.category,
             avatarUrl: club.avatarUrl,
             verificationStatus: club.verificationStatus,
             isDemo: club.isDemo,

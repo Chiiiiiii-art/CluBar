@@ -1,23 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   AlertTriangle,
-  Bookmark,
+  ArrowRight,
+  Calendar,
   Compass,
+  Flame,
   RotateCcw,
   Search,
   Sparkles,
 } from 'lucide-react';
-import type { ClubCategory } from '@/db/schema';
-import {
-  CLUB_CATEGORY_LIST,
-  CURATED_INTEREST_TAGS,
-  DISCOVER_EXAMPLE_PROMPTS,
-} from '@/lib/constants';
+import { DISCOVER_EXAMPLE_PROMPTS } from '@/lib/constants';
 import type { DiscoverBatchMeta } from '@/lib/discovery/service';
-import type { DiscoverCardDTO } from '@/lib/serializers';
+import type { DiscoverEventCardDTO, DiscoverStreamCardDTO } from '@/lib/serializers';
+import { EventCard } from './EventCard';
 import { PostCard } from './PostCard';
 
 interface UniversityOption {
@@ -26,109 +24,193 @@ interface UniversityOption {
   name: string;
 }
 
+interface DomainOption {
+  id: string;
+  slug: string;
+  name_zh: string;
+}
+
 export function DiscoverClient({
-  initialItems,
-  initialMeta,
+  initialTab = 'stream',
+  initialStreamItems,
+  initialStreamMeta,
+  initialEventItems,
+  initialEventMeta,
   universities,
+  domains,
   dbConfigured,
-  initialCategory = '',
-  initialTag = '',
   initialUniversityId = '',
+  isLoggedIn = false,
 }: {
-  initialItems: DiscoverCardDTO[];
-  initialMeta: DiscoverBatchMeta;
+  initialTab?: 'stream' | 'events';
+  initialStreamItems: DiscoverStreamCardDTO[];
+  initialStreamMeta: DiscoverBatchMeta;
+  initialEventItems: DiscoverEventCardDTO[];
+  initialEventMeta: DiscoverBatchMeta;
   universities: UniversityOption[];
+  domains: DomainOption[];
   dbConfigured: boolean;
-  initialCategory?: ClubCategory | '';
-  initialTag?: string;
   initialUniversityId?: string;
+  isLoggedIn?: boolean;
 }) {
-  const [items, setItems] = useState<DiscoverCardDTO[]>(initialItems);
-  const [meta, setMeta] = useState<DiscoverBatchMeta>(initialMeta);
-  const [mode, setMode] = useState<'topic' | 'nl'>('topic');
+  const [activeTab, setActiveTab] = useState<'stream' | 'events'>(initialTab);
+  const [selectedUniId, setSelectedUniId] = useState(initialUniversityId);
+  const [selectedDomainId, setSelectedDomainId] = useState('');
 
-  // Track A state
-  const [selectedCategory, setSelectedCategory] = useState<ClubCategory | ''>(initialCategory);
-  const [selectedTag, setSelectedTag] = useState<string>(initialTag);
-  const [selectedUniId, setSelectedUniId] = useState<string>(initialUniversityId);
+  // Stream tab state
+  const [streamItems, setStreamItems] = useState<DiscoverStreamCardDTO[]>(initialStreamItems);
+  const [streamMeta, setStreamMeta] = useState<DiscoverBatchMeta>(initialStreamMeta);
 
-  // Track B state
+  // Events tab state & filters
+  const [eventItems, setEventItems] = useState<DiscoverEventCardDTO[]>(initialEventItems);
+  const [eventMeta, setEventMeta] = useState<DiscoverBatchMeta>(initialEventMeta);
+  const [dateRange, setDateRange] = useState<'all' | 'this_week' | 'this_month'>('all');
+  const [beginnerOnly, setBeginnerOnly] = useState(false);
+  const [nonMemberOnly, setNonMemberOnly] = useState(false);
+  const [freeOnly, setFreeOnly] = useState(false);
+  const [hoursOnly, setHoursOnly] = useState(false);
+  const [votingOnly, setVotingOnly] = useState(false);
+
+  // Shared progressive search capsule
   const [query, setQuery] = useState('');
   const [activeNlQuery, setActiveNlQuery] = useState<string | null>(null);
   const [degradedWarning, setDegradedWarning] = useState<string | null>(null);
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false);
 
-  const fetchTopicFeed = async (next: {
-    category?: ClubCategory | '';
-    tag?: string;
-    universityId?: string;
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem('clubar_onboarding');
+      if (!saved && !initialUniversityId) {
+        setShowOnboardingPrompt(true);
+      } else if (saved && isLoggedIn) {
+        const parsed = JSON.parse(saved);
+        if (!parsed.synced) {
+          void fetch('/api/me/onboarding-sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              university_id: parsed.university_id,
+              goals: parsed.goals ?? [],
+              domain_ids: parsed.domain_ids ?? [],
+              vibe: parsed.vibe,
+            }),
+          }).then((res) => {
+            if (res.ok) {
+              window.localStorage.setItem(
+                'clubar_onboarding',
+                JSON.stringify({ ...parsed, synced: true })
+              );
+            }
+          });
+        }
+      }
+    } catch {
+      // Ignore storage failures
+    }
+  }, [initialUniversityId, isLoggedIn]);
+
+  const loadStream = async (opts: {
+    uniId?: string;
+    domainId?: string;
+    excludeIds?: string[];
   }) => {
-    const cat = next.category !== undefined ? next.category : selectedCategory;
-    const tag = next.tag !== undefined ? next.tag : selectedTag;
-    const uni = next.universityId !== undefined ? next.universityId : selectedUniId;
-
-    setSelectedCategory(cat);
-    setSelectedTag(tag);
-    setSelectedUniId(uni);
-    setMode('topic');
-    setActiveNlQuery(null);
-    setDegradedWarning(null);
-    setError(null);
     setLoading(true);
-
+    setError(null);
+    setDegradedWarning(null);
+    setActiveNlQuery(null);
     try {
       const sp = new URLSearchParams();
-      if (cat) sp.set('category', cat);
-      if (tag) sp.set('tag', tag);
-      if (uni) sp.set('university_id', uni);
-
-      const res = await fetch(`/api/discover/feed?${sp.toString()}`);
+      if (opts.uniId) sp.set('university_id', opts.uniId);
+      if (opts.domainId) sp.set('domain_id', opts.domainId);
+      if (opts.excludeIds?.length) sp.set('exclude_ids', opts.excludeIds.join(','));
+      const res = await fetch(`/api/discover/stream?${sp.toString()}`);
       const json = await res.json();
       if (!res.ok) {
-        setError(json?.error?.message || '載入探索成果失敗。');
+        setError(json?.error?.message || '載入現場流失敗。');
         return;
       }
-      setItems(json.items ?? []);
-      setMeta(json.batch_meta);
-    } catch {
-      setError('網路連線異常，請稍後再試。');
+      setStreamItems(json.items ?? []);
+      setStreamMeta(json.batch_meta);
     } finally {
       setLoading(false);
     }
   };
 
-  const submitNlQuery = async (rawQuery: string) => {
-    const clean = rawQuery.trim();
-    if (clean.length < 2) {
-      setError('請輸入至少 2 個字的興趣或需求描述。');
+  const loadEvents = async (opts: {
+    uniId?: string;
+    domainId?: string;
+    dateRange?: 'all' | 'this_week' | 'this_month';
+    beginnerOnly?: boolean;
+    nonMemberOnly?: boolean;
+    freeOnly?: boolean;
+    hoursOnly?: boolean;
+    votingOnly?: boolean;
+    excludeIds?: string[];
+  }) => {
+    setLoading(true);
+    setError(null);
+    setDegradedWarning(null);
+    setActiveNlQuery(null);
+    try {
+      const sp = new URLSearchParams();
+      if (opts.uniId) sp.set('university_id', opts.uniId);
+      if (opts.domainId) sp.set('domain_id', opts.domainId);
+      if (opts.dateRange && opts.dateRange !== 'all') sp.set('date_range', opts.dateRange);
+      if (opts.beginnerOnly) sp.set('beginner_only', 'true');
+      if (opts.nonMemberOnly) sp.set('non_member_only', 'true');
+      if (opts.freeOnly) sp.set('free_only', 'true');
+      if (opts.hoursOnly) sp.set('hours_type', 'life');
+      if (opts.votingOnly) sp.set('voting_only', 'true');
+      if (opts.excludeIds?.length) sp.set('exclude_ids', opts.excludeIds.join(','));
+
+      const res = await fetch(`/api/discover/events?${sp.toString()}`);
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json?.error?.message || '載入近期可參加活動失敗。');
+        return;
+      }
+      setEventItems(json.items ?? []);
+      setEventMeta(json.batch_meta);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const submitQuery = async (text?: string, targetTab: 'stream' | 'events' = activeTab) => {
+    const q = (text ?? query).trim();
+    if (q.length < 2) {
+      setError('請輸入至少 2 個字的需求描述。');
       return;
     }
-
-    setQuery(clean);
-    setMode('nl');
-    setActiveNlQuery(clean);
+    setQuery(q);
+    setActiveNlQuery(q);
     setDegradedWarning(null);
     setError(null);
     setLoading(true);
-
     try {
       const res = await fetch('/api/discover/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          query: clean,
+          query: q,
           university_id: selectedUniId || undefined,
+          tab: targetTab,
         }),
       });
       const json = await res.json();
       if (!res.ok) {
-        setError(json?.error?.message || '探索失敗，請稍後再試。');
+        setError(json?.error?.message || '搜尋暫時無法使用。');
         return;
       }
-      setItems(json.items ?? []);
-      setMeta(json.batch_meta);
+      if (targetTab === 'events') {
+        setEventItems(json.items ?? []);
+        setEventMeta(json.batch_meta);
+      } else {
+        setStreamItems(json.items ?? []);
+        setStreamMeta(json.batch_meta);
+      }
       if (json.degraded && json.warning_message) {
         setDegradedWarning(json.warning_message);
       }
@@ -139,289 +221,379 @@ export function DiscoverClient({
     }
   };
 
+  const handleUniChange = (nextUniId: string) => {
+    setSelectedUniId(nextUniId);
+    if (nextUniId) {
+      document.cookie = `clubar_univ=${encodeURIComponent(nextUniId)}; path=/; max-age=2592000; SameSite=Lax`;
+    } else {
+      document.cookie = 'clubar_univ=; path=/; max-age=0';
+    }
+    setShowOnboardingPrompt(false);
+    if (activeTab === 'stream') {
+      void loadStream({ uniId: nextUniId, domainId: selectedDomainId });
+    } else {
+      void loadEvents({
+        uniId: nextUniId,
+        domainId: selectedDomainId,
+        dateRange,
+        beginnerOnly,
+        nonMemberOnly,
+        freeOnly,
+        hoursOnly,
+        votingOnly,
+      });
+    }
+  };
+
+  const handleDomainSelect = (domainId: string) => {
+    const next = selectedDomainId === domainId ? '' : domainId;
+    setSelectedDomainId(next);
+    if (activeTab === 'stream') {
+      void loadStream({ uniId: selectedUniId, domainId: next });
+    } else {
+      void loadEvents({
+        uniId: selectedUniId,
+        domainId: next,
+        dateRange,
+        beginnerOnly,
+        nonMemberOnly,
+        freeOnly,
+        hoursOnly,
+        votingOnly,
+      });
+    }
+  };
+
+  const handleTabSwitch = (nextTab: 'stream' | 'events') => {
+    setActiveTab(nextTab);
+    if (activeNlQuery) {
+      void submitQuery(activeNlQuery, nextTab);
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      {!dbConfigured && (
-        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
-          <p className="font-bold">尚未連線至資料庫（DATABASE_URL 未設定）</p>
-          <p className="mt-1 text-xs">
-            請參考 `.env.example` 與 `docker-compose.yml` 啟動 PostgreSQL 後執行{' '}
-            <code>npm run db:migrate &amp;&amp; npm run db:seed</code>，即可顯示完整示範社團成果。
-          </p>
-        </div>
+    <div className="space-y-5">
+      {/* First-visit zero-friction onboarding invitation */}
+      {showOnboardingPrompt && (
+        <section className="flex flex-col justify-between gap-3 rounded-3xl border border-orange-300 bg-gradient-to-r from-orange-50 via-amber-50 to-blue-50 p-4 shadow-xs sm:flex-row sm:items-center sm:p-5">
+          <div className="space-y-1">
+            <p className="text-sm font-extrabold text-slate-900">
+              第一次找社團？30 秒免註冊測出你的校園興趣 Blend
+            </p>
+            <p className="text-xs text-slate-600">
+              選你的學校與 2–3 個偏好問題，立即濾出零基礎友善體驗與潛在寶藏小社團，還能約朋友合拍。
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href="/onboarding"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
+            >
+              <span>開始適性破冰</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => setShowOnboardingPrompt(false)}
+              className="min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-white px-3 text-xs font-semibold text-slate-600"
+            >
+              先逛逛
+            </button>
+          </div>
+        </section>
       )}
 
-      {/* Hero + Track B Natural Language Search */}
-      <section className="relative overflow-hidden rounded-3xl border border-[var(--border-strong)] bg-gradient-to-br from-white via-[#FFF7ED] to-[#FFEDD5]/70 p-5 shadow-xs sm:p-8">
-        <div className="max-w-3xl space-y-4">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-900">
-            <Compass className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>別的聚｜內容即入口，不看粉絲數</span>
+      {/* Lightweight progressive discovery capsule + sibling tabs */}
+      <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-4 shadow-xs sm:p-5">
+        <div className="flex flex-col gap-3">
+          {/* Sibling Dual Tabs + School Picker */}
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div
+              className="inline-flex rounded-2xl bg-[var(--muted)] p-1"
+              role="tablist"
+              aria-label="別的聚雙分頁切換"
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'stream'}
+                onClick={() => handleTabSwitch('stream')}
+                className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-xl px-4 text-xs font-bold transition-colors sm:text-sm ${
+                  activeTab === 'stream'
+                    ? 'bg-white text-[var(--primary)] shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Flame className="h-4 w-4" aria-hidden="true" />
+                <span>探索現場流</span>
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === 'events'}
+                onClick={() => handleTabSwitch('events')}
+                className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-xl px-4 text-xs font-bold transition-colors sm:text-sm ${
+                  activeTab === 'events'
+                    ? 'bg-white text-blue-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <Calendar className="h-4 w-4" aria-hidden="true" />
+                <span>近期可參加</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <select
+                aria-label="選擇學校"
+                value={selectedUniId}
+                onChange={(e) => handleUniChange(e.target.value)}
+                className="min-h-[40px] rounded-xl border border-slate-200 bg-[var(--muted)] px-3 text-xs font-semibold text-slate-800"
+              >
+                <option value="">全部大專校院</option>
+                {universities.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.short_name}
+                  </option>
+                ))}
+              </select>
+              <Link
+                href="/onboarding"
+                className="hidden min-h-[40px] items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-3 text-xs font-bold text-orange-900 sm:inline-flex"
+              >
+                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                <span>興趣 Blend</span>
+              </Link>
+            </div>
           </div>
 
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
-            不知道社團名稱？直接說出你想探索什麼
-          </h1>
-          <p className="text-sm leading-relaxed text-slate-600 sm:text-base">
-            每次只呈現最多 12 則最契合的作品與日常成果，單一社團最多出現 2 則、絕不洗版，看完即止。
-          </p>
-
+          {/* Single search capsule */}
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              void submitNlQuery(query);
+              void submitQuery(undefined, activeTab);
             }}
-            className="flex flex-col gap-2.5 sm:flex-row"
+            className="flex items-center gap-2 rounded-2xl border border-[var(--border-strong)] bg-[var(--muted)] px-3 py-1"
           >
-            <div className="relative flex-1">
-              <Search
-                className="pointer-events-none absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-slate-400"
-                aria-hidden="true"
-              />
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                maxLength={300}
-                placeholder="例如：想學拍底片又想認識新朋友、找人一起寫程式做專案..."
-                className="w-full rounded-2xl border border-[var(--border-strong)] bg-white py-3 pr-4 pl-10 text-sm text-slate-900 shadow-xs placeholder:text-slate-400"
-              />
-            </div>
+            <Search className="h-4 w-4 shrink-0 text-slate-500" aria-hidden="true" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="白話搜尋：週四晚上想學畫畫沒基礎、或週末去爬郊山..."
+              className="min-h-[40px] w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+            />
+            {activeNlQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery('');
+                  setActiveNlQuery(null);
+                  if (activeTab === 'stream') {
+                    void loadStream({ uniId: selectedUniId, domainId: selectedDomainId });
+                  } else {
+                    void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId });
+                  }
+                }}
+                className="inline-flex min-h-[36px] items-center gap-1 rounded-xl bg-white px-2.5 text-xs font-semibold text-slate-600"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                重置
+              </button>
+            )}
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-[var(--primary)] px-5 py-3 text-sm font-bold text-white shadow-xs transition-colors hover:bg-[var(--primary-hover)] disabled:opacity-60"
+              className="min-h-[40px] shrink-0 rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
             >
-              <Sparkles className="h-4 w-4" aria-hidden="true" />
-              <span>{loading && mode === 'nl' ? '探索配對中...' : '白話需求探索'}</span>
+              {loading ? '搜尋中' : '探索'}
             </button>
           </form>
 
-          <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-xs font-semibold text-slate-500">試試這些說法：</span>
-            {DISCOVER_EXAMPLE_PROMPTS.map((example) => (
+          {/* Horizontal interest domains */}
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {domains.map((d) => (
               <button
-                key={example}
+                key={d.id}
                 type="button"
-                onClick={() => void submitNlQuery(example)}
-                className="rounded-full border border-[var(--border-strong)] bg-white px-3 py-1 text-xs font-medium text-slate-700 transition-colors hover:border-[var(--brand)] hover:bg-orange-50 hover:text-[var(--primary)]"
-              >
-                {example}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Track A Filters */}
-      <section className="space-y-3 rounded-2xl border border-[var(--border)] bg-white p-4 shadow-xs">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => void fetchTopicFeed({ category: '' })}
-              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-colors ${
-                mode === 'topic' && selectedCategory === ''
-                  ? 'bg-[var(--primary)] text-white'
-                  : 'bg-[var(--muted)] text-slate-700 hover:bg-orange-100'
-              }`}
-            >
-              全部分類
-            </button>
-            {CLUB_CATEGORY_LIST.map((cat) => (
-              <button
-                key={cat.value}
-                type="button"
-                onClick={() => void fetchTopicFeed({ category: cat.value })}
-                className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-colors ${
-                  mode === 'topic' && selectedCategory === cat.value
+                onClick={() => handleDomainSelect(d.id)}
+                className={`min-h-[36px] shrink-0 rounded-full px-3.5 text-xs font-semibold transition-colors ${
+                  selectedDomainId === d.id
                     ? 'bg-[var(--primary)] text-white'
                     : 'bg-[var(--muted)] text-slate-700 hover:bg-orange-100'
                 }`}
               >
-                {cat.label}
+                #{d.name_zh}
               </button>
             ))}
           </div>
 
-          <select
-            aria-label="篩選大專校院"
-            value={selectedUniId}
-            onChange={(e) => {
-              const nextUni = e.target.value;
-              if (mode === 'nl' && activeNlQuery) {
-                setSelectedUniId(nextUni);
-              } else {
-                void fetchTopicFeed({ universityId: nextUni });
-              }
-            }}
-            className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800"
-          >
-            <option value="">全部大專校院</option>
-            {universities.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.short_name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <span className="shrink-0 text-xs font-semibold text-slate-500">興趣標籤：</span>
-          {selectedTag && (
-            <button
-              type="button"
-              onClick={() => void fetchTopicFeed({ tag: '' })}
-              className="shrink-0 rounded-full bg-slate-800 px-2.5 py-1 text-xs font-semibold text-white"
-            >
-              清除 #{selectedTag}
-            </button>
+          {/* Action Event filters (only visible in Tab B) */}
+          {activeTab === 'events' ? (
+            <div className="flex flex-wrap gap-1.5 border-t border-[var(--border)] pt-2.5">
+              {[
+                { label: '本週活動', active: dateRange === 'this_week', onClick: () => { const n = dateRange === 'this_week' ? 'all' : 'this_week'; setDateRange(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange: n, beginnerOnly, nonMemberOnly, freeOnly, hoursOnly, votingOnly }); } },
+                { label: '零基礎可', active: beginnerOnly, onClick: () => { const n = !beginnerOnly; setBeginnerOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly: n, nonMemberOnly, freeOnly, hoursOnly, votingOnly }); } },
+                { label: '非社員可', active: nonMemberOnly, onClick: () => { const n = !nonMemberOnly; setNonMemberOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly, nonMemberOnly: n, freeOnly, hoursOnly, votingOnly }); } },
+                { label: '免費參加', active: freeOnly, onClick: () => { const n = !freeOnly; setFreeOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly, nonMemberOnly, freeOnly: n, hoursOnly, votingOnly }); } },
+                { label: '有學習時數', active: hoursOnly, onClick: () => { const n = !hoursOnly; setHoursOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly, nonMemberOnly, freeOnly, hoursOnly: n, votingOnly }); } },
+                { label: 'TBD 喬時間中', active: votingOnly, onClick: () => { const n = !votingOnly; setVotingOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly, nonMemberOnly, freeOnly, hoursOnly, votingOnly: n }); } },
+              ].map((chip) => (
+                <button
+                  key={chip.label}
+                  type="button"
+                  onClick={chip.onClick}
+                  className={`min-h-[34px] rounded-full border px-3 text-xs font-semibold transition-colors ${
+                    chip.active
+                      ? 'border-blue-600 bg-blue-600 text-white'
+                      : 'border-slate-200 bg-white text-slate-700 hover:bg-blue-50'
+                  }`}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {DISCOVER_EXAMPLE_PROMPTS.map((ex) => (
+                <button
+                  key={ex}
+                  type="button"
+                  onClick={() => void submitQuery(ex, 'stream')}
+                  className="inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50/70 px-3 py-1 text-[11px] font-medium text-orange-900 hover:bg-orange-100"
+                >
+                  <Sparkles className="h-3 w-3 text-[var(--brand)]" aria-hidden="true" />
+                  {ex}
+                </button>
+              ))}
+            </div>
           )}
-          {CURATED_INTEREST_TAGS.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() =>
-                void fetchTopicFeed({ tag: selectedTag === tag ? '' : tag })
-              }
-              className={`shrink-0 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-                selectedTag === tag && mode === 'topic'
-                  ? 'border-[var(--primary)] bg-orange-50 text-[var(--primary)]'
-                  : 'border-[var(--border)] bg-white text-slate-700 hover:bg-[var(--muted)]'
-              }`}
-            >
-              #{tag}
-            </button>
-          ))}
         </div>
       </section>
 
-      {/* Active Mode Header */}
-      {activeNlQuery && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm">
-          <div className="flex items-center gap-2 text-orange-950">
-            <Sparkles className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
-            <span>
-              需求探索：<strong>「{activeNlQuery}」</strong>（嚴選 {items.length} 則作品）
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => void fetchTopicFeed({ category: '', tag: '' })}
-            className="inline-flex items-center gap-1 rounded-xl bg-white px-3 py-1 text-xs font-semibold text-slate-800 shadow-xs hover:bg-orange-100"
-          >
-            <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>回到主題瀏覽</span>
-          </button>
+      {!dbConfigured && (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+          資料庫尚未設定完成，目前顯示空狀態。
         </div>
       )}
 
-      {/* Degraded Alert Banner */}
       {degradedWarning && (
-        <div
-          role="alert"
-          className="flex items-start gap-2.5 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-950"
-        >
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
+        <div className="flex items-center gap-2 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs font-semibold text-amber-950">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-700" />
           <span>{degradedWarning}</span>
         </div>
       )}
 
       {error && (
-        <div
-          role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800"
-        >
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-800">
           {error}
         </div>
       )}
 
       {/* Results Grid */}
-      {loading ? (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, idx) => (
-            <div
-              key={idx}
-              className="h-72 animate-pulse rounded-2xl border border-[var(--border)] bg-white/80"
-            />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
+      {activeTab === 'stream' ? (
+        streamItems.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-[var(--border-strong)] bg-white p-10 text-center">
+            <Compass className="mx-auto h-8 w-8 text-slate-400" />
+            <p className="mt-2 text-sm font-bold text-slate-900">沒有更多符合條件的現場動態了</p>
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedDomainId('');
+                void loadStream({ uniId: selectedUniId });
+              }}
+              className="mt-3 min-h-[40px] rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white"
+            >
+              回到最新現場流
+            </button>
+          </div>
+        ) : (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {streamItems.map((card) => (
+              <PostCard
+                key={card.id}
+                card={card}
+                sourceSurface={activeNlQuery ? 'discover_nl' : 'discover_stream'}
+              />
+            ))}
+          </div>
+        )
+      ) : eventItems.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-[var(--border-strong)] bg-white p-10 text-center">
-          <p className="text-base font-bold text-slate-900">目前沒有完全符合條件的公開成果</p>
-          <p className="mt-1.5 text-sm text-slate-600">
-            我們不會強塞低相關度內容湊數，歡迎換個說法或切換其他社團分類看看。
-          </p>
+          <Calendar className="mx-auto h-8 w-8 text-slate-400" />
+          <p className="mt-2 text-sm font-bold text-slate-900">目前條件下尚無近期體驗活動</p>
           <button
             type="button"
             onClick={() => {
-              setQuery('');
-              void fetchTopicFeed({ category: '', tag: '', universityId: '' });
+              setDateRange('all');
+              setBeginnerOnly(false);
+              setNonMemberOnly(false);
+              setFreeOnly(false);
+              setHoursOnly(false);
+              setVotingOnly(false);
+              void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId });
             }}
-            className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white hover:bg-[var(--primary-hover)]"
+            className="mt-3 min-h-[40px] rounded-xl bg-blue-600 px-4 text-xs font-bold text-white"
           >
-            <RotateCcw className="h-4 w-4" aria-hidden="true" />
-            <span>顯示全部最新成果</span>
+            清除活動篩選條件
           </button>
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((card) => (
-            <PostCard
-              key={card.post_id}
-              card={card}
-              sourceSurface={mode === 'nl' ? 'discover_nl' : 'discover_topic'}
-            />
+          {eventItems.map((ev) => (
+            <EventCard key={ev.id} event={ev} />
           ))}
         </div>
       )}
 
-      {/* Mandatory End-of-Batch Card (FR-DISC-03) */}
-      {!loading && (
-        <section
-          aria-label="本批探索結束提醒"
-          className="rounded-3xl border border-[var(--border-strong)] bg-white p-6 text-center shadow-xs sm:p-8"
-        >
-          <p className="text-base font-extrabold text-slate-900">
-            這批相關的社團成果已看完（共 {meta.count} 則，單批上限 {meta.cap} 則）
+      {/* Controlled Batch Pagination Card */}
+      <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 text-center sm:flex-row sm:text-left">
+        <div className="text-xs text-slate-600">
+          <p className="font-bold text-slate-800">
+            本批次呈現 {activeTab === 'stream' ? streamMeta.count : eventMeta.count} 則（單社團最多 2 則・不連發・零讚粉排行）
           </p>
-          <p className="mt-1 text-sm text-slate-600">
-            不採用無限捲動消耗注意力。你可以換個主題逛逛，或把時間留給真正感興趣的社團。
-          </p>
-
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5">
-            {meta.suggested_categories.map((cat) => (
-              <button
-                key={cat.value}
-                type="button"
-                onClick={() => {
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                  void fetchTopicFeed({ category: cat.value, tag: '' });
-                }}
-                className="rounded-xl border border-[var(--border-strong)] bg-[var(--muted)] px-4 py-2 text-xs font-bold text-slate-800 transition-colors hover:bg-orange-100"
-              >
-                逛逛「{cat.label}」社團
-              </button>
-            ))}
-
+          <p className="mt-0.5">逛累了可直接切換分頁看活動，或約朋友測一場雙人興趣 Blend。</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {(activeTab === 'stream' ? streamMeta.has_more : eventMeta.has_more) && (
             <button
               type="button"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+              disabled={loading}
+              onClick={() => {
+                if (activeTab === 'stream') {
+                  void loadStream({
+                    uniId: selectedUniId,
+                    domainId: selectedDomainId,
+                    excludeIds: streamMeta.next_exclude_ids,
+                  });
+                } else {
+                  void loadEvents({
+                    uniId: selectedUniId,
+                    domainId: selectedDomainId,
+                    dateRange,
+                    beginnerOnly,
+                    nonMemberOnly,
+                    freeOnly,
+                    hoursOnly,
+                    votingOnly,
+                    excludeIds: eventMeta.next_exclude_ids,
+                  });
+                }
+              }}
+              className="min-h-[44px] rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
             >
-              重新描述探索需求
+              換下一批（12 則）
             </button>
-
-            <Link
-              href="/me"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#2563EB] px-4 py-2 text-xs font-bold text-white hover:bg-blue-700"
-            >
-              <Bookmark className="h-3.5 w-3.5" aria-hidden="true" />
-              <span>前往我的收藏／追蹤社團</span>
-            </Link>
-          </div>
-        </section>
-      )}
+          )}
+          <button
+            type="button"
+            onClick={() => handleTabSwitch(activeTab === 'stream' ? 'events' : 'stream')}
+            className="min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-[var(--muted)] px-4 text-xs font-bold text-slate-800 hover:bg-orange-100"
+          >
+            {activeTab === 'stream' ? '逛逛近期可參加活動 →' : '看社團日常現場流 →'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

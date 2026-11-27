@@ -4,13 +4,16 @@ import { z } from 'zod';
 import { db } from '@/db';
 import {
   auditLogs,
+  clubEvents,
   clubMemberships,
+  clubQuestions,
   clubs,
-  forumReplies,
-  forumThreads,
+  eventAlbumPhotos,
+  eventComments,
   notifications,
   posts,
   reports,
+  togetherItems,
 } from '@/db/schema';
 import { requirePlatformAdmin } from '@/lib/auth/guards';
 import { AppError, handleApiError } from '@/lib/errors';
@@ -66,31 +69,84 @@ export async function POST(
         }
       } else if (report.target_type === 'club') {
         affectedClubId = report.target_id;
-      } else if (report.target_type === 'forum_thread') {
-        const [t] = await tx
-          .select({ id: forumThreads.id, clubId: forumThreads.clubId })
-          .from(forumThreads)
-          .where(eq(forumThreads.id, report.target_id))
+      } else if (report.target_type === 'event') {
+        const [ev] = await tx
+          .select({ id: clubEvents.id, clubId: clubEvents.clubId })
+          .from(clubEvents)
+          .where(eq(clubEvents.id, report.target_id))
           .limit(1);
-        affectedClubId = t?.clubId ?? null;
-        if (parsed.resolution === 'takedown' && t) {
+        affectedClubId = ev?.clubId ?? null;
+        if (parsed.resolution === 'takedown' && ev) {
           await tx
-            .update(forumThreads)
-            .set({ status: 'removed_by_admin', updatedAt: now })
-            .where(eq(forumThreads.id, t.id));
+            .update(clubEvents)
+            .set({ status: 'cancelled', updatedAt: now })
+            .where(eq(clubEvents.id, ev.id));
         }
-      } else if (report.target_type === 'forum_reply') {
-        const [r] = await tx
-          .select({ id: forumReplies.id, clubId: forumReplies.clubId })
-          .from(forumReplies)
-          .where(eq(forumReplies.id, report.target_id))
+      } else if (report.target_type === 'event_comment') {
+        const [c] = await tx
+          .select({ id: eventComments.id, eventId: eventComments.eventId })
+          .from(eventComments)
+          .where(eq(eventComments.id, report.target_id))
           .limit(1);
-        affectedClubId = r?.clubId ?? null;
-        if (parsed.resolution === 'takedown' && r) {
+        if (c) {
+          const [ev] = await tx
+            .select({ clubId: clubEvents.clubId })
+            .from(clubEvents)
+            .where(eq(clubEvents.id, c.eventId))
+            .limit(1);
+          affectedClubId = ev?.clubId ?? null;
+          if (parsed.resolution === 'takedown') {
+            await tx
+              .update(eventComments)
+              .set({ isDeleted: true, deletedBy: admin.id })
+              .where(eq(eventComments.id, c.id));
+          }
+        }
+      } else if (report.target_type === 'album_photo') {
+        const [ph] = await tx
+          .select({ id: eventAlbumPhotos.id, eventId: eventAlbumPhotos.eventId })
+          .from(eventAlbumPhotos)
+          .where(eq(eventAlbumPhotos.id, report.target_id))
+          .limit(1);
+        if (ph) {
+          const [ev] = await tx
+            .select({ clubId: clubEvents.clubId })
+            .from(clubEvents)
+            .where(eq(clubEvents.id, ph.eventId))
+            .limit(1);
+          affectedClubId = ev?.clubId ?? null;
+          if (parsed.resolution === 'takedown') {
+            await tx
+              .update(eventAlbumPhotos)
+              .set({ status: 'rejected', curatedBy: admin.id })
+              .where(eq(eventAlbumPhotos.id, ph.id));
+          }
+        }
+      } else if (report.target_type === 'club_question') {
+        const [q] = await tx
+          .select({ id: clubQuestions.id, clubId: clubQuestions.clubId })
+          .from(clubQuestions)
+          .where(eq(clubQuestions.id, report.target_id))
+          .limit(1);
+        affectedClubId = q?.clubId ?? null;
+        if (parsed.resolution === 'takedown' && q) {
           await tx
-            .update(forumReplies)
-            .set({ status: 'removed_by_admin', updatedAt: now })
-            .where(eq(forumReplies.id, r.id));
+            .update(clubQuestions)
+            .set({ status: 'hidden', isPinnedFaq: false, updatedAt: now })
+            .where(eq(clubQuestions.id, q.id));
+        }
+      } else if (report.target_type === 'together_item') {
+        const [ti] = await tx
+          .select({ id: togetherItems.id, clubId: togetherItems.clubId })
+          .from(togetherItems)
+          .where(eq(togetherItems.id, report.target_id))
+          .limit(1);
+        affectedClubId = ti?.clubId ?? null;
+        if (parsed.resolution === 'takedown' && ti) {
+          await tx
+            .update(togetherItems)
+            .set({ status: 'removed_by_admin' })
+            .where(eq(togetherItems.id, ti.id));
         }
       }
 
@@ -156,7 +212,7 @@ export async function POST(
               parsed.resolution === 'suspend_club'
                 ? `社團權限暫停通知：${club?.name ?? ''}`
                 : `內容下架處置通知：${club?.name ?? ''}`,
-            body: `處置原因：${parsed.resolution_note || '經檢舉審核違反平台規範'}。如有疑問請透過平台申訴信箱聯繫管理員。`,
+            body: `處置原因：${parsed.resolution_note || '經檢舉審核違反平台規範'}。如有疑問請透過平台申訴窗口聯繫管理員。`,
             linkUrl: club ? `/clubs/${club.slug}` : '/me',
           });
         }

@@ -1,58 +1,79 @@
+import crypto from 'node:crypto';
 import { eq } from 'drizzle-orm';
 import { db, isDatabaseConfigured } from '@/db';
 import {
   analyticsEvents,
+  clubEvents,
   clubs,
   posts,
   type AnalyticsEventType,
-  type ClubCategory,
 } from '@/db/schema';
+import { getCurrentAcademicYear } from '@/lib/academic-year';
+
+function getLongtailSalt(): string {
+  const configured = process.env.LONGTAIL_REACH_SALT?.trim();
+  if (configured) return configured;
+  const baseSecret = process.env.AUTH_SECRET?.trim() || 'clubar-dev-secret';
+  return crypto.createHmac('sha256', baseSecret).update('longtail-reach').digest('hex');
+}
+
+export function computeStudentReachHash(
+  userId: string,
+  academicYear: number = getCurrentAcademicYear()
+): string {
+  return crypto
+    .createHmac('sha256', getLongtailSalt())
+    .update(`${userId}::${academicYear}`)
+    .digest('hex');
+}
 
 export async function recordAnalyticsEvent(params: {
   eventType: AnalyticsEventType;
   clubId?: string | null;
-  postId?: string | null;
+  targetId?: string | null;
   universityId?: string | null;
-  category?: ClubCategory | null;
   sourceSurface?: string | null;
+  userId?: string | null;
 }): Promise<void> {
   if (!isDatabaseConfigured()) return;
 
   try {
     let universityId = params.universityId ?? null;
     let clubId = params.clubId ?? null;
-    let category = params.category ?? null;
 
-    if (params.postId && (!clubId || !universityId || !category)) {
+    if (params.targetId && (!clubId || !universityId)) {
       const [postRow] = await db
-        .select({
-          clubId: posts.clubId,
-          universityId: clubs.universityId,
-          category: clubs.category,
-        })
+        .select({ clubId: posts.clubId, universityId: clubs.universityId })
         .from(posts)
         .innerJoin(clubs, eq(posts.clubId, clubs.id))
-        .where(eq(posts.id, params.postId))
+        .where(eq(posts.id, params.targetId))
         .limit(1);
 
       if (postRow) {
         clubId = clubId ?? postRow.clubId;
         universityId = universityId ?? postRow.universityId;
-        category = category ?? postRow.category;
+      } else {
+        const [eventRow] = await db
+          .select({ clubId: clubEvents.clubId, universityId: clubs.universityId })
+          .from(clubEvents)
+          .innerJoin(clubs, eq(clubEvents.clubId, clubs.id))
+          .where(eq(clubEvents.id, params.targetId))
+          .limit(1);
+
+        if (eventRow) {
+          clubId = clubId ?? eventRow.clubId;
+          universityId = universityId ?? eventRow.universityId;
+        }
       }
-    } else if (clubId && (!universityId || !category)) {
+    } else if (clubId && !universityId) {
       const [clubRow] = await db
-        .select({
-          universityId: clubs.universityId,
-          category: clubs.category,
-        })
+        .select({ universityId: clubs.universityId })
         .from(clubs)
         .where(eq(clubs.id, clubId))
         .limit(1);
 
       if (clubRow) {
-        universityId = universityId ?? clubRow.universityId;
-        category = category ?? clubRow.category;
+        universityId = clubRow.universityId;
       }
     }
 
@@ -60,9 +81,9 @@ export async function recordAnalyticsEvent(params: {
       eventType: params.eventType,
       universityId,
       clubId,
-      postId: params.postId ?? null,
-      category,
+      targetId: params.targetId ?? null,
       sourceSurface: params.sourceSurface ?? null,
+      studentReachHash: params.userId ? computeStudentReachHash(params.userId) : null,
     });
   } catch (err) {
     console.warn('[Analytics insert failed]', err instanceof Error ? err.message : err);

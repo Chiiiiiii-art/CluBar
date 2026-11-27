@@ -6,10 +6,12 @@ import {
   auditLogs,
   clubApplications,
   clubMemberships,
+  clubQuestions,
   clubs,
   notifications,
 } from '@/db/schema';
 import { requirePlatformAdmin } from '@/lib/auth/guards';
+import { DEFAULT_FAQ_TEMPLATES } from '@/lib/constants';
 import { AppError, handleApiError } from '@/lib/errors';
 import { expireStaleHandovers } from '@/lib/services/handover';
 
@@ -134,6 +136,19 @@ export async function POST(
           title: '社長',
         });
 
+        await tx.insert(clubQuestions).values(
+          DEFAULT_FAQ_TEMPLATES.map((tpl) => ({
+            clubId: club.id,
+            isAnonymous: true,
+            questionText: tpl.questionText,
+            answerText: tpl.answerText,
+            answeredBy: app.applicant_user_id,
+            answeredAt: now,
+            status: 'published' as const,
+            isPinnedFaq: true,
+          }))
+        );
+
         clubId = club.id;
         clubSlug = club.slug;
         clubName = club.name;
@@ -165,6 +180,19 @@ export async function POST(
           role: 'owner',
           title: '社長',
         });
+
+        await tx.insert(clubQuestions).values(
+          DEFAULT_FAQ_TEMPLATES.map((tpl) => ({
+            clubId: createdClub.id,
+            isAnonymous: true,
+            questionText: tpl.questionText,
+            answerText: tpl.answerText,
+            answeredBy: app.applicant_user_id,
+            answeredAt: now,
+            status: 'published' as const,
+            isPinnedFaq: true,
+          }))
+        );
 
         clubId = createdClub.id;
         clubSlug = createdClub.slug;

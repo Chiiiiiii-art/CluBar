@@ -5,18 +5,25 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   ArrowRight,
+  Award,
   Bell,
   Bookmark,
+  CalendarSync,
   CheckCircle2,
+  Copy,
   Heart,
   LogOut,
   MailCheck,
+  RefreshCw,
   Settings,
   ShieldCheck,
+  Sparkles,
   UserCheck,
 } from 'lucide-react';
-import { CLUB_CATEGORIES } from '@/lib/constants';
+import type { FollowMode, PortfolioVisibility } from '@/db/schema';
 import { formatTaipeiDateTime } from '@/lib/academic-year';
+import { CLUB_CATEGORIES } from '@/lib/constants';
+import type { UserPortfolioDTO } from '@/lib/services/portfolio';
 
 export interface MePageData {
   user: {
@@ -34,7 +41,7 @@ export interface MePageData {
     name: string;
     universityShortName: string;
     category: keyof typeof CLUB_CATEGORIES;
-    role: 'owner' | 'editor' | 'alumni';
+    role: 'owner' | 'editor' | 'member' | 'alumni';
     title: string | null;
     verificationStatus: string;
   }[];
@@ -45,6 +52,11 @@ export interface MePageData {
     fromUserName: string;
     note: string | null;
     expiresAt: string;
+  }[];
+  pendingCoClubInvitations: {
+    id: string;
+    targetType: 'event' | 'post';
+    hostClubName: string;
   }[];
   notifications: {
     id: string;
@@ -68,7 +80,20 @@ export interface MePageData {
     name: string;
     universityShortName: string;
     category: keyof typeof CLUB_CATEGORIES;
+    followMode: FollowMode;
   }[];
+  portfolio: UserPortfolioDTO | null;
+}
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i += 1) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
 }
 
 export function MeClient({
@@ -91,7 +116,33 @@ export function MeClient({
   const [handoverBusy, setHandoverBusy] = useState<string | null>(null);
   const [handoverMsg, setHandoverMsg] = useState<string | null>(null);
 
+  const [coInvites, setCoInvites] = useState(data.pendingCoClubInvitations);
+  const [coBusy, setCoBusy] = useState<string | null>(null);
+
   const [notifs, setNotifs] = useState(data.notifications);
+  const [follows, setFollows] = useState(data.follows);
+
+  // Portfolio & Calendar & Push settings
+  const [handleInput, setHandleInput] = useState(data.portfolio?.handle ?? '');
+  const [visibility, setVisibility] = useState<PortfolioVisibility>(
+    data.portfolio?.portfolio_visibility ?? 'campus_only'
+  );
+  const [talentOptIn, setTalentOptIn] = useState(
+    data.portfolio?.talent_discovery_opt_in ?? false
+  );
+  const [alumniPing, setAlumniPing] = useState(
+    data.portfolio?.alumni_ping_enabled ?? false
+  );
+  const [alumniTagsStr, setAlumniTagsStr] = useState(
+    (data.portfolio?.alumni_expertise_tags ?? []).join(', ')
+  );
+  const [portBusy, setPortBusy] = useState(false);
+  const [portMsg, setPortMsg] = useState<string | null>(null);
+  const [portErr, setPortErr] = useState<string | null>(null);
+
+  const [calUrl, setCalUrl] = useState<string | null>(null);
+  const [calMsg, setCalMsg] = useState<string | null>(null);
+  const [pushMsg, setPushMsg] = useState<string | null>(null);
 
   const requestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,12 +217,130 @@ export function MeClient({
     }
   };
 
+  const respondCoClub = async (
+    id: string,
+    decision: 'accept' | 'reject',
+    includeEval = true
+  ) => {
+    setCoBusy(id);
+    try {
+      const res = await fetch(`/api/co-club/invitations/${id}/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision, partner_include_eval: includeEval }),
+      });
+      if (res.ok) {
+        setCoInvites((prev) => prev.filter((c) => c.id !== id));
+        router.refresh();
+      }
+    } finally {
+      setCoBusy(null);
+    }
+  };
+
   const markRead = async (id: string) => {
     setNotifs((prev) =>
       prev.map((n) => (n.id === id ? { ...n, readAt: new Date().toISOString() } : n))
     );
     await fetch(`/api/me/notifications/${id}/read`, { method: 'PATCH' });
     router.refresh();
+  };
+
+  const handleSavePortfolioSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPortBusy(true);
+    setPortMsg(null);
+    setPortErr(null);
+    try {
+      const tags = alumniTagsStr
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .slice(0, 3);
+      const res = await fetch('/api/me/portfolio', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          handle: handleInput.trim() || null,
+          portfolio_visibility: visibility,
+          talent_discovery_opt_in: talentOptIn,
+          alumni_ping_enabled: alumniPing,
+          alumni_expertise_tags: tags,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || '儲存設定失敗');
+      setPortMsg('1D 成長軌跡與隱私授權設定已更新！');
+      router.refresh();
+    } catch (err) {
+      setPortErr(err instanceof Error ? err.message : '儲存失敗');
+    } finally {
+      setPortBusy(false);
+    }
+  };
+
+  const handleLoadWebcal = async (rotate = false) => {
+    const res = await fetch('/api/me/calendar-token', {
+      method: rotate ? 'POST' : 'GET',
+    });
+    if (res.ok) {
+      const json = await res.json();
+      setCalUrl(json.webcal_url);
+      await navigator.clipboard.writeText(json.webcal_url).catch(() => {});
+      setCalMsg(
+        rotate
+          ? '已重新輪替專屬行事曆密鑰並複製最新 webcal:// 網址（舊訂閱自動作廢）。'
+          : '已複製專屬 webcal:// 行事曆訂閱網址！'
+      );
+    }
+  };
+
+  const handleEnableWebPush = async () => {
+    setPushMsg(null);
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        setPushMsg('目前瀏覽器不支援 Web Push，系統會自動改用站內與 Email 通知。');
+        return;
+      }
+      const keyRes = await fetch('/api/me/push-subscriptions');
+      const keyJson = await keyRes.json();
+      if (!keyJson?.vapid_public_key) {
+        setPushMsg('目前伺服器未啟用 VAPID 推播，已開啟站內與 Email 雙備援通知。');
+        return;
+      }
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') {
+        setPushMsg('瀏覽器推播未獲授權，已保持站內通知與 Email 提醒。');
+        return;
+      }
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(keyJson.vapid_public_key) as BufferSource,
+      });
+      const subJson = sub.toJSON();
+      await fetch('/api/me/push-subscriptions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ endpoint: subJson.endpoint, keys: subJson.keys }),
+      });
+      setPushMsg('瀏覽器即時推播已啟用！');
+    } catch {
+      setPushMsg('啟用推播時發生問題，已切換回站內通知＋Email。');
+    }
+  };
+
+  const handleChangeFollowMode = async (clubId: string, nextMode: FollowMode) => {
+    const res = await fetch(`/api/me/follows/${clubId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ follow_mode: nextMode }),
+    });
+    if (res.ok) {
+      setFollows((prev) =>
+        prev.map((f) => (f.clubId === clubId ? { ...f, followMode: nextMode } : f))
+      );
+    }
   };
 
   return (
@@ -225,7 +394,7 @@ export function MeClient({
               <div className="flex-1 space-y-3">
                 <div>
                   <h2 className="text-sm font-bold text-slate-900">
-                    驗證大專校院 `.edu.tw` 校園信箱（解鎖社團幹部與認領權限）
+                    驗證大專校院 `.edu.tw` 校園信箱（解鎖社員認證、發問、與幹部權限）
                   </h2>
                   <p className="mt-0.5 text-xs text-slate-600">
                     支援全台大專校院 `.edu.tw` 網域（如 `@cc.ncu.edu.tw`、`@ntust.edu.tw`）；本資料僅供身分驗證，不對外公開。
@@ -294,6 +463,46 @@ export function MeClient({
         )}
       </section>
 
+      {/* Pending Co-Club Invitations */}
+      {coInvites.length > 0 && (
+        <section className="rounded-3xl border border-blue-200 bg-blue-50/70 p-5 shadow-xs">
+          <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
+            <Sparkles className="h-4 w-4 text-blue-700" aria-hidden="true" />
+            待回應的 Co-Club 友社共辦邀請 ({coInvites.length})
+          </h2>
+          <div className="mt-3 space-y-2.5">
+            {coInvites.map((inv) => (
+              <div
+                key={inv.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white p-4 text-xs"
+              >
+                <span className="font-bold text-slate-900">
+                  「{inv.hostClubName}」邀請貴社掛名共辦（{inv.targetType === 'event' ? '體驗活動' : '作品貼文'}）
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={coBusy === inv.id}
+                    onClick={() => respondCoClub(inv.id, 'accept', true)}
+                    className="rounded-full bg-[var(--brand)] px-3.5 py-1.5 font-bold text-white"
+                  >
+                    同意共辦並納入本社評鑑
+                  </button>
+                  <button
+                    type="button"
+                    disabled={coBusy === inv.id}
+                    onClick={() => respondCoClub(inv.id, 'reject', false)}
+                    className="rounded-full border border-slate-300 px-3 py-1.5 font-bold text-slate-700"
+                  >
+                    婉拒
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Pending Handover Invitations */}
       {(handovers.length > 0 || handoverMsg) && (
         <section className="rounded-3xl border border-orange-300 bg-orange-50 p-5 shadow-xs">
@@ -348,10 +557,142 @@ export function MeClient({
         </section>
       )}
 
+      {/* 1D Portfolio, Webcal Subscription & Push Controls */}
+      <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-extrabold text-slate-900">
+              <Award className="h-5 w-5 text-[var(--brand)]" aria-hidden="true" />
+              個人社團成長軌跡 (1D Portfolio) 與訂閱授權
+            </h2>
+            <p className="text-xs text-slate-600">
+              累積認證時數 {data.portfolio?.learning_hours_total ?? 0} 小時・參與場次{' '}
+              {data.portfolio?.attended_events.length ?? 0} 場（預設完全私密，無追蹤人數虛榮排行）
+            </p>
+          </div>
+          {handleInput && (
+            <Link
+              href={`/u/${handleInput}`}
+              className="rounded-full border border-[var(--border-strong)] px-3.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-50"
+            >
+              檢視我的公開足跡頁 /u/{handleInput}
+            </Link>
+          )}
+        </div>
+
+        <form onSubmit={handleSavePortfolioSettings} className="mt-4 space-y-3 text-xs">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div>
+              <label className="mb-1 block font-bold text-slate-700">個人頁代號 (handle)</label>
+              <input
+                value={handleInput}
+                onChange={(e) => setHandleInput(e.target.value)}
+                placeholder="如 alex-ncu (4-30字小寫)"
+                className="w-full rounded-xl border border-[var(--border)] px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block font-bold text-slate-700">誰能看見我的成長軌跡</label>
+              <select
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value as PortfolioVisibility)}
+                className="w-full rounded-xl border border-[var(--border)] px-3 py-2"
+              >
+                <option value="campus_only">僅限同校已驗證同學 (預設)</option>
+                <option value="public">公開網際網路分享網址</option>
+                <option value="private">完全僅限本人檢視</option>
+              </select>
+            </div>
+            <div>
+              <label className="mb-1 block font-bold text-slate-700">
+                前輩經驗專長標籤（逗號分隔，最多 3 個）
+              </label>
+              <input
+                value={alumniTagsStr}
+                onChange={(e) => setAlumniTagsStr(e.target.value)}
+                placeholder="如 評鑑核銷, 攝影暗房, 場控"
+                className="w-full rounded-xl border border-[var(--border)] px-3 py-2"
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-4 pt-1">
+            <label className="flex cursor-pointer items-center gap-2 font-semibold text-slate-700">
+              <input
+                type="checkbox"
+                checked={alumniPing}
+                onChange={(e) => setAlumniPing(e.target.checked)}
+              />
+              開放「一起聚 → 前輩請益牆 (Alumni Ping)」接受學弟妹禮貌發問
+            </label>
+            <label className="flex cursor-pointer items-center gap-2 text-slate-700">
+              <input
+                type="checkbox"
+                checked={talentOptIn}
+                onChange={(e) => setTalentOptIn(e.target.checked)}
+              />
+              授權將本歷練納入未來實習／產學人才推薦 (Talent Opt-in，預設關閉)
+            </label>
+          </div>
+
+          {portMsg && <p className="font-bold text-emerald-700">{portMsg}</p>}
+          {portErr && <p className="font-bold text-red-700">{portErr}</p>}
+
+          <div className="flex flex-wrap items-center gap-3 pt-1">
+            <button
+              type="submit"
+              disabled={portBusy}
+              className="rounded-full bg-[var(--brand)] px-4 py-2 font-bold text-white"
+            >
+              儲存軌跡與授權設定
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLoadWebcal(false)}
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--border-strong)] px-3.5 py-2 font-bold text-slate-800"
+            >
+              <CalendarSync className="h-3.5 w-3.5 text-[var(--brand)]" />
+              複製個人 webcal:// 行事曆
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLoadWebcal(true)}
+              className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-2 text-slate-600"
+            >
+              <RefreshCw className="h-3 w-3" />
+              重設行事曆密鑰
+            </button>
+            <button
+              type="button"
+              onClick={handleEnableWebPush}
+              className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3.5 py-2 font-bold text-slate-700"
+            >
+              <Bell className="h-3.5 w-3.5" />
+              啟用瀏覽器 Push 推播
+            </button>
+          </div>
+
+          {calUrl && (
+            <div className="mt-2 flex items-center gap-2 rounded-xl bg-slate-50 p-2.5 font-mono text-[11px] text-slate-700">
+              <span className="truncate">{calUrl}</span>
+              <button
+                type="button"
+                onClick={() => navigator.clipboard.writeText(calUrl)}
+                className="shrink-0 font-bold text-[var(--brand)]"
+              >
+                <Copy className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+          {calMsg && <p className="font-semibold text-emerald-700">{calMsg}</p>}
+          {pushMsg && <p className="font-semibold text-blue-700">{pushMsg}</p>}
+        </form>
+      </section>
+
       {/* Managed Clubs */}
       <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs sm:p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-extrabold text-slate-900">我管理的社團</h2>
+          <h2 className="text-lg font-extrabold text-slate-900">我加入的社團</h2>
           <Link
             href="/clubs/apply"
             className="text-xs font-bold text-[var(--primary)] hover:underline"
@@ -362,7 +703,11 @@ export function MeClient({
 
         {data.memberships.length === 0 ? (
           <p className="text-sm text-slate-600">
-            您目前尚未加入任何認證社團幹部團隊。若您是社團幹部，可請社長指派或前往{' '}
+            您目前尚未加入任何認證社團。可至{' '}
+            <Link href="/my-clubs" className="font-bold text-blue-700 underline">
+              我的社團
+            </Link>{' '}
+            輸入邀請碼，或前往{' '}
             <Link href="/clubs/apply" className="font-bold text-blue-700 underline">
               認領名錄社團
             </Link>
@@ -383,7 +728,9 @@ export function MeClient({
                         ? '現任社長'
                         : m.role === 'editor'
                           ? '現任幹部'
-                          : '歷屆校友（只讀）'}
+                          : m.role === 'member'
+                            ? '認證社員'
+                            : '歷屆校友（只讀）'}
                     </span>
                   </div>
                   <Link
@@ -395,13 +742,15 @@ export function MeClient({
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <Link
-                    href={`/clubs/${m.slug}/manage`}
-                    className="inline-flex items-center gap-1 rounded-xl bg-[var(--primary)] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
-                  >
-                    <Settings className="h-3.5 w-3.5" aria-hidden="true" />
-                    <span>{m.role === 'alumni' ? '檢視年度成果' : '進入管理後台'}</span>
-                  </Link>
+                  {m.role !== 'member' && (
+                    <Link
+                      href={`/clubs/${m.slug}/manage`}
+                      className="inline-flex items-center gap-1 rounded-xl bg-[var(--primary)] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
+                    >
+                      <Settings className="h-3.5 w-3.5" aria-hidden="true" />
+                      <span>{m.role === 'alumni' ? '檢視年度成果' : '進入管理後台'}</span>
+                    </Link>
+                  )}
                   <Link
                     href={`/clubs/${m.slug}`}
                     className="inline-flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
@@ -416,12 +765,12 @@ export function MeClient({
         )}
       </section>
 
-      {/* Bookmarks & Follows */}
+      {/* Bookmarks & Follows (with Follow Separation Mode selector) */}
       <div className="grid gap-6 md:grid-cols-2">
         <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs">
           <div className="mb-3 flex items-center gap-2">
             <Bookmark className="h-4 w-4 text-[var(--primary)]" aria-hidden="true" />
-            <h2 className="text-base font-extrabold text-slate-900">我的私密收藏貼文</h2>
+            <h2 className="text-base font-extrabold text-slate-900">我的私密收藏貼文與活動</h2>
           </div>
           {data.bookmarks.length === 0 ? (
             <p className="text-xs text-slate-500">
@@ -435,17 +784,18 @@ export function MeClient({
                   className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-3"
                 >
                   <Link
-                    href={`/posts/${b.postId}`}
+                    href={
+                      b.clubSlug.startsWith('../e/')
+                        ? `/e/${b.clubSlug.slice(5)}`
+                        : `/posts/${b.postId}`
+                    }
                     className="block text-sm font-bold text-slate-900 hover:text-[var(--primary)]"
                   >
                     {b.title}
                   </Link>
-                  <Link
-                    href={`/clubs/${b.clubSlug}`}
-                    className="mt-1 block text-xs text-slate-600 hover:underline"
-                  >
+                  <span className="mt-1 block text-xs text-slate-600">
                     {b.universityShortName} · {b.clubName}
-                  </Link>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -455,16 +805,16 @@ export function MeClient({
         <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs">
           <div className="mb-3 flex items-center gap-2">
             <Heart className="h-4 w-4 text-[var(--primary)]" aria-hidden="true" />
-            <h2 className="text-base font-extrabold text-slate-900">我追蹤的社團</h2>
+            <h2 className="text-base font-extrabold text-slate-900">我追蹤的社團（追蹤分流設定）</h2>
           </div>
-          {data.follows.length === 0 ? (
+          {follows.length === 0 ? (
             <p className="text-xs text-slate-500">尚未追蹤任何社團。</p>
           ) : (
             <ul className="space-y-2.5">
-              {data.follows.map((f) => (
+              {follows.map((f) => (
                 <li
                   key={f.clubId}
-                  className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-3"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-3"
                 >
                   <div>
                     <Link
@@ -477,12 +827,17 @@ export function MeClient({
                       {f.universityShortName} · {CLUB_CATEGORIES[f.category].label}
                     </p>
                   </div>
-                  <Link
-                    href={`/clubs/${f.slug}`}
-                    className="text-xs font-semibold text-blue-700 hover:underline"
+                  <select
+                    aria-label={`${f.name} 追蹤分流模式`}
+                    value={f.followMode}
+                    onChange={(e) =>
+                      handleChangeFollowMode(f.clubId, e.target.value as FollowMode)
+                    }
+                    className="rounded-xl border border-[var(--border-strong)] bg-white px-2.5 py-1 text-xs font-semibold text-slate-700"
                   >
-                    查看
-                  </Link>
+                    <option value="all">追全動態</option>
+                    <option value="events_only">只追新活動</option>
+                  </select>
                 </li>
               ))}
             </ul>

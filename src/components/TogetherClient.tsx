@@ -2,441 +2,799 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { MessageSquarePlus, MessageSquareText, Lock, X } from 'lucide-react';
-import type { ClubCategory, ForumTag } from '@/db/schema';
-import { formatTaipeiDateTime } from '@/lib/academic-year';
-import { CLUB_CATEGORIES, CLUB_CATEGORY_LIST, FORUM_TAGS } from '@/lib/constants';
-import type { PublicForumThreadDTO } from '@/lib/serializers';
+import {
+  BookOpen,
+  Compass,
+  HandHeart,
+  Link2,
+  Plus,
+  Send,
+  Sparkles,
+  Users,
+} from 'lucide-react';
+import { TOGETHER_ITEM_TYPE_LABELS } from '@/lib/constants';
+import type { PublicTogetherItemDTO } from '@/lib/serializers';
 
-export interface OfficerClubOption {
-  club_id: string;
-  club_name: string;
+export interface TogetherJamDTO {
+  id: string;
+  title: string;
+  summary: string;
+  domain_id: string;
+  domain_name: string;
+  target_schools_count: number;
+  needed_roles: string[];
+  collab_format: string;
+  deadline_at: string;
+  host_club: {
+    id: string;
+    slug: string;
+    name: string;
+    university_short_name: string;
+  };
+}
+
+export interface PracticalResourceDTO {
+  id: string;
+  domain_id: string;
+  domain_name: string;
+  source_university_short_name: string;
+  title: string;
+  content_md: string;
+  created_at: string;
+}
+
+export interface AlumniMentorDTO {
+  user_id: string;
+  display_name: string;
+  handle: string | null;
   university_short_name: string;
-  default_title: string | null;
+  expertise_tags: string[];
+  clubs: { slug: string; name: string; title: string | null; role: string }[];
 }
 
 export function TogetherClient({
-  initialThreads,
-  initialNextCursor,
-  officerClubs,
-  isLoggedIn,
+  domains,
+  initialItems,
+  initialJams,
+  initialResources,
+  myMemberships,
+  isCampusVerified,
 }: {
-  initialThreads: PublicForumThreadDTO[];
-  initialNextCursor: string | null;
-  officerClubs: OfficerClubOption[];
-  isLoggedIn: boolean;
+  domains: { id: string; slug: string; name_zh: string }[];
+  initialItems: PublicTogetherItemDTO[];
+  initialJams: TogetherJamDTO[];
+  initialResources: PracticalResourceDTO[];
+  myMemberships: { clubId: string; slug: string; name: string; role: string }[];
+  isCampusVerified: boolean;
 }) {
-  const [threads, setThreads] = useState<PublicForumThreadDTO[]>(initialThreads);
-  const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
-  const [category, setCategory] = useState<ClubCategory | ''>('');
-  const [tag, setTag] = useState<ForumTag | ''>('');
-  const [loading, setLoading] = useState(false);
+  const [subTab, setSubTab] = useState<'stage' | 'jam' | 'mentors'>('stage');
+  const [selectedDomain, setSelectedDomain] = useState('');
+  const [items, setItems] = useState(initialItems);
+  const [jams, setJams] = useState(initialJams);
+  const [resources, setResources] = useState(initialResources);
+  const [alumni, setAlumni] = useState<AlumniMentorDTO[]>([]);
+  const [alumniLoaded, setAlumniLoaded] = useState(false);
 
-  // Composer Modal state
-  const [composerOpen, setComposerOpen] = useState(false);
-  const [actingClubId, setActingClubId] = useState(officerClubs[0]?.club_id ?? '');
-  const [newCategory, setNewCategory] = useState<ClubCategory>('academic');
-  const [newTag, setNewTag] = useState<ForumTag>('event_exp');
-  const [authorTitle, setAuthorTitle] = useState(officerClubs[0]?.default_title ?? '');
+  const [msg, setMsg] = useState<string | null>(null);
+  const [err, setErr] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+
+  // New stage item composer
+  const [showStageForm, setShowStageForm] = useState(false);
+  const [clubId, setClubId] = useState(myMemberships[0]?.clubId ?? '');
+  const [domainId, setDomainId] = useState(domains[0]?.id ?? '');
+  const [itemType, setItemType] = useState<
+    'showcase' | 'field_log' | 'match_invite' | 'reading_notes'
+  >('showcase');
   const [title, setTitle] = useState('');
   const [contentMd, setContentMd] = useState('');
-  const [externalUrl, setExternalUrl] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
+  const [embedUrl, setEmbedUrl] = useState('');
 
-  const loadThreads = async (opts: {
-    nextCategory?: ClubCategory | '';
-    nextTag?: ForumTag | '';
-    cursor?: string | null;
-    append?: boolean;
-  }) => {
-    const cat = opts.nextCategory !== undefined ? opts.nextCategory : category;
-    const t = opts.nextTag !== undefined ? opts.nextTag : tag;
-    setCategory(cat);
-    setTag(t);
-    setLoading(true);
-    try {
-      const sp = new URLSearchParams();
-      if (cat) sp.set('category', cat);
-      if (t) sp.set('tag', t);
-      if (opts.cursor) sp.set('cursor', opts.cursor);
-      const res = await fetch(`/api/forum/threads?${sp.toString()}`);
-      const json = await res.json();
+  // New Jam composer (officers)
+  const officerClubs = myMemberships.filter((m) => ['owner', 'editor'].includes(m.role));
+  const [showJamForm, setShowJamForm] = useState(false);
+  const [jamClubId, setJamClubId] = useState(officerClubs[0]?.clubId ?? '');
+  const [jamDomainId, setJamDomainId] = useState(domains[0]?.id ?? '');
+  const [jamTitle, setJamTitle] = useState('');
+  const [jamSummary, setJamSummary] = useState('');
+  const [jamFormat, setJamFormat] = useState('跨校線上週會＋實體合展');
+  const [jamRoles, setJamRoles] = useState('美術設計, 音效配樂');
+
+  // Alumni ping modal state
+  const [pingTarget, setPingTarget] = useState<AlumniMentorDTO | null>(null);
+  const [pingTag, setPingTag] = useState('');
+  const [pingMessage, setPingMessage] = useState('');
+
+  // Resource composer
+  const [resTitle, setResTitle] = useState('');
+  const [resContent, setResContent] = useState('');
+  const [resDomainId, setResDomainId] = useState(domains[0]?.id ?? '');
+
+  const filteredItems = selectedDomain
+    ? items.filter((item) => item.domain_id === selectedDomain)
+    : items;
+  const filteredJams = selectedDomain
+    ? jams.filter((j) => j.domain_id === selectedDomain)
+    : jams;
+  const filteredResources = selectedDomain
+    ? resources.filter((r) => r.domain_id === selectedDomain)
+    : resources;
+
+  async function openMentorsTab() {
+    setSubTab('mentors');
+    if (isCampusVerified && !alumniLoaded) {
+      const res = await fetch('/api/together/alumni');
       if (res.ok) {
-        setThreads((prev) => (opts.append ? [...prev, ...(json.threads ?? [])] : json.threads ?? []));
-        setNextCursor(json.next_cursor ?? null);
+        const j = await res.json();
+        setAlumni(j.alumni ?? []);
+        setAlumniLoaded(true);
       }
-    } finally {
-      setLoading(false);
     }
-  };
+  }
 
-  const handleCreate = async (e: React.FormEvent) => {
+  async function handleCreateItem(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitting(true);
-    setFormError(null);
+    setBusy('create-item');
+    setErr(null);
+    setMsg(null);
     try {
-      const res = await fetch('/api/forum/threads', {
+      const res = await fetch('/api/together/items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          acting_club_id: actingClubId,
-          category: newCategory,
-          discussion_tag: newTag,
-          title,
-          content_md: contentMd,
-          author_title: authorTitle.trim() || undefined,
-          external_url: externalUrl.trim() || undefined,
+          club_id: clubId,
+          domain_id: domainId,
+          item_type: itemType,
+          title: title.trim(),
+          content_md: contentMd.trim(),
+          embed_url: embedUrl.trim() || null,
         }),
       });
       const json = await res.json();
-      if (!res.ok) {
-        setFormError(json?.error?.message || '發起討論失敗，請檢查欄位內容。');
-        return;
-      }
-      setComposerOpen(false);
+      if (!res.ok) throw new Error(json?.error?.message || '發表失敗');
+      setItems((prev) => [json.item, ...prev]);
       setTitle('');
       setContentMd('');
-      setExternalUrl('');
-      await loadThreads({ nextCategory: category, nextTag: tag });
-    } catch {
-      setFormError('網路連線異常，請稍後再試。');
+      setEmbedUrl('');
+      setShowStageForm(false);
+      setMsg('已發布至跨校同好實作舞台！');
+    } catch (e2) {
+      setErr(e2 instanceof Error ? e2.message : '發表失敗');
     } finally {
-      setSubmitting(false);
+      setBusy(null);
     }
-  };
+  }
+
+  async function handleCreateJam(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy('create-jam');
+    setErr(null);
+    setMsg(null);
+    try {
+      const deadline = new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString();
+      const res = await fetch('/api/together/jams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          host_club_id: jamClubId,
+          domain_id: jamDomainId,
+          title: jamTitle.trim(),
+          summary: jamSummary.trim(),
+          target_schools_count: 2,
+          needed_roles: jamRoles
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean),
+          collab_format: jamFormat.trim(),
+          deadline_at: deadline,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || '建立 Jam 失敗');
+      setShowJamForm(false);
+      setJamTitle('');
+      setJamSummary('');
+      const refreshed = await fetch('/api/together/jams');
+      if (refreshed.ok) {
+        const j = await refreshed.json();
+        setJams(j.jams ?? []);
+      }
+      setMsg('跨校共作 Jam 徵集已公開！');
+    } catch (e2) {
+      setErr(e2 instanceof Error ? e2.message : '建立失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleSendPing(e: React.FormEvent) {
+    e.preventDefault();
+    if (!pingTarget) return;
+    setBusy('ping');
+    setErr(null);
+    setMsg(null);
+    try {
+      const res = await fetch(`/api/together/alumni/${pingTarget.user_id}/ping`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain_id: domains[0]?.id,
+          expertise_tag: pingTag || pingTarget.expertise_tags[0] || '社團傳承',
+          message: pingMessage.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || '送出請益失敗');
+      setPingTarget(null);
+      setPingMessage('');
+      setMsg(`已禮貌寄出請益通知給 ${pingTarget.display_name}（每天上限 3 次）。`);
+    } catch (e2) {
+      setErr(e2 instanceof Error ? e2.message : '送出失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleCreateResource(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy('res');
+    setErr(null);
+    setMsg(null);
+    try {
+      const res = await fetch('/api/together/resources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain_id: resDomainId,
+          title: resTitle.trim(),
+          content_md: resContent.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || '分享實務指南失敗');
+      setResTitle('');
+      setResContent('');
+      const refresh = await fetch('/api/together/resources');
+      if (refresh.ok) {
+        const j = await refresh.json();
+        setResources(j.resources ?? []);
+      }
+      setMsg('匿名實務指南已發布至跨校清單！');
+    } catch (e2) {
+      setErr(e2 instanceof Error ? e2.message : '失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <section className="flex flex-col justify-between gap-4 rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs sm:flex-row sm:items-center sm:p-7">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-800">
-            <MessageSquareText className="h-3.5 w-3.5" aria-hidden="true" />
-            <span>一起聚｜跨校同領域社團經驗交流</span>
+      <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-[var(--primary)]" aria-hidden="true" />
+              <h1 className="text-xl font-extrabold text-slate-900">一起聚｜跨校同好實作舞台</h1>
+            </div>
+            <p className="mt-1 text-sm text-slate-600">
+              以細分興趣領域串聯各校社團與認證社員，作品試玩、Rebound 接力、跨校 Jam 與前輩經驗傳承。
+            </p>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900">跨校社團實務討論流</h1>
-          <p className="text-sm text-slate-600">
-            公開唯讀分享活動規劃、器材採購、場地與幹部經營經驗；由認證社團幹部以「校名＋社團名」實名交流。
-          </p>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ['stage', '作品試玩與 Rebound', Compass],
+                ['jam', `跨校共作 Jam (${jams.length})`, Sparkles],
+                ['mentors', '前輩請益 & 實務經驗', BookOpen],
+              ] as const
+            ).map(([key, label, Icon]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => (key === 'mentors' ? openMentorsTab() : setSubTab(key))}
+                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold ${
+                  subTab === key
+                    ? 'bg-[var(--brand)] text-white'
+                    : 'border border-[var(--border-strong)] bg-white text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {officerClubs.length > 0 ? (
+        {/* Domain Filter Chips */}
+        <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => {
-              if (category) setNewCategory(category);
-              setComposerOpen(true);
-            }}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-[var(--primary)] px-5 py-3 text-sm font-bold text-white shadow-xs hover:bg-[var(--primary-hover)]"
-          >
-            <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
-            <span>代表社團發起討論</span>
-          </button>
-        ) : (
-          <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-[var(--muted)] px-4 py-2.5 text-xs font-medium text-slate-700">
-            <Lock className="h-4 w-4 shrink-0 text-slate-500" aria-hidden="true" />
-            <span>
-              僅認證社團幹部可代表社團發言與回覆（
-              <Link href={isLoggedIn ? '/clubs/apply' : '/login'} className="font-bold text-blue-700 underline">
-                {isLoggedIn ? '申請認領社團' : '登入／驗證'}
-              </Link>
-              ）
-            </span>
-          </div>
-        )}
-      </section>
-
-      {/* Filters */}
-      <section className="space-y-3 rounded-2xl border border-[var(--border)] bg-white p-4 shadow-xs">
-        <div className="flex flex-wrap gap-1.5">
-          <button
-            type="button"
-            onClick={() => void loadThreads({ nextCategory: '' })}
-            className={`rounded-xl px-3.5 py-1.5 text-xs font-bold ${
-              category === ''
-                ? 'bg-[var(--primary)] text-white'
+            onClick={() => setSelectedDomain('')}
+            className={`min-h-[34px] rounded-full px-3 text-xs font-semibold ${
+              !selectedDomain
+                ? 'bg-slate-900 text-white'
                 : 'bg-[var(--muted)] text-slate-700 hover:bg-orange-100'
             }`}
           >
-            全部分類板
+            全部領域
           </button>
-          {CLUB_CATEGORY_LIST.map((cat) => (
+          {domains.map((d) => (
             <button
-              key={cat.value}
+              key={d.id}
               type="button"
-              onClick={() => void loadThreads({ nextCategory: cat.value })}
-              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold ${
-                category === cat.value
-                  ? 'bg-[var(--primary)] text-white'
+              onClick={() => setSelectedDomain(d.id)}
+              className={`min-h-[34px] rounded-full px-3 text-xs font-semibold ${
+                selectedDomain === d.id
+                  ? 'bg-slate-900 text-white'
                   : 'bg-[var(--muted)] text-slate-700 hover:bg-orange-100'
               }`}
             >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">討論屬性：</span>
-          <button
-            type="button"
-            onClick={() => void loadThreads({ nextTag: '' })}
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${
-              tag === '' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-700'
-            }`}
-          >
-            全部
-          </button>
-          {Object.entries(FORUM_TAGS).map(([key, meta]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() =>
-                void loadThreads({ nextTag: tag === key ? '' : (key as ForumTag) })
-              }
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                tag === key
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-slate-100 text-slate-700 hover:bg-blue-50'
-              }`}
-            >
-              {meta.label}
+              #{d.name_zh}
             </button>
           ))}
         </div>
       </section>
 
-      {/* Thread List */}
-      {loading && threads.length === 0 ? (
-        <div className="space-y-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl bg-white" />
-          ))}
+      {msg && (
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-800">
+          {msg}
         </div>
-      ) : threads.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-[var(--border-strong)] bg-white p-10 text-center">
-          <p className="text-sm font-bold text-slate-900">此分類板目前尚無討論串</p>
-          <p className="mt-1 text-xs text-slate-600">
-            歡迎認證社團幹部發起第一個實務交流討論，累積跨校社團經驗庫。
-          </p>
+      )}
+      {err && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-bold text-red-800">
+          {err}
         </div>
-      ) : (
-        <div className="space-y-3">
-          {threads.map((t) => {
-            const catMeta = CLUB_CATEGORIES[t.category];
-            const tagMeta = FORUM_TAGS[t.discussion_tag];
-            return (
-              <article
-                key={t.id}
-                className="rounded-2xl border border-[var(--border)] bg-white p-4 shadow-xs transition-colors hover:border-[var(--border-strong)] sm:p-5"
+      )}
+
+      {/* SUBTAB 1: STAGE */}
+      {subTab === 'stage' && (
+        <div className="space-y-4">
+          {myMemberships.length > 0 && (
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowStageForm((v) => !v)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white"
+              >
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                {showStageForm ? '收合發表表單' : '代表社團發表作品／觀點'}
+              </button>
+            </div>
+          )}
+
+          {showStageForm && myMemberships.length > 0 && (
+            <form
+              onSubmit={handleCreateItem}
+              className="space-y-3 rounded-3xl border border-[var(--border-strong)] bg-white p-6"
+            >
+              <div className="grid gap-3 sm:grid-cols-3">
+                <select
+                  value={clubId}
+                  onChange={(e) => setClubId(e.target.value)}
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                >
+                  {myMemberships.map((m) => (
+                    <option key={m.clubId} value={m.clubId}>
+                      {m.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={domainId}
+                  onChange={(e) => setDomainId(e.target.value)}
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                >
+                  {domains.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      #{d.name_zh}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={itemType}
+                  onChange={(e) => setItemType(e.target.value as typeof itemType)}
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                >
+                  <option value="showcase">作品試玩展示</option>
+                  <option value="field_log">路線／實務紀錄</option>
+                  <option value="match_invite">友社友誼邀約</option>
+                  <option value="reading_notes">專題書單觀點</option>
+                </select>
+              </div>
+              <input
+                required
+                minLength={2}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="作品或交流主題名稱 *"
+                className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+              />
+              <textarea
+                required
+                minLength={10}
+                rows={3}
+                value={contentMd}
+                onChange={(e) => setContentMd(e.target.value)}
+                placeholder="分享製作心得、使用技術或希望友社接力討論的切入點..."
+                className="w-full rounded-xl border border-[var(--border)] p-3 text-sm"
+              />
+              <input
+                type="url"
+                value={embedUrl}
+                onChange={(e) => setEmbedUrl(e.target.value)}
+                placeholder="選填安全預覽連結（限 itch.io / YouTube / Vimeo / SoundCloud / Figma / GitHub）"
+                className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+              />
+              <button
+                type="submit"
+                disabled={busy === 'create-item'}
+                className="rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white"
+              >
+                送出發布
+              </button>
+            </form>
+          )}
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {filteredItems.map((item) => (
+              <Link
+                key={item.id}
+                href={`/together/${item.id}`}
+                className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 shadow-xs transition hover:border-orange-300"
               >
                 <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className={`rounded-full border px-2.5 py-0.5 font-bold ${catMeta.badgeClass}`}>
-                    {catMeta.label}
+                  <span className="rounded-full bg-orange-100 px-2.5 py-0.5 font-bold text-orange-900">
+                    #{item.domain_name}
                   </span>
                   <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-semibold text-slate-700">
-                    {tagMeta.label}
+                    {TOGETHER_ITEM_TYPE_LABELS[item.item_type]}
                   </span>
-                  <Link
-                    href={`/clubs/${t.club.slug}`}
-                    className="font-bold text-blue-700 hover:underline"
-                  >
-                    {t.club.university_short_name} · {t.club.name}
-                  </Link>
-                  {t.author_title && <span className="text-slate-500">（{t.author_title}）</span>}
-                  {t.club.is_demo && (
-                    <span className="rounded bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                      Demo
+                  {item.embed_url && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700">
+                      <Link2 className="h-3 w-3" aria-hidden="true" />
+                      可試玩／預覽
                     </span>
                   )}
                 </div>
-
-                <Link href={`/together/${t.id}`} className="mt-2 block space-y-1">
-                  <h2 className="text-base font-bold text-slate-900 hover:text-[var(--primary)] sm:text-lg">
-                    {t.title}
-                  </h2>
-                  <p className="line-clamp-2 text-sm text-slate-600">{t.content_md}</p>
-                </Link>
-
-                <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
-                  <span>{t.reply_count} 則社團回覆</span>
-                  <span>最後更新：{formatTaipeiDateTime(t.last_activity_at)}</span>
+                <h2 className="text-base font-extrabold text-slate-900">{item.title}</h2>
+                <p className="line-clamp-3 text-sm text-slate-600">{item.content_md}</p>
+                <div className="mt-auto flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs">
+                  <span className="font-semibold text-blue-700">
+                    {item.club.university_short_name} · {item.club.name}
+                  </span>
+                  <span className="text-slate-500">回覆 {item.reply_count}</span>
                 </div>
-              </article>
-            );
-          })}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
-          {nextCursor && (
-            <div className="pt-2 text-center">
+      {/* SUBTAB 2: CROSS-CAMPUS JAMS */}
+      {subTab === 'jam' && (
+        <div className="space-y-4">
+          {officerClubs.length > 0 && (
+            <div className="flex justify-end">
               <button
                 type="button"
-                disabled={loading}
-                onClick={() => void loadThreads({ cursor: nextCursor, append: true })}
-                className="rounded-xl border border-[var(--border-strong)] bg-white px-5 py-2 text-xs font-bold text-slate-800 hover:bg-orange-50"
+                onClick={() => setShowJamForm((v) => !v)}
+                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white"
               >
-                {loading ? '載入中...' : '載入更早的討論'}
+                <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+                {showJamForm ? '收合徵集表單' : '發起跨校共作企劃 (Jam)'}
               </button>
+            </div>
+          )}
+
+          {showJamForm && officerClubs.length > 0 && (
+            <form
+              onSubmit={handleCreateJam}
+              className="space-y-3 rounded-3xl border border-[var(--border-strong)] bg-white p-6"
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <select
+                  value={jamClubId}
+                  onChange={(e) => setJamClubId(e.target.value)}
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                >
+                  {officerClubs.map((c) => (
+                    <option key={c.clubId} value={c.clubId}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={jamDomainId}
+                  onChange={(e) => setJamDomainId(e.target.value)}
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                >
+                  {domains.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      #{d.name_zh}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <input
+                required
+                value={jamTitle}
+                onChange={(e) => setJamTitle(e.target.value)}
+                placeholder="跨校企劃題目（如：北中南三校冬季 Game Jam 聯展）*"
+                className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+              />
+              <textarea
+                required
+                rows={3}
+                value={jamSummary}
+                onChange={(e) => setJamSummary(e.target.value)}
+                placeholder="說明各自社團分工、預計合作模式與目標成果..."
+                className="w-full rounded-xl border border-[var(--border)] p-3 text-sm"
+              />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input
+                  value={jamRoles}
+                  onChange={(e) => setJamRoles(e.target.value)}
+                  placeholder="招募友社專長（逗號分隔，如 美術, 配樂, 現場場控）"
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                />
+                <input
+                  value={jamFormat}
+                  onChange={(e) => setJamFormat(e.target.value)}
+                  placeholder="合作方式（如 線上共創＋雙週末成果驗收）"
+                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={busy === 'create-jam'}
+                className="rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white"
+              >
+                發布跨校 Jam 徵集
+              </button>
+            </form>
+          )}
+
+          {filteredJams.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-[var(--border)] bg-white p-8 text-center text-sm text-slate-500">
+              此領域目前沒有開放中的跨校 Jam 徵集。
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {filteredJams.map((jam) => (
+                <div
+                  key={jam.id}
+                  className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 shadow-xs"
+                >
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="rounded-full bg-orange-100 px-2.5 py-0.5 font-bold text-orange-900">
+                      #{jam.domain_name}
+                    </span>
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-bold text-emerald-800">
+                      目標 ≥{jam.target_schools_count} 校共創
+                    </span>
+                  </div>
+                  <h2 className="text-base font-extrabold text-slate-900">{jam.title}</h2>
+                  <p className="text-sm text-slate-600">{jam.summary}</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {jam.needed_roles.map((r) => (
+                      <span
+                        key={r}
+                        className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700"
+                      >
+                        徵求：{r}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-auto flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs">
+                    <Link
+                      href={`/clubs/${jam.host_club.slug}`}
+                      className="font-semibold text-blue-700 hover:underline"
+                    >
+                      主辦：{jam.host_club.university_short_name} {jam.host_club.name}
+                    </Link>
+                    <span className="text-slate-500">
+                      截止 {jam.deadline_at.slice(0, 10)}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
       )}
 
-      {/* Composer Modal */}
-      {composerOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label="代表社團發起討論"
-        >
-          <div className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-3xl bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
-              <h2 className="text-lg font-extrabold text-slate-900">代表社團發起討論</h2>
-              <button
-                type="button"
-                onClick={() => setComposerOpen(false)}
-                className="rounded-lg p-1 text-slate-500 hover:bg-slate-100"
+      {/* SUBTAB 3: ALUMNI MENTORS & PRACTICAL RESOURCES */}
+      {subTab === 'mentors' && (
+        <div className="space-y-6">
+          {/* Alumni Ping Directory */}
+          <section className="space-y-4 rounded-3xl border border-[var(--border)] bg-white p-6">
+            <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
+              <HandHeart className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
+              歷屆學長姐經驗請益牆 (Alumni Ping)
+            </h2>
+            {!isCampusVerified ? (
+              <p className="text-xs text-slate-600">
+                為保護前輩隱私與避免垃圾訊息，須{' '}
+                <Link href="/me" className="font-bold text-[var(--brand)] underline">
+                  完成 .edu.tw 校園信箱驗證
+                </Link>{' '}
+                才能瀏覽與發起 1 對 1 請益（每人每日上限 3 次）。
+              </p>
+            ) : alumni.length === 0 ? (
+              <p className="text-xs text-slate-500">目前尚無開啟請益接待的前輩名錄。</p>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {alumni.map((al) => (
+                  <div
+                    key={al.user_id}
+                    className="flex flex-col justify-between gap-2 rounded-2xl bg-[var(--surface-warm)] p-4 text-xs"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-extrabold text-slate-900">
+                          {al.display_name}
+                        </span>
+                        <span className="text-slate-600">{al.university_short_name}</span>
+                      </div>
+                      {al.clubs.length > 0 && (
+                        <p className="mt-1 text-slate-600">
+                          歷任：{al.clubs.map((c) => `${c.name}${c.title ? `(${c.title})` : ''}`).join('、')}
+                        </p>
+                      )}
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {al.expertise_tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-full bg-white px-2.5 py-0.5 font-bold text-orange-900"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-2">
+                      {al.handle ? (
+                        <Link
+                          href={`/u/${al.handle}`}
+                          className="font-bold text-blue-700 hover:underline"
+                        >
+                          查看成長軌跡
+                        </Link>
+                      ) : (
+                        <span />
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPingTarget(al);
+                          setPingTag(al.expertise_tags[0] || '');
+                        }}
+                        className="rounded-full bg-slate-900 px-3 py-1 font-bold text-white"
+                      >
+                        禮貌發問請益
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {pingTarget && (
+              <form
+                onSubmit={handleSendPing}
+                className="space-y-3 rounded-2xl border border-orange-300 bg-orange-50/70 p-4 text-xs"
               >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreate} className="mt-4 space-y-4">
-              <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">
-                  本次代表發言社團
-                </label>
-                <select
-                  value={actingClubId}
-                  onChange={(e) => {
-                    const id = e.target.value;
-                    setActingClubId(id);
-                    const found = officerClubs.find((c) => c.club_id === id);
-                    if (found?.default_title) setAuthorTitle(found.default_title);
-                  }}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900"
-                >
-                  {officerClubs.map((c) => (
-                    <option key={c.club_id} value={c.club_id}>
-                      {c.university_short_name} · {c.club_name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700">分類板</label>
-                  <select
-                    value={newCategory}
-                    onChange={(e) => setNewCategory(e.target.value as ClubCategory)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
-                  >
-                    {CLUB_CATEGORY_LIST.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-xs font-bold text-slate-700">討論屬性</label>
-                  <select
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value as ForumTag)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm"
-                  >
-                    {Object.entries(FORUM_TAGS).map(([k, v]) => (
-                      <option key={k} value={k}>
-                        {v.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">
-                  幹部職稱（選填，公開顯示於社團旁）
-                </label>
+                <p className="font-bold text-slate-900">
+                  向 {pingTarget.display_name} 送出簡短請益（對方不會看到你的個人電話，將經站內與 Email 轉達）
+                </p>
                 <input
-                  type="text"
-                  maxLength={30}
-                  value={authorTitle}
-                  onChange={(e) => setAuthorTitle(e.target.value)}
-                  placeholder="例如：社長、器材長、活動組長"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  value={pingTag}
+                  onChange={(e) => setPingTag(e.target.value)}
+                  placeholder="想請教的領域（如 社團評鑑財務核銷）"
+                  className="w-full rounded-xl border border-[var(--border)] bg-white px-3 py-2"
                 />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">討論標題</label>
-                <input
-                  type="text"
-                  required
-                  minLength={4}
-                  maxLength={100}
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="例如：跨校聯合影展的場地燈光與預算控制經驗分享"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">
-                  討論內容（支援 Markdown）
-                </label>
                 <textarea
-                  rows={6}
                   required
                   minLength={10}
-                  value={contentMd}
-                  onChange={(e) => setContentMd(e.target.value)}
-                  placeholder="請分享具體作法、遇到的問題或希望交流的方向（勿揭露私人電話或個資）。"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
+                  maxLength={500}
+                  rows={3}
+                  value={pingMessage}
+                  onChange={(e) => setPingMessage(e.target.value)}
+                  placeholder="簡述目前遇到的卡關情境與想請教的問題（10-500字）..."
+                  className="w-full rounded-xl border border-[var(--border)] bg-white p-3"
                 />
-              </div>
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={busy === 'ping'}
+                    className="inline-flex items-center gap-1 rounded-full bg-[var(--brand)] px-4 py-1.5 font-bold text-white"
+                  >
+                    <Send className="h-3 w-3" />
+                    送出請益請求
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPingTarget(null)}
+                    className="rounded-full border border-slate-300 bg-white px-4 py-1.5 font-bold text-slate-700"
+                  >
+                    取消
+                  </button>
+                </div>
+              </form>
+            )}
+          </section>
 
-              <div>
-                <label className="mb-1 block text-xs font-bold text-slate-700">
-                  參考連結（選填）
-                </label>
-                <input
-                  type="url"
-                  value={externalUrl}
-                  onChange={(e) => setExternalUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm"
-                />
-              </div>
-
-              {formError && (
-                <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
-                  {formError}
-                </p>
-              )}
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setComposerOpen(false)}
-                  className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700"
+          {/* Practical Resources */}
+          <section className="space-y-4 rounded-3xl border border-[var(--border)] bg-white p-6">
+            <h2 className="text-base font-extrabold text-slate-900">
+              跨校去識別化實務經驗清單（前屆換屆共筆與行政備忘）
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {filteredResources.map((r) => (
+                <article
+                  key={r.id}
+                  className="space-y-2 rounded-2xl border border-[var(--border)] bg-slate-50 p-4"
                 >
-                  取消
-                </button>
+                  <div className="flex items-center justify-between text-[11px] font-bold">
+                    <span className="rounded-full bg-orange-100 px-2 py-0.5 text-orange-900">
+                      #{r.domain_name}
+                    </span>
+                    <span className="text-slate-500">來源：{r.source_university_short_name}</span>
+                  </div>
+                  <h3 className="text-sm font-extrabold text-slate-900">{r.title}</h3>
+                  <p className="whitespace-pre-wrap text-xs leading-relaxed text-slate-700">
+                    {r.content_md}
+                  </p>
+                </article>
+              ))}
+            </div>
+
+            {isCampusVerified && (
+              <form
+                onSubmit={handleCreateResource}
+                className="space-y-3 rounded-2xl border border-dashed border-[var(--border-strong)] p-4 text-xs"
+              >
+                <p className="font-bold text-slate-800">分享一則去識別化的社團實務秘笈</p>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <select
+                    value={resDomainId}
+                    onChange={(e) => setResDomainId(e.target.value)}
+                    className="rounded-xl border border-[var(--border)] px-3 py-2"
+                  >
+                    {domains.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        #{d.name_zh}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    required
+                    minLength={3}
+                    value={resTitle}
+                    onChange={(e) => setResTitle(e.target.value)}
+                    placeholder="實務筆記標題 *"
+                    className="sm:col-span-2 rounded-xl border border-[var(--border)] px-3 py-2"
+                  />
+                </div>
+                <textarea
+                  required
+                  minLength={15}
+                  rows={2}
+                  value={resContent}
+                  onChange={(e) => setResContent(e.target.value)}
+                  placeholder="整理場地／器材／預算核銷實務經驗（請勿包含個人聯絡個資）..."
+                  className="w-full rounded-xl border border-[var(--border)] p-3"
+                />
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="rounded-xl bg-[var(--primary)] px-5 py-2 text-sm font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
+                  disabled={busy === 'res'}
+                  className="rounded-full bg-slate-900 px-4 py-1.5 font-bold text-white"
                 >
-                  {submitting ? '發布中...' : '發布討論'}
+                  分享實務指南
                 </button>
-              </div>
-            </form>
-          </div>
+              </form>
+            )}
+          </section>
         </div>
       )}
     </div>

@@ -65,7 +65,7 @@ export async function PATCH(
           await tx.insert(notifications).values({
             userId: owner.userId,
             type: 'moderation_notice',
-            title: `貼文已復原公開：${post.title}`,
+            title: `貼文已復原公開：${post.headline}`,
             body: parsed.note
               ? `管理員已協助復原貼文（備註：${parsed.note}）。`
               : '管理員已協助將該篇貼文復原為公開狀態。',
