@@ -40,10 +40,10 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
     });
 
   return (
-    <article className="group">
-      <Link href={href} onClick={track} className="block rounded-xl">
+    <article className="group overflow-hidden rounded-xl border border-line bg-surface">
+      <Link href={href} onClick={track} className="block">
         <div
-          className={`relative w-full overflow-hidden rounded-xl bg-gradient-to-br ${theme.gradientClass}`}
+          className={`relative w-full overflow-hidden bg-gradient-to-br ${theme.gradientClass}`}
           style={{ aspectRatio: aspect }}
         >
           {realMediaUrl(event.cover_media?.url) ? (
@@ -59,13 +59,11 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
               <ClubMark name={event.club.name} seed={event.club.id} size="md" />
             </div>
           )}
-          <span className="absolute top-3 left-3 rounded-md bg-surface/95 px-2 py-0.5 text-xs font-semibold text-fg shadow-sm">
-            {event.fee_ntd === 0 ? '免費' : `NT$${event.fee_ntd}`}
-          </span>
         </div>
       </Link>
 
-      <div className="mt-3 space-y-1.5">
+      {/* Ticket body: what / when / where */}
+      <div className="space-y-1.5 px-4 pt-3 pb-4">
         {event.reason && (
           <p className="flex items-start gap-1.5 text-sm text-brand-soft-fg">
             <Sparkles className="mt-1 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -73,13 +71,13 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
           </p>
         )}
 
-        <p className="flex items-center gap-1.5 text-sm font-medium text-brand-soft-fg">
+        <p className="flex items-center gap-1.5 text-sm font-medium tabular-nums text-brand-soft-fg">
           <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
           {timeLabel}
         </p>
 
         <Link href={href} onClick={track} className="block py-1">
-          <h3 className="line-clamp-2 text-base font-semibold leading-snug text-fg group-hover:underline group-hover:decoration-border-strong group-hover:underline-offset-4">
+          <h3 className="line-clamp-2 font-display text-lg font-bold leading-snug text-fg group-hover:underline group-hover:decoration-border-strong group-hover:underline-offset-4">
             {event.title}
           </h3>
         </Link>
@@ -92,19 +90,21 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
         </p>
 
         <p className="flex items-center gap-1.5 text-sm text-fg-muted">
-          <MapPin className="h-4 w-4 shrink-0 text-ink-400" aria-hidden="true" />
+          <MapPin className="h-4 w-4 shrink-0 text-fg-faint" aria-hidden="true" />
           <span className="truncate">
             {event.club.university_short_name} · {event.location_text}
           </span>
         </p>
+      </div>
 
-        {decisionTags.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 pt-1">
-            {decisionTags.map((tag) => (
-              <Badge key={tag}>{tag}</Badge>
-            ))}
-          </div>
-        )}
+      {/* Ticket stub: fee and who can come */}
+      <div className="ticket-stub flex flex-wrap items-center gap-1.5 px-4 py-3">
+        <span className="mr-1 text-sm font-semibold text-fg">
+          {event.fee_ntd === 0 ? '免費' : `NT$${event.fee_ntd}`}
+        </span>
+        {decisionTags.map((tag) => (
+          <Badge key={tag}>{tag}</Badge>
+        ))}
       </div>
     </article>
   );

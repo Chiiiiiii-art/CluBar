@@ -197,7 +197,7 @@ export default async function ClubPublicPage({
                 className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-20 sm:w-20"
               />
             ) : (
-              <ClubMark name={publicClub.name} seed={publicClub.slug} size="lg" className="sm:h-20 sm:w-20 sm:text-3xl" />
+              <ClubMark name={publicClub.name} seed={publicClub.slug} category={publicClub.category} size="lg" className="sm:h-20 sm:w-20 sm:text-3xl" />
             )}
             <div className="min-w-0 space-y-1.5">
               <h1 className="text-2xl font-bold text-fg sm:text-3xl">{publicClub.name}</h1>

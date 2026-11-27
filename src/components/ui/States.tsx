@@ -23,11 +23,33 @@ export function EmptyState({
         className
       )}
     >
-      {icon && <div className="mb-3 text-fg-faint [&_svg]:h-8 [&_svg]:w-8">{icon}</div>}
-      <p className="text-base font-semibold text-fg">{title}</p>
+      {icon ? (
+        <div className="mb-3 text-fg-faint [&_svg]:h-8 [&_svg]:w-8">{icon}</div>
+      ) : (
+        <EmptyCupIllustration className="mb-4 h-20 w-20 text-fg-muted" />
+      )}
+      <p className="font-display text-lg font-bold text-fg">{title}</p>
       {description && <p className="mt-1 max-w-sm text-sm text-fg-muted">{description}</p>}
       {action && <div className="mt-5 flex flex-wrap justify-center gap-2">{action}</div>}
     </div>
+  );
+}
+
+/**
+ * Brand line-art for empty states: an empty coffee mug on the bar counter, in the
+ * logo's thick rounded stroke (docs/design/01-brand.md — no drink imagery beyond cups).
+ */
+export function EmptyCupIllustration({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 96 96" fill="none" aria-hidden="true" className={className}>
+      <g stroke="currentColor" strokeWidth={5} strokeLinecap="round" strokeLinejoin="round">
+        <ellipse cx="42" cy="30" rx="20" ry="6" />
+        <path d="M22 30v30c0 9 9 15 20 15s20-6 20-15V30" />
+        <path d="M62 40h5a9 9 0 0 1 0 18h-5" />
+        <path d="M12 84h72" />
+      </g>
+      <path d="M32 58q10 6 20 0" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeDasharray="1 6" />
+    </svg>
   );
 }
 

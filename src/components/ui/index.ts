@@ -10,5 +10,5 @@ export { controlClasses } from './styles';
 export { Tabs, tabPanelProps } from './Tabs';
 export type { TabItem } from './Tabs';
 export { Dialog, ConfirmProvider, useConfirm } from './Dialog';
-export { EmptyState, Skeleton, Notice } from './States';
+export { EmptyState, EmptyCupIllustration, Skeleton, Notice } from './States';
 export { ClubMark } from './ClubMark';

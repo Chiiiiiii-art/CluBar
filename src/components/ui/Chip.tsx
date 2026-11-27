@@ -15,7 +15,7 @@ export function FilterChip({ selected, icon, className, children, type = 'button
       className={cn(
         'inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-medium transition-colors',
         selected
-          ? 'border-fg bg-fg text-on-brand'
+          ? 'border-brand bg-brand text-on-brand'
           : 'border-line bg-surface text-fg-secondary hover:border-border-strong hover:bg-surface-subtle',
         className
       )}

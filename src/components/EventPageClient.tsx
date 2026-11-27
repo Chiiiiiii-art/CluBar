@@ -134,6 +134,8 @@ export function EventPageClient({
   );
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  // Bumped on a fresh RSVP so the stamp animation plays once (not on page load).
+  const [stampKey, setStampKey] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const [commentText, setCommentText] = useState('');
@@ -212,9 +214,10 @@ export function EventPageClient({
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error?.message || '更新報名狀態失敗');
       await refreshEvent();
+      if (nextStatus === 'going') setStampKey((k) => k + 1);
       setStatusMessage(
         nextStatus === 'going'
-          ? '已確認報名參加！記得加入行事曆並查看行前提醒。'
+          ? '位子幫你留好了！記得加入行事曆。'
           : nextStatus === 'interested'
             ? '已標記為有興趣。'
             : '已取消報名。'
@@ -878,11 +881,11 @@ export function EventPageClient({
                     onClick={() => handleRsvp('going')}
                     className={`min-h-[44px] flex-1 rounded-full px-4 py-2.5 text-sm font-bold transition ${
                       viewer_rsvp?.status === 'going'
-                        ? 'bg-success text-on-brand'
+                        ? 'border border-brand bg-brand-soft text-brand-soft-fg'
                         : 'bg-brand text-on-brand hover:bg-brand-hover'
                     } disabled:opacity-50`}
                   >
-                    {viewer_rsvp?.status === 'going' ? '✓ 我已報名參加' : '我要參加'}
+                    {viewer_rsvp?.status === 'going' ? '✓ 已留位' : '我要參加'}
                   </button>
                   <button
                     type="button"
@@ -890,13 +893,36 @@ export function EventPageClient({
                     onClick={() => handleRsvp('interested')}
                     className={`min-h-[44px] rounded-full px-4 py-2.5 text-sm font-bold transition ${
                       viewer_rsvp?.status === 'interested'
-                        ? 'bg-warning-500 text-white'
+                        ? 'border border-brand bg-brand-soft text-brand-soft-fg'
                         : 'border border-border-strong bg-surface text-fg-body hover:bg-surface-subtle'
                     }`}
                   >
                     有興趣
                   </button>
                 </div>
+
+                {viewer_rsvp?.status === 'going' && (
+                  <div
+                    role="status"
+                    className="flex items-center gap-3 rounded-xl border border-notice-info-border bg-brand-soft px-4 py-3"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`inline-flex shrink-0 -rotate-4 items-center rounded-lg border-2 border-brand-soft-fg px-2 py-0.5 font-display text-sm font-bold text-brand-soft-fg ${
+                        stampKey > 0 ? 'animate-stamp' : ''
+                      }`}
+                      key={stampKey}
+                    >
+                      已留位
+                    </span>
+                    <div className="min-w-0 text-sm">
+                      <p className="font-semibold text-fg">位子幫你留好了：{detail.title}</p>
+                      <p className="text-fg-muted">
+                        {formatDisplayTime(detail.starts_at)}・{detail.location_text}
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {viewer_rsvp && viewer_rsvp.status !== 'cancelled' && (
                   <button

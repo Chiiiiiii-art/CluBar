@@ -86,6 +86,21 @@
   /* Form-control borders: 3.6:1 on surface, 3.35:1 on canvas (WCAG 1.4.11). */
   --color-line-input: var(--color-ink-400);
 
+  /* Six domains (docs/design/02-tokens.md §1.3). Use as pairs: *-soft background
+     with the base colour as text (7.4–8.0:1). Classification only, never status. */
+  --color-domain-academic: oklch(40% 0.095 245);
+  --color-domain-academic-soft: oklch(93.5% 0.022 245);
+  --color-domain-arts: oklch(40% 0.115 325);
+  --color-domain-arts-soft: oklch(93.5% 0.025 325);
+  --color-domain-recreation: oklch(41% 0.075 72);
+  --color-domain-recreation-soft: oklch(94% 0.042 82);
+  --color-domain-sports: oklch(42% 0.135 30);
+  --color-domain-sports-soft: oklch(93.5% 0.03 30);
+  --color-domain-service: oklch(39% 0.088 155);
+  --color-domain-service-soft: oklch(93.5% 0.026 155);
+  --color-domain-social: oklch(39% 0.062 195);
+  --color-domain-social-soft: oklch(93.5% 0.024 195);
+
   /* Semantic layer — see docs/design/02-tokens.md for each token's purpose. */
   --color-fg: var(--color-ink-900);
   --color-fg-body: var(--color-ink-800);
@@ -131,18 +146,6 @@
   --color-notice-success-fg: var(--color-success-900);
 }
 
-/* ClubMark fallback swatches: the six domain text colours plus amber and espresso
-   (white text >= 7:1 on each). Phase 3 switches ClubMark to domain-based colours. */
-:root {
-  --color-mark-1: oklch(40% 0.095 245);
-  --color-mark-2: oklch(39% 0.088 155);
-  --color-mark-3: oklch(41% 0.075 72);
-  --color-mark-4: oklch(42% 0.135 30);
-  --color-mark-5: oklch(40% 0.115 325);
-  --color-mark-6: oklch(39% 0.062 195);
-  --color-mark-7: oklch(47% 0.106 62);
-  --color-mark-8: oklch(37% 0.024 55);
-}
 
 @layer base {
   html {
@@ -207,6 +210,49 @@
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* Ticket stub (EventCard): dashed tear line with two punched notches. The card
+   must clip overflow so each notch reads as a half circle. */
+.ticket-stub {
+  position: relative;
+  border-top: 1.5px dashed var(--color-line);
+}
+
+.ticket-stub::before,
+.ticket-stub::after {
+  content: "";
+  position: absolute;
+  top: -11px;
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-line);
+}
+
+.ticket-stub::before {
+  left: -11px;
+}
+
+.ticket-stub::after {
+  right: -11px;
+}
+
+/* RSVP success stamp (320ms); the global reduced-motion rule turns it off. */
+@keyframes stamp-in {
+  from {
+    opacity: 0;
+    transform: scale(1.35) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(-4deg);
+  }
+}
+
+.animate-stamp {
+  animation: stamp-in 320ms var(--ease-out-soft) both;
 }
 
 /* Horizontal scroller that fades its right edge on small screens. */
