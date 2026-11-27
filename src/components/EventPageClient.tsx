@@ -180,6 +180,8 @@ export function EventPageClient({
     detail.campus_only &&
     (!viewer.isCampusVerified || viewer.universityId !== detail.club.university_id);
 
+  // No public head counts (docs/design/01-brand.md); capacity is shown only as open / full.
+  const isFull = Boolean(detail.capacity && detail.going_count >= detail.capacity);
   const hiddenGoingCount = Math.max(0, detail.going_count - detail.public_attendees.length);
   const featuredCount = album_photos.filter((p) => p.status === 'featured_stream').length;
   const googleUrl = buildGoogleCalendarHref(detail);
@@ -790,9 +792,7 @@ export function EventPageClient({
           <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
             <h2 className="text-lg font-semibold text-fg">報名這場活動</h2>
             <p className="mt-1 text-sm text-fg-muted">
-              {detail.capacity
-                ? `目前 ${detail.going_count} / ${detail.capacity} 人報名`
-                : `目前已有 ${detail.going_count} 人確定參加・${detail.interested_count} 人有興趣`}
+              {isFull ? '名額已滿，可以先按「有興趣」追蹤這場活動。' : '還有位子，零基礎也歡迎直接報名。'}
             </p>
 
             {!viewer.isLoggedIn ? (
@@ -928,13 +928,13 @@ export function EventPageClient({
           <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
             <h2 className="flex items-center gap-2 text-base font-bold text-fg">
               <Users className="h-4 w-4 text-brand" aria-hidden="true" />
-              同行夥伴名單（{detail.going_count}）
+              同行夥伴
             </h2>
 
             {detail.public_attendees.length === 0 ? (
               <p className="mt-2 text-sm text-fg-subtle">
                 {detail.going_count > 0
-                  ? `共有 ${detail.going_count} 位參加者已報名（皆選擇不公開名單顯示）。`
+                  ? '已經有夥伴報名了，他們選擇不公開名字。'
                   : '成為第一位報名的夥伴吧！'}
               </p>
             ) : (
@@ -954,7 +954,7 @@ export function EventPageClient({
             )}
             {hiddenGoingCount > 0 && detail.public_attendees.length > 0 && (
               <p className="mt-2 text-xs text-fg-subtle">
-                另有 {hiddenGoingCount} 位選擇「僅計入總人數」匿名參與。
+                還有其他夥伴選擇匿名參加。
               </p>
             )}
           </section>
@@ -1427,7 +1427,7 @@ export function EventPageClient({
             <p className="text-base font-semibold text-fg">
               {detail.fee_ntd === 0 ? '免費' : `NT$${detail.fee_ntd}`}
             </p>
-            <p className="text-sm text-fg-muted">{detail.going_count} 人已報名</p>
+            <p className="text-sm text-fg-muted">{isFull ? '名額已滿' : '還有位子'}</p>
           </div>
           {!viewer.isLoggedIn ? (
             <ButtonLink href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`} size="lg">

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Noto_Sans_TC } from 'next/font/google';
+import { Noto_Sans_TC, Noto_Serif_TC } from 'next/font/google';
 import { and, count, eq, isNull } from 'drizzle-orm';
 import { db, isDatabaseConfigured } from '@/db';
 import { notifications } from '@/db/schema';
@@ -16,8 +16,16 @@ const notoSansTC = Noto_Sans_TC({
   variable: '--font-noto-tc',
 });
 
+// Display serif for page titles (docs/design/02-tokens.md). Same slicing caveat as above.
+const notoSerifTC = Noto_Serif_TC({
+  weight: ['600', '700'],
+  preload: false,
+  display: 'swap',
+  variable: '--font-noto-serif-tc',
+});
+
 export const viewport: Viewport = {
-  themeColor: '#ffffff',
+  themeColor: '#f8f5ee',
 };
 
 export const metadata: Metadata = {
@@ -56,7 +64,7 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="zh-Hant" className={notoSansTC.variable}>
+    <html lang="zh-Hant" className={`${notoSansTC.variable} ${notoSerifTC.variable}`}>
       <body className="min-h-screen bg-canvas text-fg">
         <ConfirmProvider>
         <Navbar user={navUser} unreadCount={unreadCount} />

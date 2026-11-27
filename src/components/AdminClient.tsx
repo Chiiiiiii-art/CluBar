@@ -192,7 +192,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-brand-soft-fg">社團認證與平台審核</p>
-            <h1 className="mt-1 text-2xl font-bold text-fg">平台治理與數據匯出後台</h1>
+            <h1 className="font-sans mt-1 text-2xl font-bold text-fg">平台治理與數據匯出後台</h1>
           </div>
           <div className="flex flex-wrap gap-2 text-sm font-semibold">
             <span className="rounded-full bg-brand-soft-hover px-3 py-1 text-accent-900">

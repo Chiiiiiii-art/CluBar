@@ -34,7 +34,7 @@ export default async function ClubEvaluationPrintPage({
   } catch {
     return (
       <div className="mx-auto max-w-lg rounded-xl border border-danger-200 bg-surface p-8 text-center">
-        <h1 className="text-lg font-bold text-fg">無權檢視評鑑報告</h1>
+        <h1 className="font-sans text-lg font-bold text-fg">無權檢視評鑑報告</h1>
         <p className="mt-2 text-sm text-fg-muted">
           僅社團現任幹部、歷屆校友、所屬校方授權管理人可檢視與列印評鑑檔案。
         </p>
@@ -73,7 +73,7 @@ export default async function ClubEvaluationPrintPage({
         <p className="text-sm font-semibold text-fg-muted">
           CluBar 社團評鑑暨學務歸檔彙整報告（正式列印版）
         </p>
-        <h1 className="text-2xl font-bold text-fg">
+        <h1 className="font-sans text-2xl font-bold text-fg">
           {pack.club.university_name} {pack.club.name}
         </h1>
         <p className="text-sm text-fg-secondary">

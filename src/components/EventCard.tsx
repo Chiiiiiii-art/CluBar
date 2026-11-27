@@ -98,14 +98,11 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
           </span>
         </p>
 
-        {(decisionTags.length > 0 || event.going_count > 0) && (
+        {decisionTags.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5 pt-1">
             {decisionTags.map((tag) => (
               <Badge key={tag}>{tag}</Badge>
             ))}
-            {event.going_count > 0 && (
-              <span className="text-xs text-fg-subtle">· {event.going_count} 人想參加</span>
-            )}
           </div>
         )}
       </div>
