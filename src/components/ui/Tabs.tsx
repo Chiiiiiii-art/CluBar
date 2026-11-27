@@ -33,6 +33,7 @@ export function Tabs<T extends string>({
   className?: string;
 }) {
   const refs = useRef<Array<HTMLButtonElement | null>>([]);
+  const hasSelection = items.some((t) => t.id === value);
 
   const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     const idx = items.findIndex((t) => t.id === value);
@@ -61,6 +62,9 @@ export function Tabs<T extends string>({
     >
       {items.map((t, i) => {
         const selected = t.id === value;
+        // Roving tabindex: keep one tab reachable by keyboard even when the
+        // set is collapsed and no tab is selected (e.g. an optional panel).
+        const focusable = selected || (!hasSelection && i === 0);
         return (
           <button
             key={t.id}
@@ -72,7 +76,7 @@ export function Tabs<T extends string>({
             id={`${idPrefix}-tab-${t.id}`}
             aria-selected={selected}
             aria-controls={`${idPrefix}-panel-${t.id}`}
-            tabIndex={selected ? 0 : -1}
+            tabIndex={focusable ? 0 : -1}
             onClick={() => onChange(t.id)}
             className={cn(
               'inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap text-sm font-medium transition-colors',

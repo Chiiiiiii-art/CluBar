@@ -7,7 +7,20 @@ import { TOGETHER_ITEM_TYPE_LABELS } from '@/lib/constants';
 import type { PublicTogetherItemDTO } from '@/lib/serializers';
 import { isAllowedEmbedUrl } from '@/lib/validators';
 
-import { buttonClasses, controlClasses } from '@/components/ui';
+import {
+  Badge,
+  Button,
+  ButtonLink,
+  Card,
+  EmptyState,
+  Input,
+  Notice,
+  Section,
+  Select,
+  Textarea,
+  buttonClasses,
+} from '@/components/ui';
+
 function toSafeIframeSrc(rawUrl: string): string | null {
   if (!isAllowedEmbedUrl(rawUrl)) return null;
   try {
@@ -128,48 +141,54 @@ export function TogetherDetailClient({
     }
   }
 
+  const clubLine = `${item.club.university_short_name} · ${item.club.name}`;
+
   return (
-    <div className="mx-auto max-w-3xl min-w-0 space-y-6 overflow-hidden pb-12">
-      <Link
-        href="/together"
-        className="inline-flex min-h-[44px] items-center text-sm font-semibold text-ink-600 hover:underline"
-      >
+    <div className="mx-auto min-w-0 max-w-3xl space-y-8 pb-12">
+      <ButtonLink href="/together" variant="ghost" size="sm" className="-ml-3">
         ← 返回一起聚
-      </Link>
+      </ButtonLink>
 
       {parentItem && (
-        <div className="break-words rounded-xl border border-accent-200 bg-ink-50 px-4 py-3 text-sm">
-          <Repeat2 className="mr-1.5 inline h-3.5 w-3.5 text-accent-600" aria-hidden="true" />
-          接力回應自{' '}
-          <Link
-            href={`/together/${parentItem.id}`}
-            className="break-words font-bold text-accent-600 underline"
-          >
-            {parentItem.club_name}｜{parentItem.title}
-          </Link>
-        </div>
+        <Notice tone="info">
+          <span className="inline-flex flex-wrap items-center gap-x-1 break-words">
+            <Repeat2 className="h-4 w-4 shrink-0" aria-hidden="true" />
+            接力回應自
+            <Link
+              href={`/together/${parentItem.id}`}
+              className="min-w-0 break-words font-semibold underline [overflow-wrap:anywhere]"
+            >
+              {parentItem.club_name}｜{parentItem.title}
+            </Link>
+          </span>
+        </Notice>
       )}
 
-      <article className="space-y-4 rounded-xl border border-ink-300 bg-white p-6 sm:p-8">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="rounded-full bg-accent-100 px-3 py-0.5 font-bold text-accent-900">
-            #{item.domain_name}
-          </span>
-          <span className="rounded-full bg-ink-100 px-3 py-0.5 font-semibold text-ink-700">
-            {TOGETHER_ITEM_TYPE_LABELS[item.item_type]}
-          </span>
-          <Link href={`/clubs/${item.club.slug}`} className="font-bold text-accent-700 hover:underline">
-            {item.club.university_short_name} · {item.club.name}
-          </Link>
-        </div>
+      <article className="min-w-0 space-y-5">
+        <header className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge tone="accent">#{item.domain_name}</Badge>
+            <Badge>{TOGETHER_ITEM_TYPE_LABELS[item.item_type]}</Badge>
+          </div>
+          <h1 className="break-words text-2xl font-bold leading-snug text-ink-900 sm:text-3xl">
+            {item.title}
+          </h1>
+          <p className="text-sm text-ink-600">
+            <Link
+              href={`/clubs/${item.club.slug}`}
+              className="inline-flex min-h-11 items-center break-words font-medium text-ink-800 hover:text-accent-700 hover:underline"
+            >
+              {clubLine}
+            </Link>
+          </p>
+        </header>
 
-        <h1 className="text-2xl font-bold text-ink-900">{item.title}</h1>
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-700">
+        <p className="whitespace-pre-wrap break-words text-base leading-relaxed text-ink-800">
           {item.content_md}
         </p>
 
         {iframeSrc && (
-          <div className="overflow-hidden rounded-xl border border-line bg-black/5">
+          <div className="overflow-hidden rounded-xl border border-line bg-ink-100">
             <iframe
               src={iframeSrc}
               title={item.title}
@@ -180,189 +199,191 @@ export function TogetherDetailClient({
           </div>
         )}
 
-        {item.embed_url && isAllowedEmbedUrl(item.embed_url) && (
-          <a
-            href={item.embed_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-semibold text-ink-800 hover:bg-ink-100"
-          >
-            開啟作品連結
-            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-          </a>
-        )}
-
-        {myClubs.length > 0 && (
-          <div className="border-t border-ink-100 pt-4">
-            <button
-              type="button"
-              onClick={() => setShowRebound((v) => !v)}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-white"
-            >
-              <Repeat2 className="h-3.5 w-3.5" aria-hidden="true" />
-              接力回應此作品
-            </button>
+        {(myClubs.length > 0 || (item.embed_url && isAllowedEmbedUrl(item.embed_url))) && (
+          <div className="flex flex-wrap items-center gap-2">
+            {myClubs.length > 0 && (
+              <Button
+                variant="primary"
+                aria-expanded={showRebound}
+                onClick={() => setShowRebound((v) => !v)}
+                icon={<Repeat2 className="h-4 w-4" aria-hidden="true" />}
+              >
+                接力回應此作品
+              </Button>
+            )}
+            {item.embed_url && isAllowedEmbedUrl(item.embed_url) && (
+              <a
+                href={item.embed_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonClasses({ variant: 'secondary', size: 'md' })}
+              >
+                開啟作品連結
+                <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              </a>
+            )}
           </div>
         )}
       </article>
 
-      {msg && (
-        <div className="rounded-xl bg-success-50 px-4 py-3 text-sm font-semibold text-success-800">
-          {msg}
-        </div>
-      )}
-      {err && (
-        <div className="rounded-xl bg-danger-50 px-4 py-3 text-sm font-semibold text-danger-800">{err}</div>
-      )}
+      {msg && <Notice tone="success">{msg}</Notice>}
+      {err && <Notice tone="danger">{err}</Notice>}
 
       {showRebound && myClubs.length > 0 && (
-        <form
-          onSubmit={handleCreateRebound}
-          className="space-y-3 rounded-xl border border-accent-200 bg-ink-50 p-6 text-sm"
-        >
-          <p className="font-bold text-ink-900">代表社團發布接力回應</p>
-          <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-            <label htmlFor="together-detail-replyclubid" className="block text-sm font-medium text-ink-800">
-              代表社團
-            </label>
-            <select id="together-detail-replyclubid"
-              value={replyClubId}
-              onChange={(e) => setReplyClubId(e.target.value)}
-              className={`${controlClasses} min-h-11 w-full`}
-            >
-              {myClubs.map((c) => (
-                <option key={c.clubId} value={c.clubId}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-            <label htmlFor="together-detail-rebtitle" className="block text-sm font-medium text-ink-800">
-              標題
-            </label>
-            <input id="together-detail-rebtitle"
-              required
-              value={rebTitle}
-              onChange={(e) => setRebTitle(e.target.value)}
-              className={`${controlClasses} min-h-11 w-full`}
-            />
-          </div>
-          <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-            <label htmlFor="together-detail-rebcontent" className="block text-sm font-medium text-ink-800">
-              延伸內容
-            </label>
-            <textarea id="together-detail-rebcontent"
-              required
-              minLength={10}
-              rows={3}
-              value={rebContent}
-              onChange={(e) => setRebContent(e.target.value)}
-              placeholder="寫下你們社團基於原作延伸的玩法、二創音效或新設計..."
-              className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
-            />
-          </div>
-          <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-            <label htmlFor="together-detail-rebembed" className="block text-sm font-medium text-ink-800">
-              預覽連結（選填）
-            </label>
-            <input id="together-detail-rebembed"
-              type="url"
-              value={rebEmbed}
-              onChange={(e) => setRebEmbed(e.target.value)}
-              placeholder="選填安全預覽連結（itch.io / YouTube / SoundCloud / GitHub 等）"
-              className={`${controlClasses} min-h-11 w-full`}
-            />
-          </div>
-          <button
-            type="submit"
-            disabled={busy === 'rebound'}
-            className={buttonClasses({ variant: 'primary', size: 'md' })}
-          >
-            送出接力作品
-          </button>
-        </form>
+        <Card>
+          <form onSubmit={handleCreateRebound} className="space-y-4">
+            <h2 className="text-lg font-semibold text-ink-900">代表社團發布接力回應</h2>
+            <div className="min-w-0 space-y-1.5">
+              <label htmlFor="together-detail-replyclubid" className="block text-sm font-medium text-ink-800">
+                代表社團
+              </label>
+              <Select
+                id="together-detail-replyclubid"
+                value={replyClubId}
+                onChange={(e) => setReplyClubId(e.target.value)}
+              >
+                {myClubs.map((c) => (
+                  <option key={c.clubId} value={c.clubId}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <div className="min-w-0 space-y-1.5">
+              <label htmlFor="together-detail-rebtitle" className="block text-sm font-medium text-ink-800">
+                標題
+              </label>
+              <Input
+                id="together-detail-rebtitle"
+                required
+                value={rebTitle}
+                onChange={(e) => setRebTitle(e.target.value)}
+              />
+            </div>
+            <div className="min-w-0 space-y-1.5">
+              <label htmlFor="together-detail-rebcontent" className="block text-sm font-medium text-ink-800">
+                延伸內容
+              </label>
+              <Textarea
+                id="together-detail-rebcontent"
+                required
+                minLength={10}
+                rows={3}
+                value={rebContent}
+                onChange={(e) => setRebContent(e.target.value)}
+                placeholder="寫下你們社團基於原作延伸的玩法、二創音效或新設計..."
+              />
+            </div>
+            <div className="min-w-0 space-y-1.5">
+              <label htmlFor="together-detail-rebembed" className="block text-sm font-medium text-ink-800">
+                預覽連結（選填）
+              </label>
+              <Input
+                id="together-detail-rebembed"
+                type="url"
+                value={rebEmbed}
+                onChange={(e) => setRebEmbed(e.target.value)}
+                placeholder="選填安全預覽連結（itch.io / YouTube / SoundCloud / GitHub 等）"
+              />
+            </div>
+            <Button type="submit" loading={busy === 'rebound'}>
+              送出接力作品
+            </Button>
+          </form>
+        </Card>
       )}
 
       {rebounds.length > 0 && (
-        <section className="space-y-2 rounded-xl border border-line bg-white p-6">
-          <h2 className="text-sm font-semibold text-ink-900">
-            接力回應作品 ({rebounds.length})
-          </h2>
-          {rebounds.map((rb) => (
-            <Link
-              key={rb.id}
-              href={`/together/${rb.id}`}
-              className="block rounded-xl bg-ink-50 p-3 text-sm hover:bg-accent-100/60"
-            >
-              <span className="font-bold text-ink-900">
-                {rb.club_name}：{rb.title}
-              </span>
-            </Link>
-          ))}
-        </section>
+        <Section title={`接力回應作品 (${rebounds.length})`}>
+          <ul className="divide-y divide-line border-y border-line">
+            {rebounds.map((rb) => (
+              <li key={rb.id}>
+                <Link
+                  href={`/together/${rb.id}`}
+                  className="flex min-h-11 items-center break-words py-3 text-sm hover:bg-ink-50"
+                >
+                  <span className="font-semibold text-ink-900">
+                    {rb.club_name}：{rb.title}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Section>
       )}
 
-      <section className="space-y-4 rounded-xl border border-line bg-white p-6">
-        <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
-          <MessageSquare className="h-4 w-4 text-accent-600" aria-hidden="true" />
-          跨校交流討論串 ({replies.length})
-        </h2>
-
+      <Section
+        title={
+          <span className="inline-flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-accent-600" aria-hidden="true" />
+            跨校交流討論串 ({replies.length})
+          </span>
+        }
+      >
         {myClubs.length > 0 ? (
-          <form onSubmit={handleReply} className="space-y-2">
-            <div className="flex flex-wrap gap-2">
-              <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+          <Card>
+            <form onSubmit={handleReply} className="space-y-4">
+              <div className="min-w-0 space-y-1.5">
                 <label htmlFor="together-detail-replyclubid-2" className="block text-sm font-medium text-ink-800">
                   代表社團
                 </label>
-                <select id="together-detail-replyclubid-2"
+                <Select
+                  id="together-detail-replyclubid-2"
                   value={replyClubId}
                   onChange={(e) => setReplyClubId(e.target.value)}
-                  className={`${controlClasses} min-h-11`}
                 >
                   {myClubs.map((c) => (
                     <option key={c.clubId} value={c.clubId}>
                       代表：{c.name}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
-              <input aria-label="回覆"
-                value={replyText}
-                onChange={(e) => setReplyText(e.target.value)}
-                placeholder="分享回饋、技術問題或邀約聯合測試..."
-                className={`${controlClasses} min-h-11 min-w-0 flex-1`}
-              />
-              <button
+              <div className="min-w-0 space-y-1.5">
+                <label htmlFor="together-detail-replytext" className="block text-sm font-medium text-ink-800">
+                  回覆
+                </label>
+                <Input
+                  id="together-detail-replytext"
+                  value={replyText}
+                  onChange={(e) => setReplyText(e.target.value)}
+                  placeholder="分享回饋、技術問題或邀約聯合測試..."
+                />
+              </div>
+              <Button
                 type="submit"
-                disabled={busy === 'reply' || replyText.trim().length < 2}
-                className={buttonClasses({ variant: 'primary', size: 'md' })}
+                loading={busy === 'reply'}
+                disabled={replyText.trim().length < 2}
               >
                 回覆
-              </button>
-            </div>
-          </form>
+              </Button>
+            </form>
+          </Card>
         ) : (
-          <p className="text-sm text-ink-500">
-            認證社員或幹部登入並從「我的聚」代表社團後即可參與交流。
-          </p>
+          <Notice tone="info">認證社員或幹部登入並從「我的聚」代表社團後即可參與交流。</Notice>
         )}
 
-        <div className="space-y-2.5">
-          {replies.map((r) => (
-            <div key={r.id} className="rounded-xl bg-ink-50 p-3.5 text-sm">
-              <Link
-                href={`/clubs/${r.club.slug}`}
-                className="font-bold text-accent-700 hover:underline"
-              >
-                {r.club.university_short_name} · {r.club.name}
-              </Link>
-              <p className="mt-1 whitespace-pre-wrap text-sm text-ink-700">{r.content_md}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+        {replies.length === 0 ? (
+          <EmptyState
+            title="還沒有人回覆"
+            description="成為第一個分享回饋或邀約聯合測試的社團。"
+          />
+        ) : (
+          <ul className="divide-y divide-line border-y border-line">
+            {replies.map((r) => (
+              <li key={r.id} className="min-w-0 space-y-1 py-4">
+                <Link
+                  href={`/clubs/${r.club.slug}`}
+                  className="inline-flex min-h-8 items-center break-words text-sm font-semibold text-accent-700 hover:underline"
+                >
+                  {r.club.university_short_name} · {r.club.name}
+                </Link>
+                <p className="whitespace-pre-wrap break-words text-base text-ink-800">{r.content_md}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Section>
     </div>
   );
 }

@@ -81,24 +81,6 @@
   --color-line-input: #a1a1aa;
 }
 
-/* Legacy aliases — kept only for inline styles; classes were migrated. */
-:root {
-  --bg: var(--color-canvas);
-  --surface: var(--color-surface);
-  --surface-warm: var(--color-ink-50);
-  --muted: var(--color-ink-100);
-  --border: var(--color-line);
-  --border-strong: var(--color-ink-300);
-  --fg: var(--color-ink-900);
-  --fg-muted: var(--color-ink-600);
-  --primary: var(--color-accent-600);
-  --primary-hover: var(--color-accent-700);
-  --brand: var(--color-accent-600);
-  --brand-dark: var(--color-accent-700);
-  --secondary: var(--color-accent-600);
-  --danger: var(--color-danger-600);
-}
-
 @layer base {
   html {
     background-color: var(--color-canvas);

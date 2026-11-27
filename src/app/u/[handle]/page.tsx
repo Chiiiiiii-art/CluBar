@@ -7,8 +7,8 @@ import { users } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { LEARNING_HOURS_LABELS } from '@/lib/constants';
 import { buildUserPortfolio } from '@/lib/services/portfolio';
+import { Badge, ButtonLink, ClubMark, EmptyState, Section } from '@/components/ui';
 
-import { buttonClasses } from '@/components/ui';
 export const dynamic = 'force-dynamic';
 
 export default async function PublicPortfolioPage({
@@ -35,126 +35,131 @@ export default async function PublicPortfolioPage({
 
   if (accessDenied) {
     return (
-      <div className="mx-auto max-w-lg rounded-xl border border-ink-300 bg-white p-8 text-center">
-        <Lock className="mx-auto h-8 w-8 text-ink-500" aria-hidden="true" />
-        <h1 className="mt-3 text-lg font-bold text-ink-900">
-          此社團成長軌跡目前不公開
-        </h1>
-        <p className="mt-2 text-sm text-ink-600">
-          對方設定為「僅同校查閱」或「完全私密」，請登入並完成同校 .edu.tw 驗證後再查看。
-        </p>
-        <Link
-          href="/me"
-          className={buttonClasses({ variant: 'primary', size: 'md', className: 'mt-4' })}
-        >
-          返回個人中心
-        </Link>
+      <div className="mx-auto max-w-lg py-8">
+        <EmptyState
+          icon={<Lock aria-hidden="true" />}
+          title="此社團成長軌跡目前不公開"
+          description="對方設定為「僅同校查閱」或「完全私密」，請登入並完成同校 .edu.tw 驗證後再查看。"
+          action={<ButtonLink href="/me">返回個人中心</ButtonLink>}
+        />
       </div>
     );
   }
 
   if (!portfolio) notFound();
 
+  const metaLine = `${portfolio.university_short_name || '大專校院'} · @${portfolio.handle}`;
+
   return (
-    <div className="mx-auto max-w-3xl space-y-6 pb-12">
-      <section className="rounded-xl border border-ink-300 bg-white p-6 sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <p className="text-sm font-semibold text-ink-500">
-              {portfolio.university_short_name || '大專校院'} · @{portfolio.handle}
-            </p>
-            <h1 className="text-2xl font-bold text-ink-900">{portfolio.display_name}</h1>
-          </div>
-          <span className="rounded-full bg-accent-100 px-3 py-1 text-sm font-semibold text-accent-900">
-            公開社團成長頁
+    <div className="mx-auto min-w-0 max-w-3xl space-y-10 pb-12">
+      <header className="flex items-start gap-4">
+        <ClubMark name={portfolio.display_name} seed={portfolio.handle ?? undefined} size="lg" round />
+        <div className="min-w-0 flex-1 space-y-1">
+          <h1 className="break-words text-2xl font-bold text-ink-900">{portfolio.display_name}</h1>
+          <p className="break-words text-sm text-ink-600">{metaLine}</p>
+          {portfolio.alumni_expertise_tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {portfolio.alumni_expertise_tags.map((tag) => (
+                <Badge key={tag}>#{tag}</Badge>
+              ))}
+            </div>
+          )}
+        </div>
+      </header>
+
+      <Section
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Award className="h-5 w-5 text-accent-600" aria-hidden="true" />
+            已驗證學習時數
           </span>
-        </div>
-
-        {portfolio.alumni_expertise_tags.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {portfolio.alumni_expertise_tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full border border-line bg-ink-50 px-3 py-1 text-sm font-semibold text-ink-800"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-xl border border-line bg-white p-6">
-        <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
-          <Award className="h-4 w-4 text-accent-600" aria-hidden="true" />
-          已驗證學習時數統計（合計 {portfolio.learning_hours_total} 小時）
-        </h2>
-        <div className="mt-3 flex flex-wrap gap-3 text-sm font-semibold">
+        }
+        description={`合計 ${portfolio.learning_hours_total} 小時`}
+      >
+        <dl className="grid grid-cols-3 gap-3">
           {(['art', 'life', 'service'] as const).map((cat) => (
-            <span
-              key={cat}
-              className="rounded-xl bg-ink-50 px-3 py-2 text-ink-800"
-            >
-              {LEARNING_HOURS_LABELS[cat]}：{portfolio.learning_hours_by_category[cat]} h
-            </span>
+            <div key={cat} className="min-w-0 rounded-xl border border-line bg-surface px-3 py-3">
+              <dt className="text-sm text-ink-600">{LEARNING_HOURS_LABELS[cat]}</dt>
+              <dd className="mt-0.5 text-lg font-semibold text-ink-900">
+                {portfolio.learning_hours_by_category[cat]} h
+              </dd>
+            </div>
           ))}
-        </div>
-      </section>
+        </dl>
+      </Section>
 
-      <section className="rounded-xl border border-line bg-white p-6">
-        <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
-          <Layers className="h-4 w-4 text-accent-600" aria-hidden="true" />
-          社團參與與幹部經歷 ({portfolio.clubs.length})
-        </h2>
+      <Section
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Layers className="h-5 w-5 text-accent-600" aria-hidden="true" />
+            社團參與與幹部經歷
+          </span>
+        }
+      >
         {portfolio.clubs.length === 0 ? (
-          <p className="mt-3 text-sm leading-relaxed text-ink-600">
-            目前尚未公開社團職務或歷屆經歷。完成校園驗證並加入社團後，系統會自動整理為公開履歷證據。
-          </p>
+          <EmptyState
+            title="還沒有公開的社團經歷"
+            description="完成校園驗證並加入社團後，系統會自動整理為公開履歷證據。"
+          />
         ) : (
-          <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+          <ul className="divide-y divide-line border-y border-line">
             {portfolio.clubs.map((c, idx) => (
-              <Link
-                key={`${c.club_id}-${idx}`}
-                href={`/clubs/${c.slug}`}
-                className="flex min-h-[44px] flex-col justify-center rounded-xl bg-ink-50 p-3.5 text-sm hover:bg-accent-100/70"
-              >
-                <p className="font-bold text-ink-900">
-                  {c.university_short_name} · {c.name}
-                </p>
-                <p className="mt-1 text-ink-600">
-                  {c.role.toUpperCase()} {c.title ? `(${c.title})` : ''} · {c.is_active ? '現任' : '歷屆'}
-                </p>
-              </Link>
+              <li key={`${c.club_id}-${idx}`}>
+                <Link
+                  href={`/clubs/${c.slug}`}
+                  className="flex min-h-14 items-center gap-3 py-3 hover:bg-ink-50"
+                >
+                  <ClubMark name={c.name} seed={c.slug} size="md" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block break-words font-semibold text-ink-900">{c.name}</span>
+                    <span className="block break-words text-sm text-ink-600">
+                      {c.university_short_name} · {c.role.toUpperCase()}
+                      {c.title ? `（${c.title}）` : ''} · {c.is_active ? '現任' : '歷屆'}
+                    </span>
+                  </span>
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </section>
+      </Section>
 
-      <section className="rounded-xl border border-line bg-white p-6">
-        <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
-          <CalendarCheck className="h-4 w-4 text-accent-600" aria-hidden="true" />
-          參與活動與公開成果 ({portfolio.works_and_moments.length})
-        </h2>
+      <Section
+        title={
+          <span className="inline-flex items-center gap-2">
+            <CalendarCheck className="h-5 w-5 text-accent-600" aria-hidden="true" />
+            參與活動與公開成果
+          </span>
+        }
+      >
         {portfolio.works_and_moments.length === 0 ? (
-          <p className="mt-3 text-sm leading-relaxed text-ink-600">
-            尚未累積公開活動簽到或成果作品。到「別的聚」報名體驗活動並現場簽到，就會記錄在這裡。
-          </p>
+          <EmptyState
+            title="還沒有公開的活動或成果"
+            description="到「別的聚」報名體驗活動並現場簽到，就會記錄在這裡。"
+            action={
+              <ButtonLink href="/" variant="secondary">
+                去探索活動
+              </ButtonLink>
+            }
+          />
         ) : (
-          <div className="mt-3 space-y-2 text-sm">
+          <ul className="divide-y divide-line border-y border-line">
             {portfolio.works_and_moments.map((w) => (
-              <Link
-                key={`${w.source}-${w.id}`}
-                href={w.url}
-                className="flex min-h-[44px] items-center rounded-xl bg-ink-50 p-3.5 hover:bg-ink-100"
-              >
-                <span className="font-bold text-accent-600">[{w.kind_label}]</span>{' '}
-                <span className="ml-1 font-bold text-ink-900">{w.title}</span>
-                <span className="ml-2 text-ink-500">· {w.club_name}</span>
-              </Link>
+              <li key={`${w.source}-${w.id}`}>
+                <Link
+                  href={w.url}
+                  className="flex min-h-14 flex-col justify-center gap-0.5 py-3 hover:bg-ink-50"
+                >
+                  <span className="break-words font-semibold text-ink-900">{w.title}</span>
+                  <span className="break-words text-sm text-ink-600">
+                    {w.kind_label} · {w.club_name}
+                  </span>
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
-      </section>
+      </Section>
     </div>
   );
 }

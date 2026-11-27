@@ -13,7 +13,9 @@ import { MarkdownView } from '@/components/MarkdownView';
 import { ReportModal } from '@/components/ReportModal';
 import { ShareButton } from '@/components/ShareButton';
 
-import { buttonClasses } from '@/components/ui';
+import { Badge, ButtonLink, ClubMark } from '@/components/ui';
+import { realMediaUrl } from '@/lib/media/placeholder';
+
 export const dynamic = 'force-dynamic';
 
 export default async function PostDetailPage({
@@ -88,41 +90,13 @@ export default async function PostDetailPage({
   });
 
   const kindMeta = POST_KIND_LABELS[post.post_kind];
-  const gallery =
-    post.media_items.length > 0
-      ? post.media_items
-      : [{ kind: 'image' as const, url: '/images/demo/moment-4x5.svg', width: 800, height: 1000, alt: post.headline }];
+  // Demo placeholder art is not content: only real media forms the gallery.
+  const gallery = post.media_items.filter((m) => realMediaUrl(m.url));
 
   return (
-    <article className="mx-auto max-w-3xl space-y-6">
-      <div className="flex items-center justify-between text-sm font-semibold text-ink-600">
-        <Link href="/" className="inline-flex items-center gap-1 hover:text-accent-600">
-          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          <span>回到別的聚探索</span>
-        </Link>
-        <Link href={`/clubs/${post.club.slug}`} className="text-accent-700 hover:underline">
-          查看「{post.club.name}」門面 →
-        </Link>
-      </div>
-
-      <div className="overflow-hidden rounded-xl border border-ink-300 bg-white p-5 sm:p-8">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className={`rounded-full px-3 py-0.5 text-sm font-semibold ${kindMeta.badgeClass}`}>
-            {kindMeta.label}
-          </span>
-          {post.mood_tag && (
-            <span className="rounded-full bg-ink-100 px-3 py-0.5 text-sm font-semibold text-ink-700">
-              {post.mood_tag}
-            </span>
-          )}
-        </div>
-
-        <h1 className="mt-4 text-xl font-bold leading-snug text-ink-900 sm:text-2xl">
-          {post.headline}
-        </h1>
-        <p className="mt-2 text-sm text-ink-500">發布日期：{formatTaipeiDate(post.published_at)}</p>
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+    <article className="mx-auto min-w-0 max-w-3xl space-y-8 pb-12">
+      {gallery.length > 0 && (
+        <div className="grid gap-3 sm:grid-cols-2">
           {gallery.map((media, idx) => (
             <div
               key={`${media.url}-${idx}`}
@@ -151,62 +125,75 @@ export default async function PostDetailPage({
             </div>
           ))}
         </div>
+      )}
 
-        {post.content_md && (
-          <div className="mt-6">
-            <MarkdownView content={post.content_md} />
-          </div>
-        )}
-
-        {post.contextual_event && (
-          <Link
-            href={`/e/${post.contextual_event.short_code}`}
-            className="mt-6 flex items-center justify-between gap-3 rounded-xl border border-accent-200 bg-accent-50/70 p-4 text-sm font-semibold text-accent-900 hover:bg-accent-100/70"
-          >
-            <span className="flex items-center gap-2">
-              <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>體驗活動：{post.contextual_event.title}</span>
-            </span>
-            <span className="shrink-0 text-sm">一鍵查看報名 →</span>
-          </Link>
-        )}
-
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
-          <div className="flex flex-wrap items-center gap-2">
-            <BookmarkButton
-              targetType="post"
-              targetId={post.id}
-              initialBookmarked={isBookmarked}
-              isLoggedIn={Boolean(currentUser)}
-            />
-            <ShareButton />
-          </div>
-          <ReportModal
-            targetType="post"
-            targetId={post.id}
-            isLoggedIn={Boolean(currentUser)}
-          />
+      <header className="space-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge tone="accent">{kindMeta.label}</Badge>
+          {post.mood_tag && <Badge>{post.mood_tag}</Badge>}
         </div>
-      </div>
-
-      <div className="flex flex-col justify-between gap-4 rounded-xl border border-ink-300 bg-white p-5 sm:flex-row sm:items-center">
-        <div>
-          <p className="text-sm font-semibold text-ink-500">這則現場紀錄來自</p>
-          <div className="mt-1 flex items-center gap-1.5">
-            <span className="text-base font-bold text-ink-900">
-              {post.club.university_short_name} · {post.club.name}
+        <h1 className="break-words text-2xl font-bold leading-snug text-ink-900 sm:text-3xl">
+          {post.headline}
+        </h1>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-600">
+          <Link
+            href={`/clubs/${post.club.slug}`}
+            className="inline-flex min-h-11 min-w-0 items-center gap-2 font-medium text-ink-800 hover:text-accent-700"
+          >
+            <ClubMark name={post.club.name} seed={post.club.slug} size="sm" />
+            <span className="break-words">
+              {post.club.name} · {post.club.university_short_name}
             </span>
             {post.club.verification_status === 'verified' && (
-              <BadgeCheck className="h-4 w-4 text-accent-600" aria-label="官方認證社團" />
+              <BadgeCheck className="h-4 w-4 shrink-0 text-accent-600" aria-label="官方認證社團" />
             )}
-          </div>
+          </Link>
+          <span aria-hidden="true">·</span>
+          <time>{formatTaipeiDate(post.published_at)}</time>
         </div>
+      </header>
+
+      {post.content_md && (
+        <div className="min-w-0 break-words">
+          <MarkdownView content={post.content_md} />
+        </div>
+      )}
+
+      {post.contextual_event && (
         <Link
-          href={`/clubs/${post.club.slug}`}
-          className={buttonClasses({ variant: 'primary', size: 'md' })}
+          href={`/e/${post.contextual_event.short_code}`}
+          className="flex min-h-14 items-center justify-between gap-3 rounded-xl bg-accent-50 p-4 text-sm font-semibold text-accent-900 hover:bg-accent-100"
         >
-          進入社團門面
+          <span className="flex min-w-0 items-center gap-2">
+            <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="break-words">體驗活動：{post.contextual_event.title}</span>
+          </span>
+          <span className="shrink-0">查看報名 →</span>
         </Link>
+      )}
+
+      <div className="flex flex-wrap items-center gap-2 border-t border-line pt-5">
+        <BookmarkButton
+          targetType="post"
+          targetId={post.id}
+          initialBookmarked={isBookmarked}
+          isLoggedIn={Boolean(currentUser)}
+        />
+        <ShareButton />
+        <ReportModal targetType="post" targetId={post.id} isLoggedIn={Boolean(currentUser)} />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <ButtonLink
+          href="/"
+          variant="ghost"
+          icon={<ArrowLeft className="h-4 w-4" aria-hidden="true" />}
+        >
+          回到別的聚探索
+        </ButtonLink>
+        <ButtonLink href={`/clubs/${post.club.slug}`} variant="ghost">
+          查看「{post.club.name}」門面 →
+        </ButtonLink>
       </div>
     </article>
   );

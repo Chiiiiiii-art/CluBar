@@ -725,229 +725,250 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
           {canWrite && (
             <form
               onSubmit={handleCreateEvent}
-              className="space-y-4 rounded-xl border border-ink-300 bg-white p-6"
+              className="rounded-xl border border-ink-300 bg-white p-6"
             >
               <h2 className="text-base font-bold text-ink-900">建立體驗活動</h2>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div>
-                  <label htmlFor="club-manage-evtitle" className="mb-1 block text-sm font-semibold text-ink-700">活動名稱 *</label>
-                  <input id="club-manage-evtitle"
-                    required
-                    minLength={2}
-                    maxLength={80}
-                    value={evTitle}
-                    onChange={(e) => setEvTitle(e.target.value)}
-                    placeholder="例如：零基礎底片沖洗之夜"
-                    className={`${controlClasses} min-h-11 w-full`}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="club-manage-evtheme" className="mb-1 block text-sm font-semibold text-ink-700">主題底色</label>
-                  <select id="club-manage-evtheme"
-                    value={evTheme}
-                    onChange={(e) => setEvTheme(e.target.value as typeof evTheme)}
-                    className={`${controlClasses} min-h-11 w-full`}
-                  >
-                    <option value="warm_paper">暖陽松果 (Warm Paper)</option>
-                    <option value="campus_blue">晴空講義 (Campus Blue)</option>
-                    <option value="forest_trail">山林野營 (Forest Trail)</option>
-                    <option value="midnight_jam">暗房霓虹 (Midnight Jam)</option>
-                  </select>
-                </div>
-              </div>
+              <div className="mt-4 divide-y divide-line">
+                <fieldset className="min-w-0 space-y-4 pb-6">
+                  <legend className="text-sm font-semibold text-ink-900">基本資訊</legend>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="club-manage-evtitle" className="mb-1 block text-sm font-semibold text-ink-700">活動名稱 *</label>
+                      <input id="club-manage-evtitle"
+                        required
+                        minLength={2}
+                        maxLength={80}
+                        value={evTitle}
+                        onChange={(e) => setEvTitle(e.target.value)}
+                        placeholder="例如：零基礎底片沖洗之夜"
+                        className={`${controlClasses} min-h-11 w-full`}
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="club-manage-evtheme" className="mb-1 block text-sm font-semibold text-ink-700">主題底色</label>
+                      <select id="club-manage-evtheme"
+                        value={evTheme}
+                        onChange={(e) => setEvTheme(e.target.value as typeof evTheme)}
+                        className={`${controlClasses} min-h-11 w-full`}
+                      >
+                        <option value="warm_paper">暖陽松果 (Warm Paper)</option>
+                        <option value="campus_blue">晴空講義 (Campus Blue)</option>
+                        <option value="forest_trail">山林野營 (Forest Trail)</option>
+                        <option value="midnight_jam">暗房霓虹 (Midnight Jam)</option>
+                      </select>
+                    </div>
+                  </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div>
-                  <label htmlFor="club-manage-evmode" className="mb-1 block text-sm font-semibold text-ink-700">時程模式</label>
-                  <select id="club-manage-evmode"
-                    value={evMode}
-                    onChange={(e) => setEvMode(e.target.value as typeof evMode)}
-                    className={`${controlClasses} min-h-11 w-full`}
-                  >
-                    <option value="scheduled">已確定時間 (Scheduled)</option>
-                    <option value="tbd">先刊登再定時間 (TBD)</option>
-                    <option value="voting">讓同學投票喬時間／主題 (Voting)</option>
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="club-manage-evlocation" className="mb-1 block text-sm font-semibold text-ink-700">地點 *</label>
-                  <input id="club-manage-evlocation"
-                    required
-                    value={evLocation}
-                    onChange={(e) => setEvLocation(e.target.value)}
-                    className={`${controlClasses} min-h-11 w-full`}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="club-manage-evfee" className="mb-1 block text-sm font-semibold text-ink-700">單次費用 (NT$)</label>
-                  <input id="club-manage-evfee"
-                    type="number"
-                    min={0}
-                    value={evFee}
-                    onChange={(e) => setEvFee(e.target.value)}
-                    className={`${controlClasses} min-h-11 w-full`}
-                  />
-                </div>
-              </div>
+                  <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                    <label htmlFor="club-manage-evsummary" className="block text-sm font-medium text-ink-800">
+                      亮點摘要
+                    </label>
+                    <input id="club-manage-evsummary"
+                      value={evSummary}
+                      onChange={(e) => setEvSummary(e.target.value)}
+                      maxLength={160}
+                      placeholder="一句話亮點摘要（將顯示在探索頁與分享預覽卡）"
+                      className={`${controlClasses} min-h-11`}
+                    />
+                  </div>
 
-              {evMode === 'scheduled' && (
-                <div className="grid gap-3 sm:grid-cols-2">
+                  <ImageUploader
+                    clubId={data.club.id}
+                    value={evCover}
+                    onChange={setEvCover}
+                    maxImages={1}
+                    purpose="club_cover"
+                  />
+                </fieldset>
+
+                <fieldset className="min-w-0 space-y-4 py-6">
+                  <legend className="text-sm font-semibold text-ink-900">時間與地點</legend>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="club-manage-evmode" className="mb-1 block text-sm font-semibold text-ink-700">時程模式</label>
+                      <select id="club-manage-evmode"
+                        value={evMode}
+                        onChange={(e) => setEvMode(e.target.value as typeof evMode)}
+                        className={`${controlClasses} min-h-11 w-full`}
+                      >
+                        <option value="scheduled">已確定時間 (Scheduled)</option>
+                        <option value="tbd">先刊登再定時間 (TBD)</option>
+                        <option value="voting">讓同學投票喬時間／主題 (Voting)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {evMode === 'scheduled' && (
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="club-manage-evstart" className="mb-1 block text-sm font-semibold text-ink-700">開始時間 *</label>
+                        <input id="club-manage-evstart"
+                          type="datetime-local"
+                          required
+                          value={evStart}
+                          onChange={(e) => setEvStart(e.target.value)}
+                          className={`${controlClasses} min-h-11 w-full`}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="club-manage-evend" className="mb-1 block text-sm font-semibold text-ink-700">結束時間（選填）</label>
+                        <input id="club-manage-evend"
+                          type="datetime-local"
+                          value={evEnd}
+                          onChange={(e) => setEvEnd(e.target.value)}
+                          className={`${controlClasses} min-h-11 w-full`}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {evMode === 'voting' && (
+                    <div className="space-y-2 rounded-xl bg-ink-50 p-4">
+                      <p className="text-sm font-semibold text-ink-800">設定投票選項（最多填 3 個候選項目）：</p>
+                      {pollLabels.map((lbl, idx) => (
+                        <input aria-label="投票選項"
+                          key={idx}
+                          value={lbl}
+                          onChange={(e) =>
+                            setPollLabels((prev) => prev.map((v, i) => (i === idx ? e.target.value : v)))
+                          }
+                          placeholder={`投票選項 ${idx + 1}`}
+                          className={`${controlClasses} min-h-11 w-full`}
+                        />
+                      ))}
+                    </div>
+                  )}
+
                   <div>
-                    <label htmlFor="club-manage-evstart" className="mb-1 block text-sm font-semibold text-ink-700">開始時間 *</label>
-                    <input id="club-manage-evstart"
-                      type="datetime-local"
+                    <label htmlFor="club-manage-evlocation" className="mb-1 block text-sm font-semibold text-ink-700">地點 *</label>
+                    <input id="club-manage-evlocation"
                       required
-                      value={evStart}
-                      onChange={(e) => setEvStart(e.target.value)}
+                      value={evLocation}
+                      onChange={(e) => setEvLocation(e.target.value)}
                       className={`${controlClasses} min-h-11 w-full`}
                     />
                   </div>
-                  <div>
-                    <label htmlFor="club-manage-evend" className="mb-1 block text-sm font-semibold text-ink-700">結束時間（選填）</label>
-                    <input id="club-manage-evend"
-                      type="datetime-local"
-                      value={evEnd}
-                      onChange={(e) => setEvEnd(e.target.value)}
-                      className={`${controlClasses} min-h-11 w-full`}
+                </fieldset>
+
+                <fieldset className="min-w-0 space-y-4 py-6">
+                  <legend className="text-sm font-semibold text-ink-900">參加條件</legend>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div>
+                      <label htmlFor="club-manage-evfee" className="mb-1 block text-sm font-semibold text-ink-700">單次費用 (NT$)</label>
+                      <input id="club-manage-evfee"
+                        type="number"
+                        min={0}
+                        value={evFee}
+                        onChange={(e) => setEvFee(e.target.value)}
+                        className={`${controlClasses} min-h-11 w-full`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm font-medium text-ink-700">
+                    <label className="flex min-h-11 cursor-pointer items-center gap-1.5">
+                      <input type="checkbox" checked={evBeginner} onChange={(e) => setEvBeginner(e.target.checked)} />
+                      零基礎友善
+                    </label>
+                    <label className="flex min-h-11 cursor-pointer items-center gap-1.5">
+                      <input type="checkbox" checked={evNonMember} onChange={(e) => setEvNonMember(e.target.checked)} />
+                      非社員歡迎體驗
+                    </label>
+                    <label className="flex min-h-11 cursor-pointer items-center gap-1.5">
+                      <input type="checkbox" checked={evCampusOnly} onChange={(e) => setEvCampusOnly(e.target.checked)} />
+                      限本校 .edu.tw 報名
+                    </label>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                      <label htmlFor="club-manage-evhourscat" className="block text-sm font-medium text-ink-800">
+                        學習時數
+                      </label>
+                      <select id="club-manage-evhourscat"
+                        value={evHoursCat}
+                        onChange={(e) => setEvHoursCat(e.target.value as LearningHoursCategory)}
+                        className={`${controlClasses} min-h-11`}
+                      >
+                        <option value="none">無認證時數</option>
+                        <option value="art">可認證藝文時數</option>
+                        <option value="life">可認證生活知能時數</option>
+                        <option value="service">可認證服務學習時數</option>
+                      </select>
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                      <label htmlFor="club-manage-evhourscount" className="block text-sm font-medium text-ink-800">
+                        時數（小時）
+                      </label>
+                      <input id="club-manage-evhourscount"
+                        type="number"
+                        step="0.5"
+                        min={0}
+                        value={evHoursCount}
+                        onChange={(e) => setEvHoursCount(e.target.value)}
+                        placeholder="時數小時數"
+                        className={`${controlClasses} min-h-11`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                    <label htmlFor="club-manage-evprenotes" className="block text-sm font-medium text-ink-800">
+                      行前提醒
+                    </label>
+                    <input id="club-manage-evprenotes"
+                      value={evPreNotes}
+                      onChange={(e) => setEvPreNotes(e.target.value)}
+                      placeholder="行前提醒（例如：請穿好走運動鞋、社團會提供道具）"
+                      className={`${controlClasses} min-h-11`}
                     />
                   </div>
-                </div>
-              )}
+                </fieldset>
 
-              {evMode === 'voting' && (
-                <div className="space-y-2 rounded-xl bg-ink-50 p-4">
-                  <p className="text-sm font-semibold text-ink-800">設定投票選項（最多填 3 個候選項目）：</p>
-                  {pollLabels.map((lbl, idx) => (
-                    <input aria-label="投票選項"
-                      key={idx}
-                      value={lbl}
-                      onChange={(e) =>
-                        setPollLabels((prev) => prev.map((v, i) => (i === idx ? e.target.value : v)))
-                      }
-                      placeholder={`投票選項 ${idx + 1}`}
-                      className={`${controlClasses} min-h-11 w-full`}
+                <fieldset className="min-w-0 space-y-4 pt-6">
+                  <legend className="text-sm font-semibold text-ink-900">詳細內容與報名</legend>
+                  <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                    <label htmlFor="club-manage-evdesc" className="block text-sm font-medium text-ink-800">
+                      活動介紹
+                    </label>
+                    <textarea id="club-manage-evdesc"
+                      rows={3}
+                      value={evDesc}
+                      onChange={(e) => setEvDesc(e.target.value)}
+                      placeholder="完整活動介紹 Markdown（也可從「Vision 海報 AI」分頁一鍵抽取填入）"
+                      className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
                     />
-                  ))}
-                </div>
-              )}
+                  </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-evsummary" className="block text-sm font-medium text-ink-800">
-                    亮點摘要
+                  <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                    <label htmlFor="club-manage-evexturl" className="block text-sm font-medium text-ink-800">
+                      外部報名表單（選填）
+                    </label>
+                    <input id="club-manage-evexturl"
+                      type="url"
+                      value={evExtUrl}
+                      onChange={(e) => setEvExtUrl(e.target.value)}
+                      placeholder="選填：外部報名 Google 表單網址"
+                      className={`${controlClasses} min-h-11`}
+                    />
+                  </div>
+
+                  <label className="flex min-h-11 cursor-pointer items-center gap-1.5 text-sm font-medium text-ink-700">
+                    <input type="checkbox" checked={evIncludeEval} onChange={(e) => setEvIncludeEval(e.target.checked)} />
+                    納入本學年評鑑報表
                   </label>
-                  <input id="club-manage-evsummary"
-                    value={evSummary}
-                    onChange={(e) => setEvSummary(e.target.value)}
-                    maxLength={160}
-                    placeholder="一句話亮點摘要（將顯示在探索頁與分享預覽卡）"
-                    className={`${controlClasses} min-h-11`}
-                  />
-                </div>
-                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-evprenotes" className="block text-sm font-medium text-ink-800">
-                    行前提醒
-                  </label>
-                  <input id="club-manage-evprenotes"
-                    value={evPreNotes}
-                    onChange={(e) => setEvPreNotes(e.target.value)}
-                    placeholder="行前提醒（例如：請穿好走運動鞋、社團會提供道具）"
-                    className={`${controlClasses} min-h-11`}
-                  />
-                </div>
+                </fieldset>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3">
-                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-evhourscat" className="block text-sm font-medium text-ink-800">
-                    學習時數
-                  </label>
-                  <select id="club-manage-evhourscat"
-                    value={evHoursCat}
-                    onChange={(e) => setEvHoursCat(e.target.value as LearningHoursCategory)}
-                    className={`${controlClasses} min-h-11`}
-                  >
-                    <option value="none">無認證時數</option>
-                    <option value="art">可認證藝文時數</option>
-                    <option value="life">可認證生活知能時數</option>
-                    <option value="service">可認證服務學習時數</option>
-                  </select>
-                </div>
-                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-evhourscount" className="block text-sm font-medium text-ink-800">
-                    時數（小時）
-                  </label>
-                  <input id="club-manage-evhourscount"
-                    type="number"
-                    step="0.5"
-                    min={0}
-                    value={evHoursCount}
-                    onChange={(e) => setEvHoursCount(e.target.value)}
-                    placeholder="時數小時數"
-                    className={`${controlClasses} min-h-11`}
-                  />
-                </div>
-                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-evexturl" className="block text-sm font-medium text-ink-800">
-                    外部報名表單（選填）
-                  </label>
-                  <input id="club-manage-evexturl"
-                    type="url"
-                    value={evExtUrl}
-                    onChange={(e) => setEvExtUrl(e.target.value)}
-                    placeholder="選填：外部報名 Google 表單網址"
-                    className={`${controlClasses} min-h-11`}
-                  />
-                </div>
+              <div className="mt-6 border-t border-line pt-6">
+                <button
+                  type="submit"
+                  disabled={busy === 'create-event' || evTitle.trim().length < 2}
+                  className={buttonClasses({ variant: 'primary', size: 'lg', className: 'w-full sm:w-auto' })}
+                >
+                  {busy === 'create-event' ? '建立中...' : '發布活動並產生專屬短網址'}
+                </button>
               </div>
-
-              <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                <label htmlFor="club-manage-evdesc" className="block text-sm font-medium text-ink-800">
-                  活動介紹
-                </label>
-                <textarea id="club-manage-evdesc"
-                  rows={3}
-                  value={evDesc}
-                  onChange={(e) => setEvDesc(e.target.value)}
-                  placeholder="完整活動介紹 Markdown（也可從「Vision 海報 AI」分頁一鍵抽取填入）"
-                  className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
-                />
-              </div>
-
-              <ImageUploader
-                clubId={data.club.id}
-                value={evCover}
-                onChange={setEvCover}
-                maxImages={1}
-                purpose="club_cover"
-              />
-
-              <div className="flex flex-wrap gap-4 text-sm font-medium text-ink-700">
-                <label className="flex cursor-pointer items-center gap-1.5">
-                  <input type="checkbox" checked={evBeginner} onChange={(e) => setEvBeginner(e.target.checked)} />
-                  零基礎友善
-                </label>
-                <label className="flex cursor-pointer items-center gap-1.5">
-                  <input type="checkbox" checked={evNonMember} onChange={(e) => setEvNonMember(e.target.checked)} />
-                  非社員歡迎體驗
-                </label>
-                <label className="flex cursor-pointer items-center gap-1.5">
-                  <input type="checkbox" checked={evCampusOnly} onChange={(e) => setEvCampusOnly(e.target.checked)} />
-                  限本校 .edu.tw 報名
-                </label>
-                <label className="flex cursor-pointer items-center gap-1.5">
-                  <input type="checkbox" checked={evIncludeEval} onChange={(e) => setEvIncludeEval(e.target.checked)} />
-                  納入本學年評鑑報表
-                </label>
-              </div>
-
-              <button
-                type="submit"
-                disabled={busy === 'create-event' || evTitle.trim().length < 2}
-                className={buttonClasses({ variant: 'primary', size: 'md' })}
-              >
-                {busy === 'create-event' ? '建立中...' : '發布活動並產生專屬短網址'}
-              </button>
             </form>
           )}
 
@@ -977,7 +998,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   )}
                   <Link
                     href={`/e/${ev.shortCode}`}
-                    className="rounded-xl bg-white px-3 py-1.5 text-sm font-semibold text-accent-700"
+                    className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'text-accent-700' })}
                   >
                     /e/{ev.shortCode}
                   </Link>
@@ -1011,7 +1032,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-white">
+                  <label className={buttonClasses({ variant: 'primary', size: 'md', className: 'cursor-pointer' })}>
                     <Upload className="h-3.5 w-3.5" />
                     {busy === 'ai-draft' ? '解析中...' : '上傳海報圖 / PDF 自動辨識'}
                     <input
@@ -1279,14 +1300,14 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                         <button
                           type="button"
                           onClick={() => handleReviewMemberRequest(r.id, 'approve')}
-                          className="rounded-full bg-success-600 px-3 py-1 font-bold text-white"
+                          className={buttonClasses({ variant: 'primary', size: 'sm', className: 'bg-success-600 hover:bg-success-700 active:bg-success-800' })}
                         >
                           核准為認證社員
                         </button>
                         <button
                           type="button"
                           onClick={() => handleReviewMemberRequest(r.id, 'reject')}
-                          className="rounded-full border border-danger-200 px-3 py-1 font-bold text-danger-700"
+                          className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'border-danger-200 text-danger-700 hover:bg-danger-50' })}
                         >
                           婉拒
                         </button>
@@ -1347,7 +1368,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               <button
                 type="submit"
                 disabled={busy === 'add-member'}
-                className="rounded-full bg-ink-900 px-4 py-1.5 text-sm font-semibold text-white"
+                className={buttonClasses({ variant: 'primary', size: 'md' })}
               >
                 確認新增
               </button>
@@ -1486,7 +1507,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
             <div className="flex flex-wrap gap-2">
               <Link
                 href={`/clubs/${data.club.slug}/evaluation/print`}
-                className="inline-flex items-center gap-1.5 rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-white"
+                className={buttonClasses({ variant: 'primary', size: 'md' })}
               >
                 <Printer className="h-3.5 w-3.5" />
                 開啟列印版 / 另存 PDF
@@ -1546,7 +1567,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   />
                 </div>
               </div>
-              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white">
+              <label className={buttonClasses({ variant: 'primary', size: 'md', className: 'cursor-pointer' })}>
                 <Upload className="h-3.5 w-3.5" />
                 {busy === 'arch-up' ? '上傳私密容器中...' : '選擇 PDF / DOCX / XLSX / CSV / ZIP (≤20MB)'}
                 <input
