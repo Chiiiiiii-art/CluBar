@@ -252,7 +252,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                   )}
                 </div>
 
-                <input
+                <input aria-label="審核意見"
                   type="text"
                   placeholder="審核意見／駁回原因（選填）"
                   value={notes[app.id] || ''}
@@ -312,7 +312,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     檢舉說明：{rep.detail}
                   </p>
                 )}
-                <input
+                <input aria-label="處置說明"
                   type="text"
                   placeholder="處置說明（若下架或停權將通知該社團社長）"
                   value={notes[rep.id] || ''}

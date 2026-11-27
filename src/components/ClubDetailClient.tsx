@@ -116,14 +116,19 @@ export function ClubDetailClient({
             </p>
           ) : (
             <form onSubmit={handleAsk} className="mt-3 space-y-3">
-              <textarea
-                rows={3}
-                maxLength={500}
-                value={questionText}
-                onChange={(e) => setQuestionText(e.target.value)}
-                placeholder={`例如：沒有自己帶器材也能去「${clubName}」體驗課嗎？大概幾點結束？`}
-                className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
-              />
+              <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                <label htmlFor="club-detail-questiontext" className="block text-sm font-medium text-ink-800">
+                  你的問題
+                </label>
+                <textarea id="club-detail-questiontext"
+                  rows={3}
+                  maxLength={500}
+                  value={questionText}
+                  onChange={(e) => setQuestionText(e.target.value)}
+                  placeholder={`例如：沒有自己帶器材也能去「${clubName}」體驗課嗎？大概幾點結束？`}
+                  className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
+                />
+              </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-3 text-sm text-ink-700">
                   <label className="flex cursor-pointer items-center gap-1.5 font-semibold">
@@ -135,14 +140,19 @@ export function ClubDetailClient({
                     完全匿名提問（推薦）
                   </label>
                   {!isAnonymous && (
-                    <input
-                      type="text"
-                      maxLength={30}
-                      value={displayAlias}
-                      onChange={(e) => setDisplayAlias(e.target.value)}
-                      placeholder="公開顯示暱稱（選填）"
-                      className={`${controlClasses} min-h-11`}
-                    />
+                    <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                      <label htmlFor="club-detail-displayalias" className="block text-sm font-medium text-ink-800">
+                        顯示暱稱（選填）
+                      </label>
+                      <input id="club-detail-displayalias"
+                        type="text"
+                        maxLength={30}
+                        value={displayAlias}
+                        onChange={(e) => setDisplayAlias(e.target.value)}
+                        placeholder="公開顯示暱稱（選填）"
+                        className={`${controlClasses} min-h-11`}
+                      />
+                    </div>
                   )}
                 </div>
                 <button
@@ -184,14 +194,19 @@ export function ClubDetailClient({
             </p>
           ) : (
             <form onSubmit={handleJoinRequest} className="mt-3 flex flex-wrap gap-2">
-              <input
-                type="text"
-                maxLength={120}
-                value={joinNote}
-                onChange={(e) => setJoinNote(e.target.value)}
-                placeholder="簡短自我介紹或班級／暱稱讓幹部辨識（選填）"
-                className={`${controlClasses} min-h-11 min-w-0 flex-1`}
-              />
+              <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                <label htmlFor="club-detail-joinnote" className="block text-sm font-medium text-ink-800">
+                  自我介紹（選填）
+                </label>
+                <input id="club-detail-joinnote"
+                  type="text"
+                  maxLength={120}
+                  value={joinNote}
+                  onChange={(e) => setJoinNote(e.target.value)}
+                  placeholder="簡短自我介紹或班級／暱稱讓幹部辨識（選填）"
+                  className={`${controlClasses} min-h-11 min-w-0 flex-1`}
+                />
+              </div>
               <button
                 type="submit"
                 disabled={joinBusy}

@@ -325,63 +325,93 @@ export function TogetherClient({
               className="space-y-3 rounded-xl border border-ink-300 bg-white p-6"
             >
               <div className="grid gap-3 sm:grid-cols-3">
-                <select
-                  value={clubId}
-                  onChange={(e) => setClubId(e.target.value)}
-                  className={`${controlClasses} min-h-11`}
-                >
-                  {myMemberships.map((m) => (
-                    <option key={m.clubId} value={m.clubId}>
-                      {m.name}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={domainId}
-                  onChange={(e) => setDomainId(e.target.value)}
-                  className={`${controlClasses} min-h-11`}
-                >
-                  {domains.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      #{d.name_zh}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={itemType}
-                  onChange={(e) => setItemType(e.target.value as typeof itemType)}
-                  className={`${controlClasses} min-h-11`}
-                >
-                  <option value="showcase">作品試玩展示</option>
-                  <option value="field_log">路線／實務紀錄</option>
-                  <option value="match_invite">友社友誼邀約</option>
-                  <option value="reading_notes">專題書單觀點</option>
-                </select>
+                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                  <label htmlFor="together-clubid" className="block text-sm font-medium text-ink-800">
+                    代表社團
+                  </label>
+                  <select id="together-clubid"
+                    value={clubId}
+                    onChange={(e) => setClubId(e.target.value)}
+                    className={`${controlClasses} min-h-11`}
+                  >
+                    {myMemberships.map((m) => (
+                      <option key={m.clubId} value={m.clubId}>
+                        {m.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                  <label htmlFor="together-domainid" className="block text-sm font-medium text-ink-800">
+                    興趣領域
+                  </label>
+                  <select id="together-domainid"
+                    value={domainId}
+                    onChange={(e) => setDomainId(e.target.value)}
+                    className={`${controlClasses} min-h-11`}
+                  >
+                    {domains.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        #{d.name_zh}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                  <label htmlFor="together-itemtype" className="block text-sm font-medium text-ink-800">
+                    類型
+                  </label>
+                  <select id="together-itemtype"
+                    value={itemType}
+                    onChange={(e) => setItemType(e.target.value as typeof itemType)}
+                    className={`${controlClasses} min-h-11`}
+                  >
+                    <option value="showcase">作品試玩展示</option>
+                    <option value="field_log">路線／實務紀錄</option>
+                    <option value="match_invite">友社友誼邀約</option>
+                    <option value="reading_notes">專題書單觀點</option>
+                  </select>
+                </div>
               </div>
-              <input
-                required
-                minLength={2}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="作品或交流主題名稱 *"
-                className={`${controlClasses} min-h-11 w-full`}
-              />
-              <textarea
-                required
-                minLength={10}
-                rows={3}
-                value={contentMd}
-                onChange={(e) => setContentMd(e.target.value)}
-                placeholder="分享製作心得、使用技術或希望友社接力討論的切入點..."
-                className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
-              />
-              <input
-                type="url"
-                value={embedUrl}
-                onChange={(e) => setEmbedUrl(e.target.value)}
-                placeholder="選填安全預覽連結（限 itch.io / YouTube / Vimeo / SoundCloud / Figma / GitHub）"
-                className={`${controlClasses} min-h-11 w-full`}
-              />
+              <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                <label htmlFor="together-title" className="block text-sm font-medium text-ink-800">
+                  標題
+                </label>
+                <input id="together-title"
+                  required
+                  minLength={2}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="作品或交流主題名稱 *"
+                  className={`${controlClasses} min-h-11 w-full`}
+                />
+              </div>
+              <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                <label htmlFor="together-contentmd" className="block text-sm font-medium text-ink-800">
+                  內容
+                </label>
+                <textarea id="together-contentmd"
+                  required
+                  minLength={10}
+                  rows={3}
+                  value={contentMd}
+                  onChange={(e) => setContentMd(e.target.value)}
+                  placeholder="分享製作心得、使用技術或希望友社接力討論的切入點..."
+                  className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
+                />
+              </div>
+              <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                <label htmlFor="together-embedurl" className="block text-sm font-medium text-ink-800">
+                  預覽連結（選填）
+                </label>
+                <input id="together-embedurl"
+                  type="url"
+                  value={embedUrl}
+                  onChange={(e) => setEmbedUrl(e.target.value)}
+                  placeholder="選填安全預覽連結（限 itch.io / YouTube / Vimeo / SoundCloud / Figma / GitHub）"
+                  className={`${controlClasses} min-h-11 w-full`}
+                />
+              </div>
               <button
                 type="submit"
                 disabled={busy === 'create-item'}
@@ -464,57 +494,87 @@ export function TogetherClient({
               className="space-y-3 rounded-xl border border-ink-300 bg-white p-6"
             >
               <div className="grid gap-3 sm:grid-cols-2">
-                <select
-                  value={jamClubId}
-                  onChange={(e) => setJamClubId(e.target.value)}
-                  className={`${controlClasses} min-h-11`}
-                >
-                  {officerClubs.map((c) => (
-                    <option key={c.clubId} value={c.clubId}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={jamDomainId}
-                  onChange={(e) => setJamDomainId(e.target.value)}
-                  className={`${controlClasses} min-h-11`}
-                >
-                  {domains.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      #{d.name_zh}
-                    </option>
-                  ))}
-                </select>
+                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                  <label htmlFor="together-jamclubid" className="block text-sm font-medium text-ink-800">
+                    發起社團
+                  </label>
+                  <select id="together-jamclubid"
+                    value={jamClubId}
+                    onChange={(e) => setJamClubId(e.target.value)}
+                    className={`${controlClasses} min-h-11`}
+                  >
+                    {officerClubs.map((c) => (
+                      <option key={c.clubId} value={c.clubId}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                  <label htmlFor="together-jamdomainid" className="block text-sm font-medium text-ink-800">
+                    興趣領域
+                  </label>
+                  <select id="together-jamdomainid"
+                    value={jamDomainId}
+                    onChange={(e) => setJamDomainId(e.target.value)}
+                    className={`${controlClasses} min-h-11`}
+                  >
+                    {domains.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        #{d.name_zh}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <input
-                required
-                value={jamTitle}
-                onChange={(e) => setJamTitle(e.target.value)}
-                placeholder="跨校企劃題目（如：北中南三校冬季 Game Jam 聯展）*"
-                className={`${controlClasses} min-h-11 w-full`}
-              />
-              <textarea
-                required
-                rows={3}
-                value={jamSummary}
-                onChange={(e) => setJamSummary(e.target.value)}
-                placeholder="說明各自社團分工、預計合作模式與目標成果..."
-                className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
-              />
+              <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                <label htmlFor="together-jamtitle" className="block text-sm font-medium text-ink-800">
+                  企劃題目
+                </label>
+                <input id="together-jamtitle"
+                  required
+                  value={jamTitle}
+                  onChange={(e) => setJamTitle(e.target.value)}
+                  placeholder="跨校企劃題目（如：北中南三校冬季 Game Jam 聯展）*"
+                  className={`${controlClasses} min-h-11 w-full`}
+                />
+              </div>
+              <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                <label htmlFor="together-jamsummary" className="block text-sm font-medium text-ink-800">
+                  合作說明
+                </label>
+                <textarea id="together-jamsummary"
+                  required
+                  rows={3}
+                  value={jamSummary}
+                  onChange={(e) => setJamSummary(e.target.value)}
+                  placeholder="說明各自社團分工、預計合作模式與目標成果..."
+                  className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
+                />
+              </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <input
-                  value={jamRoles}
-                  onChange={(e) => setJamRoles(e.target.value)}
-                  placeholder="招募友社專長（逗號分隔，如 美術, 配樂, 現場場控）"
-                  className={`${controlClasses} min-h-11`}
-                />
-                <input
-                  value={jamFormat}
-                  onChange={(e) => setJamFormat(e.target.value)}
-                  placeholder="合作方式（如 線上共創＋雙週末成果驗收）"
-                  className={`${controlClasses} min-h-11`}
-                />
+                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                  <label htmlFor="together-jamroles" className="block text-sm font-medium text-ink-800">
+                    招募專長
+                  </label>
+                  <input id="together-jamroles"
+                    value={jamRoles}
+                    onChange={(e) => setJamRoles(e.target.value)}
+                    placeholder="招募友社專長（逗號分隔，如 美術, 配樂, 現場場控）"
+                    className={`${controlClasses} min-h-11`}
+                  />
+                </div>
+                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                  <label htmlFor="together-jamformat" className="block text-sm font-medium text-ink-800">
+                    合作方式
+                  </label>
+                  <input id="together-jamformat"
+                    value={jamFormat}
+                    onChange={(e) => setJamFormat(e.target.value)}
+                    placeholder="合作方式（如 線上共創＋雙週末成果驗收）"
+                    className={`${controlClasses} min-h-11`}
+                  />
+                </div>
               </div>
               <button
                 type="submit"
@@ -671,22 +731,32 @@ export function TogetherClient({
                 <p className="font-bold text-ink-900">
                   向 {pingTarget.display_name} 送出簡短請益（對方不會看到你的個人電話，將經站內與 Email 轉達）
                 </p>
-                <input
-                  value={pingTag}
-                  onChange={(e) => setPingTag(e.target.value)}
-                  placeholder="想請教的領域（如 社團評鑑財務核銷）"
-                  className={`${controlClasses} min-h-11 w-full`}
-                />
-                <textarea
-                  required
-                  minLength={10}
-                  maxLength={500}
-                  rows={3}
-                  value={pingMessage}
-                  onChange={(e) => setPingMessage(e.target.value)}
-                  placeholder="簡述目前遇到的卡關情境與想請教的問題（10-500字）..."
-                  className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
-                />
+                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                  <label htmlFor="together-pingtag" className="block text-sm font-medium text-ink-800">
+                    想請教的領域
+                  </label>
+                  <input id="together-pingtag"
+                    value={pingTag}
+                    onChange={(e) => setPingTag(e.target.value)}
+                    placeholder="想請教的領域（如 社團評鑑財務核銷）"
+                    className={`${controlClasses} min-h-11 w-full`}
+                  />
+                </div>
+                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                  <label htmlFor="together-pingmessage" className="block text-sm font-medium text-ink-800">
+                    問題描述
+                  </label>
+                  <textarea id="together-pingmessage"
+                    required
+                    minLength={10}
+                    maxLength={500}
+                    rows={3}
+                    value={pingMessage}
+                    onChange={(e) => setPingMessage(e.target.value)}
+                    placeholder="簡述目前遇到的卡關情境與想請教的問題（10-500字）..."
+                    className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
+                  />
+                </div>
                 <div className="flex gap-2">
                   <button
                     type="submit"
@@ -755,35 +825,50 @@ export function TogetherClient({
               >
                 <p className="font-bold text-ink-800">分享一則去識別化的社團實務秘笈</p>
                 <div className="grid gap-2 sm:grid-cols-3">
-                  <select
-                    value={resDomainId}
-                    onChange={(e) => setResDomainId(e.target.value)}
-                    className={`${controlClasses} min-h-11`}
-                  >
-                    {domains.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        #{d.name_zh}
-                      </option>
-                    ))}
-                  </select>
-                  <input
+                  <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                    <label htmlFor="together-resdomainid" className="block text-sm font-medium text-ink-800">
+                      興趣領域
+                    </label>
+                    <select id="together-resdomainid"
+                      value={resDomainId}
+                      onChange={(e) => setResDomainId(e.target.value)}
+                      className={`${controlClasses} min-h-11`}
+                    >
+                      {domains.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          #{d.name_zh}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                    <label htmlFor="together-restitle" className="block text-sm font-medium text-ink-800">
+                      筆記標題
+                    </label>
+                    <input id="together-restitle"
+                      required
+                      minLength={3}
+                      value={resTitle}
+                      onChange={(e) => setResTitle(e.target.value)}
+                      placeholder="實務筆記標題 *"
+                      className={`${controlClasses} min-h-11 sm:col-span-2`}
+                    />
+                  </div>
+                </div>
+                <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                  <label htmlFor="together-rescontent" className="block text-sm font-medium text-ink-800">
+                    筆記內容
+                  </label>
+                  <textarea id="together-rescontent"
                     required
-                    minLength={3}
-                    value={resTitle}
-                    onChange={(e) => setResTitle(e.target.value)}
-                    placeholder="實務筆記標題 *"
-                    className={`${controlClasses} min-h-11 sm:col-span-2`}
+                    minLength={15}
+                    rows={2}
+                    value={resContent}
+                    onChange={(e) => setResContent(e.target.value)}
+                    placeholder="整理場地／器材／預算核銷實務經驗（請勿包含個人聯絡個資）..."
+                    className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
                   />
                 </div>
-                <textarea
-                  required
-                  minLength={15}
-                  rows={2}
-                  value={resContent}
-                  onChange={(e) => setResContent(e.target.value)}
-                  placeholder="整理場地／器材／預算核銷實務經驗（請勿包含個人聯絡個資）..."
-                  className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
-                />
                 <button
                   type="submit"
                   disabled={busy === 'res'}

@@ -54,6 +54,42 @@ for (const rule of RULES) {
   });
 }
 
+/** Index just past the `>` closing the JSX opening tag that starts at `i`. */
+function openingTagEnd(src: string, i: number): number {
+  let depth = 0;
+  let quote: string | null = null;
+  for (let j = i; j < src.length; j++) {
+    const c = src[j];
+    if (quote) {
+      if (c === quote) quote = null;
+    } else if ((c === '"' || c === "'" || c === '`') && depth === 0) quote = c;
+    else if (c === '{') depth++;
+    else if (c === '}') depth--;
+    else if (c === '>' && depth === 0) return j + 1;
+  }
+  return -1;
+}
+
+test('every form control has an accessible name (WCAG 1.3.1 / 3.3.2)', () => {
+  const hits: string[] = [];
+  for (const f of files) {
+    const src = readFileSync(f, 'utf8');
+    const htmlFors = new Set([...src.matchAll(/htmlFor=["{]`?([^"`}]+)/g)].map((m) => m[1]));
+    for (const m of src.matchAll(/<(input|select|textarea)\b/g)) {
+      const start = m.index!;
+      const head = src.slice(start, openingTagEnd(src, start + m[0].length));
+      if (/type="(hidden|submit|button)"/.test(head)) continue;
+      if (/aria-label(ledby)?=/.test(head)) continue;
+      const id = head.match(/\bid=["{]`?([^"`}]+)/)?.[1];
+      if (id && htmlFors.has(id)) continue;
+      const before = src.slice(0, start);
+      if (before.lastIndexOf('<label') > before.lastIndexOf('</label>')) continue;
+      hits.push(`${relative(ROOT, f)}:${before.split('\n').length}  <${m[1]}>`);
+    }
+  }
+  assert.deepEqual(hits, [], `unlabeled form controls (add a <label htmlFor> or aria-label):\n${hits.join('\n')}`);
+});
+
 test('demo SVG placeholders are treated as missing media', () => {
   assert.equal(isPlaceholderMedia('/images/demo/moment-4x5.svg'), true);
   assert.equal(isPlaceholderMedia(null), true);

@@ -112,10 +112,10 @@ export function ReportModal({
             ) : (
               <form onSubmit={handleSubmit} className="mt-4 space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-ink-700">
+                  <label htmlFor="report-reason" className="mb-1.5 block text-sm font-semibold text-ink-700">
                     檢舉原因
                   </label>
-                  <select
+                  <select id="report-reason"
                     value={reason}
                     onChange={(e) => setReason(e.target.value as ReportReason)}
                     className={`${controlClasses} min-h-11 w-full`}
@@ -129,10 +129,10 @@ export function ReportModal({
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-semibold text-ink-700">
+                  <label htmlFor="report-detail" className="mb-1.5 block text-sm font-semibold text-ink-700">
                     補充說明（選填）
                   </label>
-                  <textarea
+                  <textarea id="report-detail"
                     rows={3}
                     maxLength={1000}
                     value={detail}

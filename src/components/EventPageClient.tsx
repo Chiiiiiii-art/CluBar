@@ -842,14 +842,19 @@ export function EventPageClient({
                   </label>
 
                   {privacyMode === 'public_to_attendees' && (
-                    <input
-                      type="text"
-                      maxLength={40}
-                      value={displayAlias}
-                      onChange={(e) => setDisplayAlias(e.target.value)}
-                      placeholder="自訂此場顯示暱稱（留空則用帳號名稱）"
-                      className={`${controlClasses} min-h-11 mt-1 w-full`}
-                    />
+                    <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                      <label htmlFor="event-page-displayalias" className="block text-sm font-medium text-ink-800">
+                        顯示暱稱（選填）
+                      </label>
+                      <input id="event-page-displayalias"
+                        type="text"
+                        maxLength={40}
+                        value={displayAlias}
+                        onChange={(e) => setDisplayAlias(e.target.value)}
+                        placeholder="自訂此場顯示暱稱（留空則用帳號名稱）"
+                        className={`${controlClasses} min-h-11 mt-1 w-full`}
+                      />
+                    </div>
                   )}
                 </div>
 
@@ -1146,14 +1151,19 @@ export function EventPageClient({
               <p className="text-sm font-semibold text-ink-800">
                 發送臨時異動／行前通知給所有已報名與有興趣同學（每小時上限 2 次）
               </p>
-              <textarea
-                rows={3}
-                maxLength={300}
-                value={broadcastMessage}
-                onChange={(e) => setBroadcastMessage(e.target.value)}
-                placeholder="例如：今天改到綜教館 R204 教室，請記得帶水壺！"
-                className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
-              />
+              <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                <label htmlFor="event-page-broadcastmessage" className="block text-sm font-medium text-ink-800">
+                  公告內容
+                </label>
+                <textarea id="event-page-broadcastmessage"
+                  rows={3}
+                  maxLength={300}
+                  value={broadcastMessage}
+                  onChange={(e) => setBroadcastMessage(e.target.value)}
+                  placeholder="例如：今天改到綜教館 R204 教室，請記得帶水壺！"
+                  className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
+                />
+              </div>
               <button
                 type="submit"
                 disabled={busyAction === 'broadcast' || broadcastMessage.trim().length < 4}
@@ -1238,7 +1248,7 @@ export function EventPageClient({
 
         {permissions.can_participate ? (
           <form onSubmit={handleCommentSubmit} className="mt-4 flex gap-2">
-            <input
+            <input aria-label="留言"
               type="text"
               maxLength={600}
               value={commentText}
@@ -1302,14 +1312,19 @@ export function EventPageClient({
         {permissions.can_participate && (
           <div className="mt-4 space-y-3 rounded-xl border border-dashed border-ink-300 bg-ink-50 p-4">
             <div className="flex flex-wrap gap-3">
-              <input
-                type="text"
-                maxLength={120}
-                value={albumCaption}
-                onChange={(e) => setAlbumCaption(e.target.value)}
-                placeholder="這張照片的故事或標題（選填，最多 120 字）"
-                className={`${controlClasses} min-h-11 min-w-0 flex-1`}
-              />
+              <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                <label htmlFor="event-page-albumcaption" className="block text-sm font-medium text-ink-800">
+                  照片說明（選填）
+                </label>
+                <input id="event-page-albumcaption"
+                  type="text"
+                  maxLength={120}
+                  value={albumCaption}
+                  onChange={(e) => setAlbumCaption(e.target.value)}
+                  placeholder="這張照片的故事或標題（選填，最多 120 字）"
+                  className={`${controlClasses} min-h-11 min-w-0 flex-1`}
+                />
+              </div>
               <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700">
                 <ImagePlus className="h-4 w-4" aria-hidden="true" />
                 {busyAction === 'album-upload' ? '上傳雙軌原檔中...' : '上傳活動照片 (≤20MB)'}

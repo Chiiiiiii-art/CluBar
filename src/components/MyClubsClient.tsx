@@ -219,7 +219,7 @@ export function MyClubsClient({
           </p>
         ) : (
           <form onSubmit={handleRedeemCode} className="mt-3 flex flex-wrap gap-2">
-            <input
+            <input aria-label="邀請碼"
               type="text"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value)}
@@ -257,8 +257,8 @@ export function MyClubsClient({
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-sm font-semibold text-ink-700">發表社團</label>
-              <select
+              <label htmlFor="my-clubs-selectedclub-slug" className="mb-1 block text-sm font-semibold text-ink-700">發表社團</label>
+              <select id="my-clubs-selectedclub-slug"
                 value={selectedClub.slug}
                 onChange={(e) => setSelectedSlug(e.target.value)}
                 className={`${controlClasses} min-h-11 w-full`}
@@ -271,8 +271,8 @@ export function MyClubsClient({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-semibold text-ink-700">內容類型</label>
-              <select
+              <label htmlFor="my-clubs-isofficerselected-postkind-nrc-moment" className="mb-1 block text-sm font-semibold text-ink-700">內容類型</label>
+              <select id="my-clubs-isofficerselected-postkind-nrc-moment"
                 value={isOfficerSelected ? postKind : 'nrc_moment'}
                 onChange={(e) => setPostKind(e.target.value as 'nrc_moment' | 'wip_work')}
                 disabled={!isOfficerSelected}
@@ -286,8 +286,8 @@ export function MyClubsClient({
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="sm:col-span-2">
-              <label className="mb-1 block text-sm font-semibold text-ink-700">一句話亮點 *</label>
-              <input
+              <label htmlFor="my-clubs-headline" className="mb-1 block text-sm font-semibold text-ink-700">一句話亮點 *</label>
+              <input id="my-clubs-headline"
                 type="text"
                 required
                 minLength={2}
@@ -299,8 +299,8 @@ export function MyClubsClient({
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-semibold text-ink-700">氛圍小標（選填）</label>
-              <input
+              <label htmlFor="my-clubs-moodtag" className="mb-1 block text-sm font-semibold text-ink-700">氛圍小標（選填）</label>
+              <input id="my-clubs-moodtag"
                 type="text"
                 maxLength={24}
                 value={moodTag}
@@ -312,8 +312,8 @@ export function MyClubsClient({
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-semibold text-ink-700">補充背景（選填）</label>
-            <textarea
+            <label htmlFor="my-clubs-contentmd" className="mb-1 block text-sm font-semibold text-ink-700">補充背景（選填）</label>
+            <textarea id="my-clubs-contentmd"
               rows={2}
               value={contentMd}
               onChange={(e) => setContentMd(e.target.value)}

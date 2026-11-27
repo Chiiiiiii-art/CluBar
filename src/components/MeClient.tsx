@@ -411,7 +411,7 @@ export function MeClient({
 
                 {!otpSent ? (
                   <form onSubmit={requestOtp} className="flex flex-col gap-2 sm:flex-row">
-                    <input
+                    <input aria-label="學校信箱（.edu.tw）"
                       type="email"
                       required
                       value={campusEmail}
@@ -429,7 +429,7 @@ export function MeClient({
                   </form>
                 ) : (
                   <form onSubmit={confirmOtp} className="flex flex-col gap-2 sm:flex-row">
-                    <input
+                    <input aria-label="驗證碼"
                       type="text"
                       required
                       pattern="\d{6}"
@@ -855,8 +855,8 @@ export function MeClient({
         <form onSubmit={handleSavePortfolioSettings} className="mt-4 space-y-3 text-sm">
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
-              <label className="mb-1 block font-bold text-ink-700">個人頁代號 (handle)</label>
-              <input
+              <label htmlFor="me-handleinput" className="mb-1 block font-bold text-ink-700">個人頁代號 (handle)</label>
+              <input id="me-handleinput"
                 value={handleInput}
                 onChange={(e) => setHandleInput(e.target.value)}
                 placeholder="如 alex-ncu (4-30字小寫)"
@@ -864,8 +864,8 @@ export function MeClient({
               />
             </div>
             <div>
-              <label className="mb-1 block font-bold text-ink-700">誰能看見我的成長軌跡</label>
-              <select
+              <label htmlFor="me-visibility" className="mb-1 block font-bold text-ink-700">誰能看見我的成長軌跡</label>
+              <select id="me-visibility"
                 value={visibility}
                 onChange={(e) => setVisibility(e.target.value as PortfolioVisibility)}
                 className={`${controlClasses} min-h-11 w-full`}
@@ -876,10 +876,10 @@ export function MeClient({
               </select>
             </div>
             <div>
-              <label className="mb-1 block font-bold text-ink-700">
+              <label htmlFor="me-alumnitagsstr" className="mb-1 block font-bold text-ink-700">
                 前輩經驗專長標籤（逗號分隔，最多 3 個）
               </label>
-              <input
+              <input id="me-alumnitagsstr"
                 value={alumniTagsStr}
                 onChange={(e) => setAlumniTagsStr(e.target.value)}
                 placeholder="如 評鑑核銷, 攝影暗房, 場控"

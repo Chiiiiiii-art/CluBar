@@ -213,8 +213,8 @@ export function ClubApplyClient({
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm font-semibold text-ink-700">所屬大專校院</label>
-                <select
+                <label htmlFor="club-apply-uniid" className="mb-1 block text-sm font-semibold text-ink-700">所屬大專校院</label>
+                <select id="club-apply-uniid"
                   value={uniId}
                   onChange={(e) => setUniId(e.target.value)}
                   className={`${controlClasses} min-h-11 w-full`}
@@ -227,10 +227,10 @@ export function ClubApplyClient({
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-sm font-semibold text-ink-700">
+                <label htmlFor="club-apply-proposedcategory" className="mb-1 block text-sm font-semibold text-ink-700">
                   台灣大專六大社團分類
                 </label>
-                <select
+                <select id="club-apply-proposedcategory"
                   value={proposedCategory}
                   onChange={(e) => setProposedCategory(e.target.value as ClubCategory)}
                   className={`${controlClasses} min-h-11 w-full`}
@@ -245,8 +245,8 @@ export function ClubApplyClient({
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-semibold text-ink-700">社團正式名稱</label>
-              <input
+              <label htmlFor="club-apply-proposedname" className="mb-1 block text-sm font-semibold text-ink-700">社團正式名稱</label>
+              <input id="club-apply-proposedname"
                 type="text"
                 required
                 minLength={2}
@@ -259,10 +259,10 @@ export function ClubApplyClient({
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-semibold text-ink-700">
+              <label htmlFor="club-apply-proposedslug" className="mb-1 block text-sm font-semibold text-ink-700">
                 公開網址代碼（Slug）
               </label>
-              <input
+              <input id="club-apply-proposedslug"
                 type="text"
                 required
                 pattern="^[a-z0-9][a-z0-9-]{2,48}[a-z0-9]$"
@@ -288,7 +288,7 @@ export function ClubApplyClient({
                 className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-ink-500"
                 aria-hidden="true"
               />
-              <input
+              <input aria-label="篩選學校或社團"
                 type="text"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
@@ -338,10 +338,10 @@ export function ClubApplyClient({
         )}
 
         <div>
-          <label className="mb-1 block text-sm font-semibold text-ink-700">
+          <label htmlFor="club-apply-evidencetext" className="mb-1 block text-sm font-semibold text-ink-700">
             幹部身分或交接佐證說明（必填，至少 10 字）
           </label>
-          <textarea
+          <textarea id="club-apply-evidencetext"
             rows={4}
             required
             minLength={10}
@@ -354,10 +354,10 @@ export function ClubApplyClient({
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-semibold text-ink-700">
+          <label htmlFor="club-apply-evidenceurl" className="mb-1 block text-sm font-semibold text-ink-700">
             佐證參考連結（選填，如學校名錄頁面、官方粉專或雲端證明文件網址）
           </label>
-          <input
+          <input id="club-apply-evidenceurl"
             type="url"
             value={evidenceUrl}
             onChange={(e) => setEvidenceUrl(e.target.value)}

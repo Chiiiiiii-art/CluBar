@@ -221,39 +221,59 @@ export function TogetherDetailClient({
           className="space-y-3 rounded-xl border border-accent-200 bg-ink-50 p-6 text-sm"
         >
           <p className="font-bold text-ink-900">代表社團發布接力回應</p>
-          <select
-            value={replyClubId}
-            onChange={(e) => setReplyClubId(e.target.value)}
-            className={`${controlClasses} min-h-11 w-full`}
-          >
-            {myClubs.map((c) => (
-              <option key={c.clubId} value={c.clubId}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <input
-            required
-            value={rebTitle}
-            onChange={(e) => setRebTitle(e.target.value)}
-            className={`${controlClasses} min-h-11 w-full`}
-          />
-          <textarea
-            required
-            minLength={10}
-            rows={3}
-            value={rebContent}
-            onChange={(e) => setRebContent(e.target.value)}
-            placeholder="寫下你們社團基於原作延伸的玩法、二創音效或新設計..."
-            className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
-          />
-          <input
-            type="url"
-            value={rebEmbed}
-            onChange={(e) => setRebEmbed(e.target.value)}
-            placeholder="選填安全預覽連結（itch.io / YouTube / SoundCloud / GitHub 等）"
-            className={`${controlClasses} min-h-11 w-full`}
-          />
+          <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+            <label htmlFor="together-detail-replyclubid" className="block text-sm font-medium text-ink-800">
+              代表社團
+            </label>
+            <select id="together-detail-replyclubid"
+              value={replyClubId}
+              onChange={(e) => setReplyClubId(e.target.value)}
+              className={`${controlClasses} min-h-11 w-full`}
+            >
+              {myClubs.map((c) => (
+                <option key={c.clubId} value={c.clubId}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+            <label htmlFor="together-detail-rebtitle" className="block text-sm font-medium text-ink-800">
+              標題
+            </label>
+            <input id="together-detail-rebtitle"
+              required
+              value={rebTitle}
+              onChange={(e) => setRebTitle(e.target.value)}
+              className={`${controlClasses} min-h-11 w-full`}
+            />
+          </div>
+          <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+            <label htmlFor="together-detail-rebcontent" className="block text-sm font-medium text-ink-800">
+              延伸內容
+            </label>
+            <textarea id="together-detail-rebcontent"
+              required
+              minLength={10}
+              rows={3}
+              value={rebContent}
+              onChange={(e) => setRebContent(e.target.value)}
+              placeholder="寫下你們社團基於原作延伸的玩法、二創音效或新設計..."
+              className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
+            />
+          </div>
+          <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+            <label htmlFor="together-detail-rebembed" className="block text-sm font-medium text-ink-800">
+              預覽連結（選填）
+            </label>
+            <input id="together-detail-rebembed"
+              type="url"
+              value={rebEmbed}
+              onChange={(e) => setRebEmbed(e.target.value)}
+              placeholder="選填安全預覽連結（itch.io / YouTube / SoundCloud / GitHub 等）"
+              className={`${controlClasses} min-h-11 w-full`}
+            />
+          </div>
           <button
             type="submit"
             disabled={busy === 'rebound'}
@@ -292,18 +312,23 @@ export function TogetherDetailClient({
         {myClubs.length > 0 ? (
           <form onSubmit={handleReply} className="space-y-2">
             <div className="flex flex-wrap gap-2">
-              <select
-                value={replyClubId}
-                onChange={(e) => setReplyClubId(e.target.value)}
-                className={`${controlClasses} min-h-11`}
-              >
-                {myClubs.map((c) => (
-                  <option key={c.clubId} value={c.clubId}>
-                    代表：{c.name}
-                  </option>
-                ))}
-              </select>
-              <input
+              <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
+                <label htmlFor="together-detail-replyclubid-2" className="block text-sm font-medium text-ink-800">
+                  代表社團
+                </label>
+                <select id="together-detail-replyclubid-2"
+                  value={replyClubId}
+                  onChange={(e) => setReplyClubId(e.target.value)}
+                  className={`${controlClasses} min-h-11`}
+                >
+                  {myClubs.map((c) => (
+                    <option key={c.clubId} value={c.clubId}>
+                      代表：{c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <input aria-label="回覆"
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder="分享回饋、技術問題或邀約聯合測試..."
