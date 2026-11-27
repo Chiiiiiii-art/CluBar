@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   DiscoverLLMResponseSchema,
+  extractSearchTokens,
   runDiscoverQuery,
   type DiscoverStreamCandidate,
 } from '../src/lib/discovery/service';
@@ -167,4 +168,12 @@ test('generateVisionOrRawDraft degrades cleanly on Vision timeout without throwi
   assert.ok(result.warnings.length >= 1);
   assert.ok(result.draft.title.length >= 2);
   assert.ok(result.draft.missing_beginner_fields.length >= 1);
+});
+
+
+test('extractSearchTokens splits natural-language CJK queries into meaningful bigrams', () => {
+  const tokens = extractSearchTokens('想學拍底片，零基礎可以體驗的社團');
+  assert.ok(tokens.includes('底片'));
+  assert.ok(tokens.includes('零基礎') || tokens.includes('基礎'));
+  assert.ok(tokens.includes('體驗'));
 });

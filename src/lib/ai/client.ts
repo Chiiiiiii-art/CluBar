@@ -177,7 +177,6 @@ export async function visionJson<T>(params: {
           ],
         },
       ],
-      ...(entry.provider === 'openrouter' ? { reasoning: { effort: 'none' } } : {}),
     };
 
     const response = await entry.client.chat.completions.create(

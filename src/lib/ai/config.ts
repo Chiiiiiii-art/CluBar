@@ -30,7 +30,7 @@ export function getAiConfig() {
     openrouterChatModel:
       process.env.OPENROUTER_CHAT_MODEL?.trim() || 'deepseek/deepseek-chat-v3-0324',
     openrouterVisionModel:
-      process.env.OPENROUTER_VISION_MODEL?.trim() || 'google/gemini-2.0-flash-001',
+      process.env.OPENROUTER_VISION_MODEL?.trim() || 'google/gemini-3.8-flash',
     openaiApiKey: process.env.OPENAI_API_KEY?.trim() || '',
     openaiCompatBaseUrl: process.env.OPENAI_COMPAT_BASE_URL?.trim() || undefined,
     openaiCompatEmbeddingModel:

@@ -8,7 +8,7 @@ import {
   requireVerifiedStudent,
 } from '@/lib/auth/guards';
 import { handleApiError } from '@/lib/errors';
-import { createMediaUploadSas } from '@/lib/media/azure-blob';
+import { createMediaUploadSas, ensurePrivateArchiveContainer } from '@/lib/media/azure-blob';
 
 const sasRequestSchema = z.object({
   purpose: z.enum([
@@ -48,6 +48,7 @@ export async function POST(req: Request) {
         throw new Error('club_id is required for archive_file');
       }
       const ctx = await requireClubOfficer(parsed.club_id);
+      await ensurePrivateArchiveContainer();
       scopeId = ctx.club.id;
     } else if (parsed.purpose === 'short_video' || parsed.purpose === 'post_image') {
       if (parsed.club_id) {

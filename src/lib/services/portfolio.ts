@@ -83,7 +83,17 @@ export async function buildUserPortfolio(params: {
 }): Promise<{ accessDenied: boolean; portfolio: UserPortfolioDTO | null }> {
   const [target] = await db
     .select({
-      user: users,
+      user: {
+        id: users.id,
+        displayName: users.displayName,
+        handle: users.handle,
+        avatarUrl: users.avatarUrl,
+        universityId: users.universityId,
+        portfolioVisibility: users.portfolioVisibility,
+        talentDiscoveryOptIn: users.talentDiscoveryOptIn,
+        alumniPingEnabled: users.alumniPingEnabled,
+        alumniExpertiseTags: users.alumniExpertiseTags,
+      },
       universityShortName: universities.shortName,
     })
     .from(users)

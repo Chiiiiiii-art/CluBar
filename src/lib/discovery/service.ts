@@ -476,22 +476,42 @@ async function dbVectorSearch(
   }));
 }
 
+const CJK_STOP_CHARS = /[的是了嗎呢在有我想去要找可能很都跟與或和吧啊]/g;
+
+export function extractSearchTokens(query: string): string[] {
+  const clean = query.trim();
+  if (!clean) return [];
+
+  const tokens = new Set<string>();
+  const parts = clean.split(/[\s,，。、！？/｜·「」『』（）()]+/).filter(Boolean);
+
+  for (const rawPart of parts) {
+    const part = rawPart.trim();
+    if (part.length >= 2 && part.length <= 12) {
+      tokens.add(part);
+    }
+    const stripped = part.replace(CJK_STOP_CHARS, ' ').trim();
+    for (const seg of stripped.split(/\s+/).filter(Boolean)) {
+      if (seg.length >= 2) tokens.add(seg);
+      // Generate overlapping 2-char CJK bigrams for natural-language Chinese queries
+      if (/^[\u4e00-\u9fff]{3,}$/.test(seg)) {
+        for (let i = 0; i <= seg.length - 2; i += 1) {
+          tokens.add(seg.slice(i, i + 2));
+        }
+      }
+    }
+  }
+
+  if (tokens.size === 0) tokens.add(clean);
+  return Array.from(tokens).slice(0, 12);
+}
+
 async function dbKeywordSearch(
   query: string,
   universityId?: string,
   excludeIds: string[] = []
 ): Promise<DiscoverStreamCandidate[]> {
-  const clean = query.trim();
-  const tokens = Array.from(
-    new Set(
-      clean
-        .split(/[\s,，。、！？/]+/)
-        .map((t) => t.trim())
-        .filter((t) => t.length >= 2)
-        .slice(0, 6)
-    )
-  );
-  if (tokens.length === 0) tokens.push(clean);
+  const tokens = extractSearchTokens(query);
 
   const keywordFilters = tokens.map((tok) => {
     const pattern = `%${tok}%`;
@@ -503,38 +523,47 @@ async function dbKeywordSearch(
     );
   });
 
-  const conditions = [
+  const baseConditions = [
     eq(posts.status, 'published'),
     eq(clubs.verificationStatus, 'verified'),
-    or(...keywordFilters),
   ];
-  if (universityId) conditions.push(eq(clubs.universityId, universityId));
-  if (excludeIds.length > 0) conditions.push(notInArray(posts.id, excludeIds));
+  if (universityId) baseConditions.push(eq(clubs.universityId, universityId));
+  if (excludeIds.length > 0) baseConditions.push(notInArray(posts.id, excludeIds));
 
-  const rows = await db
-    .select({
-      id: posts.id,
-      clubId: posts.clubId,
-      postKind: posts.postKind,
-      headline: posts.headline,
-      contentMd: posts.contentMd,
-      mediaItems: posts.mediaItems,
-      publishedAt: posts.publishedAt,
-      lastActivityAt: clubs.lastActivityAt,
-      clubSlug: clubs.slug,
-      clubName: clubs.name,
-      clubAvatarUrl: clubs.avatarUrl,
-      clubIsDemo: clubs.isDemo,
-      clubStatus: clubs.verificationStatus,
-      universityId: clubs.universityId,
-      universityShortName: universities.shortName,
-    })
-    .from(posts)
-    .innerJoin(clubs, eq(posts.clubId, clubs.id))
-    .innerJoin(universities, eq(clubs.universityId, universities.id))
-    .where(and(...conditions))
-    .orderBy(desc(posts.publishedAt))
-    .limit(30);
+  const queryPosts = async (withKeywordFilter: boolean) =>
+    db
+      .select({
+        id: posts.id,
+        clubId: posts.clubId,
+        postKind: posts.postKind,
+        headline: posts.headline,
+        contentMd: posts.contentMd,
+        mediaItems: posts.mediaItems,
+        publishedAt: posts.publishedAt,
+        lastActivityAt: clubs.lastActivityAt,
+        clubSlug: clubs.slug,
+        clubName: clubs.name,
+        clubAvatarUrl: clubs.avatarUrl,
+        clubIsDemo: clubs.isDemo,
+        clubStatus: clubs.verificationStatus,
+        universityId: clubs.universityId,
+        universityShortName: universities.shortName,
+      })
+      .from(posts)
+      .innerJoin(clubs, eq(posts.clubId, clubs.id))
+      .innerJoin(universities, eq(clubs.universityId, universities.id))
+      .where(
+        withKeywordFilter && keywordFilters.length > 0
+          ? and(...baseConditions, or(...keywordFilters))
+          : and(...baseConditions)
+      )
+      .orderBy(desc(posts.publishedAt))
+      .limit(30);
+
+  let rows = await queryPosts(true);
+  if (rows.length === 0) {
+    rows = await queryPosts(false);
+  }
 
   return rows.map((row) => ({
     id: row.id,
@@ -590,17 +619,7 @@ export async function queryDiscoverEventsSemantic(params: {
   batch_meta: DiscoverBatchMeta;
 }> {
   const excludeIds = (params.excludeIds ?? []).slice(0, 240);
-  const clean = params.query.trim();
-  const tokens = Array.from(
-    new Set(
-      clean
-        .split(/[\s,，。、！？/]+/)
-        .map((t) => t.trim())
-        .filter((t) => t.length >= 2)
-        .slice(0, 6)
-    )
-  );
-  if (tokens.length === 0) tokens.push(clean);
+  const tokens = extractSearchTokens(params.query);
 
   const now = new Date();
   const keywordFilters = tokens.map((tok) => {
@@ -663,7 +682,7 @@ export async function queryDiscoverEventsSemantic(params: {
   try {
     const llmRes = await chatJson({
       systemPrompt: DISCOVER_SYSTEM_PROMPT,
-      userPrompt: `<user_query>\n${clean}\n</user_query>\n\n候選活動清單（JSON）：\n${JSON.stringify(
+      userPrompt: `<user_query>\n${params.query.trim()}\n</user_query>\n\n候選活動清單（JSON）：\n${JSON.stringify(
         rows.slice(0, 20).map((r) => ({
           post_id: r.event.id,
           club_name: r.club.name,

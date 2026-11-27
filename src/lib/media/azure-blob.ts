@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import {
   BlobSASPermissions,
+  BlobServiceClient,
   StorageSharedKeyCredential,
   generateBlobSASQueryParameters,
 } from '@azure/storage-blob';
@@ -185,6 +186,26 @@ export function createMediaUploadSas(params: {
     container: spec.containerType,
     expires_at: expiresOn.toISOString(),
   };
+}
+
+let privateContainerReady: Promise<void> | null = null;
+
+export async function ensurePrivateArchiveContainer(): Promise<void> {
+  if (!privateContainerReady) {
+    privateContainerReady = (async () => {
+      const { accountName, accountKey, privateContainer } = getStorageCredentials();
+      const credential = new StorageSharedKeyCredential(accountName, accountKey);
+      const client = new BlobServiceClient(
+        `https://${accountName}.blob.core.windows.net`,
+        credential
+      );
+      await client.getContainerClient(privateContainer).createIfNotExists();
+    })().catch((err) => {
+      privateContainerReady = null;
+      throw err;
+    });
+  }
+  return privateContainerReady;
 }
 
 export function createPrivateArchiveReadSas(params: {
