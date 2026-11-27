@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Bookmark, Heart } from 'lucide-react';
 import type { FollowMode } from '@/db/schema';
 
+import { controlClasses } from '@/components/ui';
 const FOLLOW_MODE_LABELS: Record<FollowMode, string> = {
   all: '全動態追蹤中',
   events_only: '只追活動中',
@@ -124,7 +125,7 @@ export function FollowButton({
           disabled={pending}
           value={followMode}
           onChange={(e) => toggle(e.target.value as FollowMode)}
-          className="min-h-[44px] rounded-xl border border-line-input bg-white px-3 py-2 text-sm font-semibold text-ink-700"
+          className={`${controlClasses} min-h-11`}
         >
           <option value="all">只看：全動態</option>
           <option value="events_only">只看：新活動</option>

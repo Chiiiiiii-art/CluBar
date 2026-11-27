@@ -7,6 +7,7 @@ import { TOGETHER_ITEM_TYPE_LABELS } from '@/lib/constants';
 import type { PublicTogetherItemDTO } from '@/lib/serializers';
 import { isAllowedEmbedUrl } from '@/lib/validators';
 
+import { buttonClasses, controlClasses } from '@/components/ui';
 function toSafeIframeSrc(rawUrl: string): string | null {
   if (!isAllowedEmbedUrl(rawUrl)) return null;
   try {
@@ -223,7 +224,7 @@ export function TogetherDetailClient({
           <select
             value={replyClubId}
             onChange={(e) => setReplyClubId(e.target.value)}
-            className="w-full rounded-xl border border-line-input bg-white px-3 py-2"
+            className={`${controlClasses} min-h-11 w-full`}
           >
             {myClubs.map((c) => (
               <option key={c.clubId} value={c.clubId}>
@@ -235,7 +236,7 @@ export function TogetherDetailClient({
             required
             value={rebTitle}
             onChange={(e) => setRebTitle(e.target.value)}
-            className="w-full rounded-xl border border-line-input bg-white px-3 py-2"
+            className={`${controlClasses} min-h-11 w-full`}
           />
           <textarea
             required
@@ -244,19 +245,19 @@ export function TogetherDetailClient({
             value={rebContent}
             onChange={(e) => setRebContent(e.target.value)}
             placeholder="寫下你們社團基於原作延伸的玩法、二創音效或新設計..."
-            className="w-full rounded-xl border border-line-input bg-white p-3"
+            className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
           />
           <input
             type="url"
             value={rebEmbed}
             onChange={(e) => setRebEmbed(e.target.value)}
             placeholder="選填安全預覽連結（itch.io / YouTube / SoundCloud / GitHub 等）"
-            className="w-full rounded-xl border border-line-input bg-white px-3 py-2"
+            className={`${controlClasses} min-h-11 w-full`}
           />
           <button
             type="submit"
             disabled={busy === 'rebound'}
-            className="min-h-[44px] rounded-full bg-accent-600 px-4 py-2 font-bold text-white"
+            className={buttonClasses({ variant: 'primary', size: 'md' })}
           >
             送出接力作品
           </button>
@@ -294,7 +295,7 @@ export function TogetherDetailClient({
               <select
                 value={replyClubId}
                 onChange={(e) => setReplyClubId(e.target.value)}
-                className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                className={`${controlClasses} min-h-11`}
               >
                 {myClubs.map((c) => (
                   <option key={c.clubId} value={c.clubId}>
@@ -306,12 +307,12 @@ export function TogetherDetailClient({
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder="分享回饋、技術問題或邀約聯合測試..."
-                className="min-w-0 flex-1 rounded-xl border border-line-input px-3 py-2 text-sm"
+                className={`${controlClasses} min-h-11 min-w-0 flex-1`}
               />
               <button
                 type="submit"
                 disabled={busy === 'reply' || replyText.trim().length < 2}
-                className="rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className={buttonClasses({ variant: 'primary', size: 'md' })}
               >
                 回覆
               </button>

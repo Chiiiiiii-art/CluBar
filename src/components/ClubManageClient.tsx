@@ -33,7 +33,7 @@ import { uploadShortVideo } from '@/lib/media/client-upload';
 import { POST_KIND_LABELS } from '@/lib/constants';
 import { ImageUploader } from '@/components/ImageUploader';
 
-import { Notice, Tabs, useConfirm } from '@/components/ui';
+import { Notice, Tabs, buttonClasses, controlClasses, useConfirm } from '@/components/ui';
 export interface ManageClubData {
   club: {
     id: string;
@@ -684,7 +684,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
         </div>
         <Link
           href={`/clubs/${data.club.slug}`}
-          className="rounded-xl border border-ink-300 bg-white px-4 py-2 text-sm font-semibold text-ink-800 hover:bg-ink-50"
+          className={buttonClasses({ variant: 'secondary', size: 'md' })}
         >
           查看公開門面
         </Link>
@@ -738,7 +738,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                     value={evTitle}
                     onChange={(e) => setEvTitle(e.target.value)}
                     placeholder="例如：零基礎底片沖洗之夜"
-                    className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                    className={`${controlClasses} min-h-11 w-full`}
                   />
                 </div>
                 <div>
@@ -746,7 +746,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   <select
                     value={evTheme}
                     onChange={(e) => setEvTheme(e.target.value as typeof evTheme)}
-                    className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                    className={`${controlClasses} min-h-11 w-full`}
                   >
                     <option value="warm_paper">暖陽松果 (Warm Paper)</option>
                     <option value="campus_blue">晴空講義 (Campus Blue)</option>
@@ -762,7 +762,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   <select
                     value={evMode}
                     onChange={(e) => setEvMode(e.target.value as typeof evMode)}
-                    className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                    className={`${controlClasses} min-h-11 w-full`}
                   >
                     <option value="scheduled">已確定時間 (Scheduled)</option>
                     <option value="tbd">先刊登再定時間 (TBD)</option>
@@ -775,7 +775,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                     required
                     value={evLocation}
                     onChange={(e) => setEvLocation(e.target.value)}
-                    className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                    className={`${controlClasses} min-h-11 w-full`}
                   />
                 </div>
                 <div>
@@ -785,7 +785,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                     min={0}
                     value={evFee}
                     onChange={(e) => setEvFee(e.target.value)}
-                    className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                    className={`${controlClasses} min-h-11 w-full`}
                   />
                 </div>
               </div>
@@ -799,7 +799,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                       required
                       value={evStart}
                       onChange={(e) => setEvStart(e.target.value)}
-                      className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                      className={`${controlClasses} min-h-11 w-full`}
                     />
                   </div>
                   <div>
@@ -808,7 +808,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                       type="datetime-local"
                       value={evEnd}
                       onChange={(e) => setEvEnd(e.target.value)}
-                      className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                      className={`${controlClasses} min-h-11 w-full`}
                     />
                   </div>
                 </div>
@@ -825,7 +825,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                         setPollLabels((prev) => prev.map((v, i) => (i === idx ? e.target.value : v)))
                       }
                       placeholder={`投票選項 ${idx + 1}`}
-                      className="w-full rounded-xl border border-line-input bg-white px-3 py-1.5 text-sm"
+                      className={`${controlClasses} min-h-11 w-full`}
                     />
                   ))}
                 </div>
@@ -837,13 +837,13 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   onChange={(e) => setEvSummary(e.target.value)}
                   maxLength={160}
                   placeholder="一句話亮點摘要（將顯示在探索頁與分享預覽卡）"
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 />
                 <input
                   value={evPreNotes}
                   onChange={(e) => setEvPreNotes(e.target.value)}
                   placeholder="行前提醒（例如：請穿好走運動鞋、社團會提供道具）"
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 />
               </div>
 
@@ -851,7 +851,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 <select
                   value={evHoursCat}
                   onChange={(e) => setEvHoursCat(e.target.value as LearningHoursCategory)}
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm font-medium"
+                  className={`${controlClasses} min-h-11`}
                 >
                   <option value="none">無認證時數</option>
                   <option value="art">可認證藝文時數</option>
@@ -865,14 +865,14 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   value={evHoursCount}
                   onChange={(e) => setEvHoursCount(e.target.value)}
                   placeholder="時數小時數"
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 />
                 <input
                   type="url"
                   value={evExtUrl}
                   onChange={(e) => setEvExtUrl(e.target.value)}
                   placeholder="選填：外部報名 Google 表單網址"
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 />
               </div>
 
@@ -881,7 +881,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 value={evDesc}
                 onChange={(e) => setEvDesc(e.target.value)}
                 placeholder="完整活動介紹 Markdown（也可從「Vision 海報 AI」分頁一鍵抽取填入）"
-                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
               />
 
               <ImageUploader
@@ -914,7 +914,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               <button
                 type="submit"
                 disabled={busy === 'create-event' || evTitle.trim().length < 2}
-                className="rounded-full bg-accent-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className={buttonClasses({ variant: 'primary', size: 'md' })}
               >
                 {busy === 'create-event' ? '建立中...' : '發布活動並產生專屬短網址'}
               </button>
@@ -973,7 +973,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   value={aiRawText}
                   onChange={(e) => setAiRawText(e.target.value)}
                   placeholder="貼上活動零散筆記、LINE 公告或上傳海報／企劃 PDF (≤4MB)..."
-                  className="w-full rounded-xl border border-line-input bg-white p-3 text-sm"
+                  className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
                 />
                 <div className="flex flex-wrap items-center gap-3">
                   <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-white">
@@ -994,7 +994,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                     type="button"
                     disabled={busy === 'ai-draft' || aiRawText.trim().length < 20}
                     onClick={() => handleAiDraftSubmit(null)}
-                    className="rounded-full border border-ink-300 bg-white px-4 py-2 text-sm font-semibold text-ink-800 disabled:opacity-50"
+                    className={buttonClasses({ variant: 'secondary', size: 'md' })}
                   >
                     僅解析文字草稿
                   </button>
@@ -1065,7 +1065,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   <select
                     value={postKind}
                     onChange={(e) => setPostKind(e.target.value as 'nrc_moment' | 'wip_work')}
-                    className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                    className={`${controlClasses} min-h-11`}
                   >
                     <option value="wip_work">實作作品 (WIP Work)</option>
                     <option value="nrc_moment">社員日常 (NRC Moment)</option>
@@ -1077,7 +1077,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                     value={postHeadline}
                     onChange={(e) => setPostHeadline(e.target.value)}
                     placeholder="一句話亮點標題 *"
-                    className="sm:col-span-2 rounded-xl border border-line-input px-3 py-2 text-sm"
+                    className={`${controlClasses} min-h-11 sm:col-span-2`}
                   />
                 </div>
                 <textarea
@@ -1085,7 +1085,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   value={postContentMd}
                   onChange={(e) => setPostContentMd(e.target.value)}
                   placeholder="內容 Markdown..."
-                  className="w-full rounded-xl border border-line-input p-3 text-sm"
+                  className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
                 />
                 <ImageUploader
                   clubId={data.club.id}
@@ -1117,7 +1117,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 <button
                   type="submit"
                   disabled={busy === 'post' || postMedia.length === 0 || !postOrig}
-                  className="rounded-full bg-accent-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                  className={buttonClasses({ variant: 'primary', size: 'md' })}
                 >
                   立即發布
                 </button>
@@ -1176,7 +1176,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   type="button"
                   onClick={handleGenerateInviteCode}
                   disabled={busy === 'invite-code'}
-                  className="rounded-full bg-accent-600 px-4 py-1.5 text-sm font-semibold text-white"
+                  className={buttonClasses({ variant: 'primary', size: 'sm' })}
                 >
                   產生 7 天邀請碼
                 </button>
@@ -1262,12 +1262,12 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   value={targetMemberEmail}
                   onChange={(e) => setTargetMemberEmail(e.target.value)}
                   placeholder="對方同校 .edu.tw 信箱"
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 />
                 <select
                   value={targetMemberRole}
                   onChange={(e) => setTargetMemberRole(e.target.value as 'editor' | 'member')}
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 >
                   <option value="member">認證社員 (Member)</option>
                   {isOwner && <option value="editor">幹部 (Editor)</option>}
@@ -1276,7 +1276,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   value={targetMemberTitle}
                   onChange={(e) => setTargetMemberTitle(e.target.value)}
                   placeholder="職稱（如 教學長／社員）"
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 />
               </div>
               <button
@@ -1344,7 +1344,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                           }))
                         }
                         placeholder="輸入社團幹部回覆..."
-                        className="w-full rounded-xl border border-line-input bg-white p-2"
+                        className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
                       />
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex flex-wrap gap-3">
@@ -1392,7 +1392,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                           type="button"
                           onClick={() => handleReplyQuestion(q.id)}
                           disabled={busy === `reply-${q.id}`}
-                          className="rounded-full bg-accent-600 px-4 py-1 font-bold text-white"
+                          className={buttonClasses({ variant: 'primary', size: 'sm' })}
                         >
                           儲存並回覆
                         </button>
@@ -1428,7 +1428,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               </Link>
               <a
                 href={`/api/clubs/${data.club.slug}/evaluation/export?format=markdown`}
-                className="inline-flex items-center gap-1.5 rounded-full border border-ink-300 bg-white px-4 py-2 text-sm font-semibold text-ink-800"
+                className={buttonClasses({ variant: 'secondary', size: 'md' })}
               >
                 <Download className="h-3.5 w-3.5" />
                 下載 Markdown (.md)
@@ -1446,12 +1446,12 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   value={archTitle}
                   onChange={(e) => setArchTitle(e.target.value)}
                   placeholder="檔案標題（如 115-1 期末大會會議記錄）*"
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 />
                 <select
                   value={archCategory}
                   onChange={(e) => setArchCategory(e.target.value as ArchiveFileCategory)}
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 >
                   <option value="meeting_minutes">會議記錄</option>
                   <option value="finance_ledger">經費收支核銷</option>
@@ -1463,7 +1463,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   type="date"
                   value={archDate}
                   onChange={(e) => setArchDate(e.target.value)}
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 />
               </div>
               <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white">
@@ -1500,7 +1500,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                     type="button"
                     onClick={() => handleDownloadArchive(f.id)}
                     disabled={busy === `dl-${f.id}`}
-                    className="inline-flex items-center gap-1 rounded-full border border-ink-300 bg-white px-3 py-1 font-bold text-ink-800"
+                    className={buttonClasses({ variant: 'secondary', size: 'sm' })}
                   >
                     <Download className="h-3 w-3" />
                     5 分鐘簽章下載
@@ -1539,28 +1539,28 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 value={handoverEmail}
                 onChange={(e) => setHandoverEmail(e.target.value)}
                 placeholder="接任社長的同校 .edu.tw 信箱 *"
-                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                className={`${controlClasses} min-h-11 w-full`}
               />
               <textarea
                 rows={2}
                 value={venueTips}
                 onChange={(e) => setVenueTips(e.target.value)}
                 placeholder="場地申請與器材眉角（例如：活動中心投影機借用要提前一週）"
-                className="w-full rounded-xl border border-line-input p-3 text-sm"
+                className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
               />
               <textarea
                 rows={2}
                 value={hoursDeadlines}
                 onChange={(e) => setHoursDeadlines(e.target.value)}
                 placeholder="學習時數認證與經費核銷死線"
-                className="w-full rounded-xl border border-line-input p-3 text-sm"
+                className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
               />
               <textarea
                 rows={2}
                 value={contactsVendors}
                 onChange={(e) => setContactsVendors(e.target.value)}
                 placeholder="常用廠商／器材維修窗口備忘"
-                className="w-full rounded-xl border border-line-input p-3 text-sm"
+                className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
               />
               <label className="flex min-h-[44px] cursor-pointer items-center gap-2.5 text-sm text-ink-700">
                 <input
@@ -1576,7 +1576,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               <button
                 type="submit"
                 disabled={busy === 'handover'}
-                className="min-h-[44px] rounded-full bg-accent-600 px-5 py-2 text-sm font-semibold text-white"
+                className={buttonClasses({ variant: 'primary', size: 'md' })}
               >
                 送出交接邀請與避雷便條
               </button>

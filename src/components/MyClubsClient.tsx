@@ -7,7 +7,7 @@ import { ArrowRight, Film, KeyRound, Settings, Sparkles } from 'lucide-react';
 import type { ClubMemberRole, MediaItem, PostKind } from '@/db/schema';
 import { uploadShortVideo } from '@/lib/media/client-upload';
 import { ImageUploader } from '@/components/ImageUploader';
-import { ButtonLink, ClubMark, EmptyState, PageHeader } from '@/components/ui';
+import { ButtonLink, ClubMark, EmptyState, PageHeader, buttonClasses, controlClasses } from '@/components/ui';
 
 const ROLE_LABELS: Partial<Record<ClubMemberRole, string>> = {
   owner: '社長',
@@ -224,12 +224,12 @@ export function MyClubsClient({
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value)}
               placeholder="例如：NCUP-A1B2C3"
-              className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-line-input px-3.5 py-2 text-sm uppercase"
+              className={`${controlClasses} min-h-11 min-w-0 flex-1 uppercase`}
             />
             <button
               type="submit"
               disabled={joinBusy || inviteCode.trim().length < 4}
-              className="min-h-[44px] rounded-full bg-accent-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              className={buttonClasses({ variant: 'primary', size: 'md' })}
             >
               {joinBusy ? '驗證中...' : '立即加入社團'}
             </button>
@@ -261,7 +261,7 @@ export function MyClubsClient({
               <select
                 value={selectedClub.slug}
                 onChange={(e) => setSelectedSlug(e.target.value)}
-                className="min-h-[44px] w-full rounded-xl border border-line-input bg-white px-3 py-2 text-sm font-medium"
+                className={`${controlClasses} min-h-11 w-full`}
               >
                 {activePostingClubs.map((c) => (
                   <option key={c.clubId} value={c.slug}>
@@ -276,7 +276,7 @@ export function MyClubsClient({
                 value={isOfficerSelected ? postKind : 'nrc_moment'}
                 onChange={(e) => setPostKind(e.target.value as 'nrc_moment' | 'wip_work')}
                 disabled={!isOfficerSelected}
-                className="min-h-[44px] w-full rounded-xl border border-line-input bg-white px-3 py-2 text-sm font-medium disabled:bg-ink-50"
+                className={`${controlClasses} min-h-11 w-full`}
               >
                 <option value="nrc_moment">社員日常紀錄</option>
                 {isOfficerSelected && <option value="wip_work">社團實作作品／成果</option>}
@@ -295,7 +295,7 @@ export function MyClubsClient({
                 value={headline}
                 onChange={(e) => setHeadline(e.target.value)}
                 placeholder="例如：暗房剛沖出第一捲底片，大家在燈下等影的那刻太酷了"
-                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                className={`${controlClasses} min-h-11 w-full`}
               />
             </div>
             <div>
@@ -306,7 +306,7 @@ export function MyClubsClient({
                 value={moodTag}
                 onChange={(e) => setMoodTag(e.target.value)}
                 placeholder="例如：週四練團夜"
-                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                className={`${controlClasses} min-h-11 w-full`}
               />
             </div>
           </div>
@@ -318,7 +318,7 @@ export function MyClubsClient({
               value={contentMd}
               onChange={(e) => setContentMd(e.target.value)}
               placeholder="可以簡單補一句器材或歡迎新生一起來的原因..."
-              className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+              className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
             />
           </div>
 
@@ -370,7 +370,7 @@ export function MyClubsClient({
           <button
             type="submit"
             disabled={postBusy || !headline.trim()}
-            className="rounded-full bg-accent-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
+            className={buttonClasses({ variant: 'primary', size: 'md' })}
           >
             {postBusy ? '發布中...' : '發布到社團日常與現場流'}
           </button>

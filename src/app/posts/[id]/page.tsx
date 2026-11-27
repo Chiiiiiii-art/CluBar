@@ -13,6 +13,7 @@ import { MarkdownView } from '@/components/MarkdownView';
 import { ReportModal } from '@/components/ReportModal';
 import { ShareButton } from '@/components/ShareButton';
 
+import { buttonClasses } from '@/components/ui';
 export const dynamic = 'force-dynamic';
 
 export default async function PostDetailPage({
@@ -202,7 +203,7 @@ export default async function PostDetailPage({
         </div>
         <Link
           href={`/clubs/${post.club.slug}`}
-          className="rounded-xl bg-accent-600 px-5 py-2.5 text-center text-sm font-semibold text-white hover:bg-accent-700"
+          className={buttonClasses({ variant: 'primary', size: 'md' })}
         >
           進入社團門面
         </Link>

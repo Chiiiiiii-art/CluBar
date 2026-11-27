@@ -2,9 +2,9 @@
 
 import { useId, type ComponentProps, type ReactNode } from 'react';
 import { cn } from './cn';
+import { controlClasses } from './styles';
 
-export const controlClasses =
-  'w-full rounded-lg border border-line-input bg-white px-3 text-base text-ink-900 placeholder:text-ink-500 transition-colors focus:border-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-600/20 disabled:bg-ink-100 disabled:text-ink-500 aria-[invalid=true]:border-danger-600';
+export { controlClasses };
 
 /**
  * Label + control + hint/error wired with aria-describedby. Render the
@@ -55,13 +55,13 @@ export function Field({
 }
 
 export function Input({ className, ...rest }: ComponentProps<'input'>) {
-  return <input className={cn(controlClasses, 'min-h-11', className)} {...rest} />;
+  return <input className={cn(controlClasses, 'min-h-11 w-full', className)} {...rest} />;
 }
 
 export function Select({ className, ...rest }: ComponentProps<'select'>) {
-  return <select className={cn(controlClasses, 'min-h-11 pr-8', className)} {...rest} />;
+  return <select className={cn(controlClasses, 'min-h-11 w-full pr-8', className)} {...rest} />;
 }
 
 export function Textarea({ className, ...rest }: ComponentProps<'textarea'>) {
-  return <textarea className={cn(controlClasses, 'min-h-24 py-2.5 leading-relaxed', className)} {...rest} />;
+  return <textarea className={cn(controlClasses, 'min-h-24 w-full py-2.5 leading-relaxed', className)} {...rest} />;
 }

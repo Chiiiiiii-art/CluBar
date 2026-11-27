@@ -7,6 +7,7 @@ import { Check, Copy, Download, Sparkles, Users } from 'lucide-react';
 import { EventCard } from './EventCard';
 import type { DiscoverEventCardDTO } from '@/lib/serializers';
 
+import { buttonClasses } from '@/components/ui';
 export function BlendClient({
   shortCode,
   creatorName,
@@ -107,7 +108,7 @@ export function BlendClient({
                   type="button"
                   disabled={joining}
                   onClick={handleJoin}
-                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-accent-600 px-5 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
+                  className={buttonClasses({ variant: 'primary', size: 'md' })}
                 >
                   <Users className="h-4 w-4" aria-hidden="true" />
                   <span>{joining ? '合拍計算中...' : isLoggedIn ? '加入雙人合拍（看共同推薦）' : '登入加入合拍'}</span>
@@ -117,7 +118,7 @@ export function BlendClient({
               <button
                 type="button"
                 onClick={copyLink}
-                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-ink-300 bg-white px-4 text-sm font-semibold text-ink-800"
+                className={buttonClasses({ variant: 'secondary', size: 'md' })}
               >
                 {copied ? <Check className="h-4 w-4 text-success-700" /> : <Copy className="h-4 w-4" />}
                 <span>{copied ? '已複製邀請連結' : '複製邀請連結給朋友'}</span>
@@ -126,7 +127,7 @@ export function BlendClient({
               <a
                 href={`/api/og/blend/${shortCode}?format=story`}
                 download={`clubar-blend-${shortCode}.png`}
-                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-accent-200 bg-accent-50 px-4 text-sm font-semibold text-accent-800 hover:bg-accent-100"
+                className={buttonClasses({ variant: 'soft', size: 'md' })}
               >
                 <Download className="h-4 w-4" aria-hidden="true" />
                 <span>下載 IG 限動分享卡</span>
@@ -134,7 +135,7 @@ export function BlendClient({
 
               <Link
                 href="/"
-                className="inline-flex min-h-[44px] items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink-700 hover:bg-ink-50"
+                className={buttonClasses({ variant: 'secondary', size: 'md' })}
               >
                 回別的聚逛活動 →
               </Link>

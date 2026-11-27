@@ -3,17 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Calendar, Compass, Flame, RotateCcw, Search, Sparkles, X } from 'lucide-react';
-import {
-  Button,
-  ButtonLink,
-  ChipRow,
-  EmptyState,
-  FilterChip,
-  Notice,
-  Skeleton,
-  Tabs,
-  tabPanelProps,
-} from '@/components/ui';
+import { Button, ButtonLink, ChipRow, EmptyState, FilterChip, Notice, Skeleton, Tabs, controlClasses, tabPanelProps } from '@/components/ui';
 import { DISCOVER_EXAMPLE_PROMPTS } from '@/lib/constants';
 import type { DiscoverBatchMeta } from '@/lib/discovery/service';
 import type { DiscoverEventCardDTO, DiscoverStreamCardDTO } from '@/lib/serializers';
@@ -372,7 +362,7 @@ export function DiscoverClient({
               aria-label="選擇學校"
               value={selectedUniId}
               onChange={(e) => handleUniChange(e.target.value)}
-              className="min-h-11 max-w-[8.5rem] rounded-lg border border-line-input bg-white px-3 text-sm font-medium text-ink-800 sm:max-w-none"
+              className={`${controlClasses} min-h-11 max-w-[8.5rem] sm:max-w-none`}
             >
               <option value="">全部學校</option>
               {universities.map((u) => (

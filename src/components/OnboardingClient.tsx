@@ -7,6 +7,7 @@ import { ArrowRight, CheckCircle2, Share2, Sparkles } from 'lucide-react';
 import { EventCard } from './EventCard';
 import type { DiscoverEventCardDTO } from '@/lib/serializers';
 
+import { buttonClasses } from '@/components/ui';
 interface RecommendResult {
   persona_archetype: string;
   clubs: {
@@ -174,7 +175,7 @@ export function OnboardingClient({
               <button
                 type="button"
                 onClick={() => goStep(2)}
-                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-accent-600 px-6 text-sm font-semibold text-white"
+                className={buttonClasses({ variant: 'primary', size: 'md' })}
               >
                 <span>下一步</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -259,7 +260,7 @@ export function OnboardingClient({
                 type="button"
                 disabled={loading}
                 onClick={submitQuiz}
-                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-accent-600 px-6 text-sm font-semibold text-white disabled:opacity-50"
+                className={buttonClasses({ variant: 'primary', size: 'md' })}
               >
                 <span>{loading ? '配對中...' : '立刻看結果（免註冊）'}</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -278,14 +279,14 @@ export function OnboardingClient({
                   type="button"
                   disabled={blendLoading}
                   onClick={handleCreateBlend}
-                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700"
+                  className={buttonClasses({ variant: 'primary', size: 'md' })}
                 >
                   <Share2 className="h-4 w-4" aria-hidden="true" />
                   <span>{isLoggedIn ? '做一張分享卡，約朋友合拍' : '登入做個人興趣分享卡'}</span>
                 </button>
                 <Link
                   href={`/?university_id=${encodeURIComponent(universityId)}`}
-                  className="inline-flex min-h-[44px] items-center rounded-xl border border-ink-300 bg-white px-4 text-sm font-semibold text-ink-800"
+                  className={buttonClasses({ variant: 'secondary', size: 'md' })}
                 >
                   直接進「別的聚」逛現場流 →
                 </Link>

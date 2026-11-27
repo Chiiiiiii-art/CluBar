@@ -28,7 +28,7 @@ import { uploadDualAlbumPhoto } from '@/lib/media/client-upload';
 import type { EventFullViewDTO } from '@/lib/services/events';
 import { ImageUploader } from '@/components/ImageUploader';
 import { MarkdownView } from '@/components/MarkdownView';
-import { Badge, Button, ButtonLink, ClubMark, Notice, buttonClasses, useConfirm } from '@/components/ui';
+import { Badge, Button, ButtonLink, ClubMark, Notice, buttonClasses, controlClasses, useConfirm } from '@/components/ui';
 import { realMediaUrl } from '@/lib/media/placeholder';
 
 function formatUtcStamp(iso: string): string {
@@ -786,7 +786,7 @@ export function EventPageClient({
               <div className="mt-4 space-y-3">
                 <Link
                   href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`}
-                  className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-accent-600 px-5 py-3 text-sm font-semibold text-white hover:bg-accent-700"
+                  className={buttonClasses({ variant: 'primary', size: 'lg', className: 'w-full' })}
                 >
                   {loginCtaLabel}
                 </Link>
@@ -848,7 +848,7 @@ export function EventPageClient({
                       value={displayAlias}
                       onChange={(e) => setDisplayAlias(e.target.value)}
                       placeholder="自訂此場顯示暱稱（留空則用帳號名稱）"
-                      className="mt-1 w-full rounded-xl border border-line-input bg-white px-3 py-1.5 text-sm text-ink-900"
+                      className={`${controlClasses} min-h-11 mt-1 w-full`}
                     />
                   )}
                 </div>
@@ -982,7 +982,7 @@ export function EventPageClient({
                     type="button"
                     onClick={handleCopyWebcal}
                     disabled={busyAction === 'webcal'}
-                    className="rounded-full border border-accent-200 bg-accent-50 px-3 py-1.5 text-sm font-semibold text-accent-600 hover:bg-accent-100"
+                    className={buttonClasses({ variant: 'soft', size: 'sm' })}
                   >
                     複製 webcal:// 訂閱
                   </button>
@@ -1081,7 +1081,7 @@ export function EventPageClient({
                         <button
                           type="button"
                           onClick={() => handleCuratePhoto(photo.id, 'feature')}
-                          className="rounded-full bg-accent-600 px-2.5 py-1 text-xs font-bold text-white"
+                          className={buttonClasses({ variant: 'primary', size: 'sm' })}
                         >
                           精選上現場流
                         </button>
@@ -1108,7 +1108,7 @@ export function EventPageClient({
                   href={promoPack.og_story_image_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-full bg-accent-100 px-3 py-1 font-bold text-accent-900"
+                  className={buttonClasses({ variant: 'soft', size: 'sm' })}
                 >
                   <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
                   開啟 9:16 限動預覽圖
@@ -1152,12 +1152,12 @@ export function EventPageClient({
                 value={broadcastMessage}
                 onChange={(e) => setBroadcastMessage(e.target.value)}
                 placeholder="例如：今天改到綜教館 R204 教室，請記得帶水壺！"
-                className="w-full rounded-xl border border-line-input p-3 text-sm"
+                className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
               />
               <button
                 type="submit"
                 disabled={busyAction === 'broadcast' || broadcastMessage.trim().length < 4}
-                className="inline-flex items-center gap-1.5 rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className={buttonClasses({ variant: 'primary', size: 'md' })}
               >
                 <Send className="h-3.5 w-3.5" aria-hidden="true" />
                 立即推播通知
@@ -1244,12 +1244,12 @@ export function EventPageClient({
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="揪一起從校門出發、問集合細節或攜帶物品..."
-              className="flex-1 rounded-full border border-line-input px-4 py-2 text-sm"
+              className={`${controlClasses} min-h-11 flex-1`}
             />
             <button
               type="submit"
               disabled={busyAction === 'comment' || !commentText.trim()}
-              className="rounded-full bg-accent-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              className={buttonClasses({ variant: 'primary', size: 'md' })}
             >
               留言
             </button>
@@ -1308,7 +1308,7 @@ export function EventPageClient({
                 value={albumCaption}
                 onChange={(e) => setAlbumCaption(e.target.value)}
                 placeholder="這張照片的故事或標題（選填，最多 120 字）"
-                className="min-w-0 flex-1 rounded-xl border border-line-input bg-white px-3 py-2 text-sm"
+                className={`${controlClasses} min-h-11 min-w-0 flex-1`}
               />
               <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700">
                 <ImagePlus className="h-4 w-4" aria-hidden="true" />

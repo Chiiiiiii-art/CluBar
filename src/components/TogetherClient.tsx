@@ -15,7 +15,7 @@ import {
 import { TOGETHER_ITEM_TYPE_LABELS } from '@/lib/constants';
 import type { PublicTogetherItemDTO } from '@/lib/serializers';
 
-import { ChipRow, FilterChip, Notice, PageHeader, Tabs } from '@/components/ui';
+import { ChipRow, FilterChip, Notice, PageHeader, Tabs, buttonClasses, controlClasses } from '@/components/ui';
 export interface TogetherJamDTO {
   id: string;
   title: string;
@@ -311,7 +311,7 @@ export function TogetherClient({
               <button
                 type="button"
                 onClick={() => setShowStageForm((v) => !v)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white"
+                className={buttonClasses({ variant: 'primary', size: 'md' })}
               >
                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                 {showStageForm ? '收合發表表單' : '代表社團發表作品／觀點'}
@@ -328,7 +328,7 @@ export function TogetherClient({
                 <select
                   value={clubId}
                   onChange={(e) => setClubId(e.target.value)}
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 >
                   {myMemberships.map((m) => (
                     <option key={m.clubId} value={m.clubId}>
@@ -339,7 +339,7 @@ export function TogetherClient({
                 <select
                   value={domainId}
                   onChange={(e) => setDomainId(e.target.value)}
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 >
                   {domains.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -350,7 +350,7 @@ export function TogetherClient({
                 <select
                   value={itemType}
                   onChange={(e) => setItemType(e.target.value as typeof itemType)}
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 >
                   <option value="showcase">作品試玩展示</option>
                   <option value="field_log">路線／實務紀錄</option>
@@ -364,7 +364,7 @@ export function TogetherClient({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="作品或交流主題名稱 *"
-                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                className={`${controlClasses} min-h-11 w-full`}
               />
               <textarea
                 required
@@ -373,14 +373,14 @@ export function TogetherClient({
                 value={contentMd}
                 onChange={(e) => setContentMd(e.target.value)}
                 placeholder="分享製作心得、使用技術或希望友社接力討論的切入點..."
-                className="w-full rounded-xl border border-line-input p-3 text-sm"
+                className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
               />
               <input
                 type="url"
                 value={embedUrl}
                 onChange={(e) => setEmbedUrl(e.target.value)}
                 placeholder="選填安全預覽連結（限 itch.io / YouTube / Vimeo / SoundCloud / Figma / GitHub）"
-                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                className={`${controlClasses} min-h-11 w-full`}
               />
               <button
                 type="submit"
@@ -399,7 +399,7 @@ export function TogetherClient({
                 <button
                   type="button"
                   onClick={() => setSelectedDomain('')}
-                  className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 text-sm font-semibold text-ink-800 hover:bg-ink-50"
+                  className={buttonClasses({ variant: 'secondary', size: 'md' })}
                 >
                   查看全部領域
                 </button>
@@ -411,7 +411,7 @@ export function TogetherClient({
                 <Link
                   key={item.id}
                   href={`/together/${item.id}`}
-                  className="flex flex-col gap-3 rounded-xl border border-line bg-white p-5 transition hover:border-accent-300"
+                  className={buttonClasses({ variant: 'secondary', size: 'md', className: 'flex-col' })}
                 >
                   <div className="flex flex-wrap items-center gap-2 text-sm">
                     <span className="rounded-full bg-accent-100 px-2.5 py-0.5 font-bold text-accent-900">
@@ -450,7 +450,7 @@ export function TogetherClient({
               <button
                 type="button"
                 onClick={() => setShowJamForm((v) => !v)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white"
+                className={buttonClasses({ variant: 'primary', size: 'md' })}
               >
                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                 {showJamForm ? '收合徵集表單' : '發起跨校共作企劃 (Jam)'}
@@ -467,7 +467,7 @@ export function TogetherClient({
                 <select
                   value={jamClubId}
                   onChange={(e) => setJamClubId(e.target.value)}
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 >
                   {officerClubs.map((c) => (
                     <option key={c.clubId} value={c.clubId}>
@@ -478,7 +478,7 @@ export function TogetherClient({
                 <select
                   value={jamDomainId}
                   onChange={(e) => setJamDomainId(e.target.value)}
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 >
                   {domains.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -492,7 +492,7 @@ export function TogetherClient({
                 value={jamTitle}
                 onChange={(e) => setJamTitle(e.target.value)}
                 placeholder="跨校企劃題目（如：北中南三校冬季 Game Jam 聯展）*"
-                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                className={`${controlClasses} min-h-11 w-full`}
               />
               <textarea
                 required
@@ -500,20 +500,20 @@ export function TogetherClient({
                 value={jamSummary}
                 onChange={(e) => setJamSummary(e.target.value)}
                 placeholder="說明各自社團分工、預計合作模式與目標成果..."
-                className="w-full rounded-xl border border-line-input p-3 text-sm"
+                className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
               />
               <div className="grid gap-3 sm:grid-cols-2">
                 <input
                   value={jamRoles}
                   onChange={(e) => setJamRoles(e.target.value)}
                   placeholder="招募友社專長（逗號分隔，如 美術, 配樂, 現場場控）"
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 />
                 <input
                   value={jamFormat}
                   onChange={(e) => setJamFormat(e.target.value)}
                   placeholder="合作方式（如 線上共創＋雙週末成果驗收）"
-                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11`}
                 />
               </div>
               <button
@@ -533,7 +533,7 @@ export function TogetherClient({
                 <button
                   type="button"
                   onClick={() => setSelectedDomain('')}
-                  className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 text-sm font-semibold text-ink-800 hover:bg-ink-50"
+                  className={buttonClasses({ variant: 'secondary', size: 'md' })}
                 >
                   查看全部領域
                 </button>
@@ -675,7 +675,7 @@ export function TogetherClient({
                   value={pingTag}
                   onChange={(e) => setPingTag(e.target.value)}
                   placeholder="想請教的領域（如 社團評鑑財務核銷）"
-                  className="w-full rounded-xl border border-line-input bg-white px-3 py-2"
+                  className={`${controlClasses} min-h-11 w-full`}
                 />
                 <textarea
                   required
@@ -685,13 +685,13 @@ export function TogetherClient({
                   value={pingMessage}
                   onChange={(e) => setPingMessage(e.target.value)}
                   placeholder="簡述目前遇到的卡關情境與想請教的問題（10-500字）..."
-                  className="w-full rounded-xl border border-line-input bg-white p-3"
+                  className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
                 />
                 <div className="flex gap-2">
                   <button
                     type="submit"
                     disabled={busy === 'ping'}
-                    className="inline-flex items-center gap-1 rounded-full bg-accent-600 px-4 py-1.5 font-bold text-white"
+                    className={buttonClasses({ variant: 'primary', size: 'sm' })}
                   >
                     <Send className="h-3 w-3" />
                     送出請益請求
@@ -699,7 +699,7 @@ export function TogetherClient({
                   <button
                     type="button"
                     onClick={() => setPingTarget(null)}
-                    className="rounded-full border border-ink-300 bg-white px-4 py-1.5 font-bold text-ink-700"
+                    className={buttonClasses({ variant: 'secondary', size: 'sm' })}
                   >
                     取消
                   </button>
@@ -720,7 +720,7 @@ export function TogetherClient({
                   <button
                     type="button"
                     onClick={() => setSelectedDomain('')}
-                    className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 font-bold text-ink-800 hover:bg-ink-50"
+                    className={buttonClasses({ variant: 'secondary', size: 'md' })}
                   >
                     查看全部領域
                   </button>
@@ -758,7 +758,7 @@ export function TogetherClient({
                   <select
                     value={resDomainId}
                     onChange={(e) => setResDomainId(e.target.value)}
-                    className="rounded-xl border border-line-input px-3 py-2"
+                    className={`${controlClasses} min-h-11`}
                   >
                     {domains.map((d) => (
                       <option key={d.id} value={d.id}>
@@ -772,7 +772,7 @@ export function TogetherClient({
                     value={resTitle}
                     onChange={(e) => setResTitle(e.target.value)}
                     placeholder="實務筆記標題 *"
-                    className="sm:col-span-2 rounded-xl border border-line-input px-3 py-2"
+                    className={`${controlClasses} min-h-11 sm:col-span-2`}
                   />
                 </div>
                 <textarea
@@ -782,7 +782,7 @@ export function TogetherClient({
                   value={resContent}
                   onChange={(e) => setResContent(e.target.value)}
                   placeholder="整理場地／器材／預算核銷實務經驗（請勿包含個人聯絡個資）..."
-                  className="w-full rounded-xl border border-line-input p-3"
+                  className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
                 />
                 <button
                   type="submit"

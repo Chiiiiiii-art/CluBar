@@ -6,6 +6,7 @@ import { Building2, CheckCircle2, Search, ShieldAlert, Sparkles } from 'lucide-r
 import type { ClubCategory } from '@/db/schema';
 import { CLUB_CATEGORIES, CLUB_CATEGORY_LIST } from '@/lib/constants';
 
+import { buttonClasses, controlClasses } from '@/components/ui';
 export interface DirectoryClubOption {
   id: string;
   slug: string;
@@ -216,7 +217,7 @@ export function ClubApplyClient({
                 <select
                   value={uniId}
                   onChange={(e) => setUniId(e.target.value)}
-                  className="w-full rounded-xl border border-line-input bg-white px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11 w-full`}
                 >
                   {universities.map((u) => (
                     <option key={u.id} value={u.id}>
@@ -232,7 +233,7 @@ export function ClubApplyClient({
                 <select
                   value={proposedCategory}
                   onChange={(e) => setProposedCategory(e.target.value as ClubCategory)}
-                  className="w-full rounded-xl border border-line-input bg-white px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11 w-full`}
                 >
                   {CLUB_CATEGORY_LIST.map((c) => (
                     <option key={c.value} value={c.value}>
@@ -253,7 +254,7 @@ export function ClubApplyClient({
                 value={proposedName}
                 onChange={(e) => setProposedName(e.target.value)}
                 placeholder="例如：中央大學數位創作研習社"
-                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                className={`${controlClasses} min-h-11 w-full`}
               />
             </div>
 
@@ -268,7 +269,7 @@ export function ClubApplyClient({
                 value={proposedSlug}
                 onChange={(e) => setProposedSlug(e.target.value.toLowerCase())}
                 placeholder="例如：ncu-digital-art（4–50 字小寫英文、數字或連字號）"
-                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm font-mono"
+                className={`${controlClasses} min-h-11 w-full font-mono`}
               />
               <p className="mt-1 text-xs text-ink-500">
                 公開主頁網址將為：<code>/clubs/{proposedSlug || 'your-club-slug'}</code>
@@ -292,7 +293,7 @@ export function ClubApplyClient({
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 placeholder="輸入校名或社團名稱篩選..."
-                className="w-full rounded-xl border border-line-input py-2 pr-3 pl-9 text-sm"
+                className={`${controlClasses} min-h-11 w-full pr-3 pl-9`}
               />
             </div>
 
@@ -348,7 +349,7 @@ export function ClubApplyClient({
             value={evidenceText}
             onChange={(e) => setEvidenceText(e.target.value)}
             placeholder="請說明您的幹部職稱、本屆幹部名單、課外活動組核備資訊，或接管原因。"
-            className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+            className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
           />
         </div>
 
@@ -361,7 +362,7 @@ export function ClubApplyClient({
             value={evidenceUrl}
             onChange={(e) => setEvidenceUrl(e.target.value)}
             placeholder="https://..."
-            className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+            className={`${controlClasses} min-h-11 w-full`}
           />
         </div>
 
@@ -374,7 +375,7 @@ export function ClubApplyClient({
         <button
           type="submit"
           disabled={submitting || !campusVerified}
-          className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-accent-600 px-5 py-3 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
+          className={buttonClasses({ variant: 'primary', size: 'lg', className: 'w-full' })}
         >
           <Sparkles className="h-4 w-4" aria-hidden="true" />
           <span>{submitting ? '提交中...' : '送出社團申請'}</span>

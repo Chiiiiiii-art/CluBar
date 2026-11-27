@@ -8,6 +8,7 @@ import { getCurrentUser } from '@/lib/auth/guards';
 import { LEARNING_HOURS_LABELS } from '@/lib/constants';
 import { buildUserPortfolio } from '@/lib/services/portfolio';
 
+import { buttonClasses } from '@/components/ui';
 export const dynamic = 'force-dynamic';
 
 export default async function PublicPortfolioPage({
@@ -44,7 +45,7 @@ export default async function PublicPortfolioPage({
         </p>
         <Link
           href="/me"
-          className="mt-4 inline-flex rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white"
+          className={buttonClasses({ variant: 'primary', size: 'md', className: 'mt-4' })}
         >
           返回個人中心
         </Link>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { BadgeCheck, Calendar, Sparkles } from 'lucide-react';
 import { trackAnalyticsEvent } from '@/lib/analytics-client';
 import { clampedAspectRatio, type DiscoverStreamCardDTO } from '@/lib/serializers';
-import { ClubMark } from '@/components/ui';
+import { ClubMark, buttonClasses } from '@/components/ui';
 import { isPlaceholderMedia } from '@/lib/media/placeholder';
 
 /**
@@ -103,7 +103,7 @@ export function PostCard({
         {card.contextual_event && (
           <Link
             href={`/e/${card.contextual_event.short_code}`}
-            className="flex min-h-11 items-center gap-2 rounded-lg bg-accent-50 px-3 text-sm font-medium text-accent-800 hover:bg-accent-100"
+            className={buttonClasses({ variant: 'soft', size: 'md' })}
           >
             <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="truncate">{card.contextual_event.label}</span>

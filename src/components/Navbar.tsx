@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Compass, Users, User, LogIn, ShieldCheck, FolderHeart, type LucideIcon } from 'lucide-react';
-import { ButtonLink, cn } from '@/components/ui';
+import { ButtonLink, buttonClasses, cn } from '@/components/ui';
 
 export interface NavbarUserProp {
   id: string;
@@ -103,7 +103,7 @@ export function Navbar({
                 href="/me"
                 aria-current={isMe ? 'page' : undefined}
                 aria-label={unreadCount > 0 ? `${user.displayName}，${unreadCount} 則未讀通知` : undefined}
-                className="relative inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-white py-1 pr-3 pl-1 text-sm font-medium text-ink-900 transition-colors hover:border-ink-300"
+                className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'relative pr-3 pl-1' })}
               >
                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink-100 text-ink-700">
                   <User className="h-4 w-4" aria-hidden="true" />

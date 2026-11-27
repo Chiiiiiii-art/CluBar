@@ -8,6 +8,7 @@ import { users } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { sanitizeInternalPath } from '@/lib/validators';
 
+import { buttonClasses } from '@/components/ui';
 export const dynamic = 'force-dynamic';
 
 export default async function LoginPage({
@@ -84,7 +85,7 @@ export default async function LoginPage({
             >
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-accent-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-700"
+                className={buttonClasses({ variant: 'primary', size: 'lg', className: 'w-full' })}
               >
                 <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                 <span>使用 Microsoft 帳號登入（支援校園信箱自動驗證）</span>
@@ -108,7 +109,7 @@ export default async function LoginPage({
             >
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-ink-300 bg-white px-4 py-3 text-sm font-semibold text-ink-900 transition-colors hover:bg-ink-50"
+                className={buttonClasses({ variant: 'secondary', size: 'lg', className: 'w-full' })}
               >
                 <span>使用 Google 帳號登入</span>
               </button>
@@ -163,7 +164,7 @@ export default async function LoginPage({
                   >
                     <button
                       type="submit"
-                      className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl border border-ink-300 bg-white px-3.5 py-2 text-left text-sm transition-colors hover:bg-accent-50"
+                      className={buttonClasses({ variant: 'secondary', size: 'md', className: 'w-full justify-between' })}
                     >
                       <div className="min-w-0">
                         <p className="truncate font-bold text-ink-900">{acc.displayName}</p>

@@ -24,7 +24,7 @@ import type { FollowMode, PortfolioVisibility } from '@/db/schema';
 import { formatTaipeiDateTime } from '@/lib/academic-year';
 import { CLUB_CATEGORIES } from '@/lib/constants';
 import type { UserPortfolioDTO } from '@/lib/services/portfolio';
-import { Badge, Button, ClubMark, Tabs, tabPanelProps } from '@/components/ui';
+import { Badge, Button, ClubMark, Tabs, buttonClasses, controlClasses, tabPanelProps } from '@/components/ui';
 
 export interface MePageData {
   user: {
@@ -417,12 +417,12 @@ export function MeClient({
                       value={campusEmail}
                       onChange={(e) => setCampusEmail(e.target.value)}
                       placeholder="輸入你的 .edu.tw 校園信箱"
-                      className="min-h-[44px] flex-1 rounded-xl border border-line-input bg-white px-3.5 py-2 text-sm"
+                      className={`${controlClasses} min-h-11 flex-1`}
                     />
                     <button
                       type="submit"
                       disabled={verifyBusy}
-                      className="min-h-[44px] rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
+                      className={buttonClasses({ variant: 'primary', size: 'md' })}
                     >
                       {verifyBusy ? '寄送中...' : '寄送 6 位數驗證碼'}
                     </button>
@@ -437,12 +437,12 @@ export function MeClient({
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value)}
                       placeholder={`輸入寄往 ${otpUni || campusEmail} 的 6 位數驗證碼`}
-                      className="min-h-[44px] flex-1 rounded-xl border border-line-input bg-white px-3.5 py-2 text-sm"
+                      className={`${controlClasses} min-h-11 flex-1`}
                     />
                     <button
                       type="submit"
                       disabled={verifyBusy}
-                      className="min-h-[44px] rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
+                      className={buttonClasses({ variant: 'primary', size: 'md' })}
                     >
                       {verifyBusy ? '驗證中...' : '確認驗證'}
                     </button>
@@ -452,7 +452,7 @@ export function MeClient({
                         setOtpSent(false);
                         setOtpCode('');
                       }}
-                      className="min-h-[44px] rounded-xl border border-ink-300 bg-white px-3 py-2 text-sm font-semibold text-ink-700"
+                      className={buttonClasses({ variant: 'secondary', size: 'md' })}
                     >
                       更換信箱
                     </button>
@@ -492,7 +492,7 @@ export function MeClient({
                     type="button"
                     disabled={coBusy === inv.id}
                     onClick={() => respondCoClub(inv.id, 'accept', true)}
-                    className="rounded-full bg-accent-600 px-3.5 py-1.5 font-bold text-white"
+                    className={buttonClasses({ variant: 'primary', size: 'sm' })}
                   >
                     同意共辦並納入本社評鑑
                   </button>
@@ -546,7 +546,7 @@ export function MeClient({
                     type="button"
                     disabled={handoverBusy === h.id}
                     onClick={() => void respondHandover(h.id, 'accept')}
-                    className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
+                    className={buttonClasses({ variant: 'primary', size: 'md' })}
                   >
                     接受交接
                   </button>
@@ -554,7 +554,7 @@ export function MeClient({
                     type="button"
                     disabled={handoverBusy === h.id}
                     onClick={() => void respondHandover(h.id, 'reject')}
-                    className="rounded-xl border border-ink-300 bg-white px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50 disabled:opacity-50"
+                    className={buttonClasses({ variant: 'secondary', size: 'md' })}
                   >
                     婉拒
                   </button>
@@ -625,7 +625,7 @@ export function MeClient({
                   {n.linkUrl && (
                     <Link
                       href={n.linkUrl}
-                      className="rounded-xl border border-ink-300 bg-white px-3 py-1.5 text-sm font-semibold text-ink-800 hover:bg-ink-50"
+                      className={buttonClasses({ variant: 'secondary', size: 'sm' })}
                     >
                       前往查看
                     </Link>
@@ -663,7 +663,7 @@ export function MeClient({
               <p>還沒收藏任何作品或活動。</p>
               <Link
                 href="/"
-                className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 font-bold text-ink-800 hover:bg-ink-50"
+                className={buttonClasses({ variant: 'secondary', size: 'md' })}
               >
                 去別的聚逛逛 →
               </Link>
@@ -704,7 +704,7 @@ export function MeClient({
               <p>尚未追蹤任何社團，追蹤後可選擇「只收新活動」或「全部動態」。</p>
               <Link
                 href="/"
-                className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 font-bold text-ink-800 hover:bg-ink-50"
+                className={buttonClasses({ variant: 'secondary', size: 'md' })}
               >
                 去別的聚找社團 →
               </Link>
@@ -733,7 +733,7 @@ export function MeClient({
                     onChange={(e) =>
                       handleChangeFollowMode(f.clubId, e.target.value as FollowMode)
                     }
-                    className="min-h-[44px] rounded-xl border border-line-input bg-white px-3 py-1 text-sm font-semibold text-ink-700"
+                    className={`${controlClasses} min-h-11`}
                   >
                     <option value="all">全部動態</option>
                     <option value="events_only">只收新活動</option>
@@ -805,7 +805,7 @@ export function MeClient({
                   {m.role !== 'member' && (
                     <Link
                       href={`/clubs/${m.slug}/manage`}
-                      className="inline-flex min-h-[44px] items-center gap-1 rounded-xl bg-accent-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-accent-700"
+                      className={buttonClasses({ variant: 'primary', size: 'sm' })}
                     >
                       <Settings className="h-3.5 w-3.5" aria-hidden="true" />
                       <span>{m.role === 'alumni' ? '檢視年度成果' : '進入管理後台'}</span>
@@ -813,7 +813,7 @@ export function MeClient({
                   )}
                   <Link
                     href={`/clubs/${m.slug}`}
-                    className="inline-flex min-h-[44px] items-center gap-1 rounded-xl border border-ink-300 bg-white px-3 py-1.5 text-sm font-semibold text-ink-700 hover:bg-ink-50"
+                    className={buttonClasses({ variant: 'secondary', size: 'sm' })}
                   >
                     <span>公開主頁</span>
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -860,7 +860,7 @@ export function MeClient({
                 value={handleInput}
                 onChange={(e) => setHandleInput(e.target.value)}
                 placeholder="如 alex-ncu (4-30字小寫)"
-                className="w-full rounded-xl border border-line-input px-3 py-2"
+                className={`${controlClasses} min-h-11 w-full`}
               />
             </div>
             <div>
@@ -868,7 +868,7 @@ export function MeClient({
               <select
                 value={visibility}
                 onChange={(e) => setVisibility(e.target.value as PortfolioVisibility)}
-                className="w-full rounded-xl border border-line-input px-3 py-2"
+                className={`${controlClasses} min-h-11 w-full`}
               >
                 <option value="campus_only">僅限同校已驗證同學 (預設)</option>
                 <option value="public">公開網際網路分享網址</option>
@@ -883,7 +883,7 @@ export function MeClient({
                 value={alumniTagsStr}
                 onChange={(e) => setAlumniTagsStr(e.target.value)}
                 placeholder="如 評鑑核銷, 攝影暗房, 場控"
-                className="w-full rounded-xl border border-line-input px-3 py-2"
+                className={`${controlClasses} min-h-11 w-full`}
               />
             </div>
           </div>
@@ -914,7 +914,7 @@ export function MeClient({
             <button
               type="submit"
               disabled={portBusy}
-              className="rounded-full bg-accent-600 px-4 py-2 font-bold text-white"
+              className={buttonClasses({ variant: 'primary', size: 'md' })}
             >
               儲存軌跡與授權設定
             </button>

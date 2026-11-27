@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { HelpCircle, Send, UserPlus } from 'lucide-react';
 
+import { buttonClasses, controlClasses } from '@/components/ui';
 export function ClubDetailClient({
   clubSlug,
   clubName,
@@ -121,7 +122,7 @@ export function ClubDetailClient({
                 value={questionText}
                 onChange={(e) => setQuestionText(e.target.value)}
                 placeholder={`例如：沒有自己帶器材也能去「${clubName}」體驗課嗎？大概幾點結束？`}
-                className="w-full rounded-xl border border-line-input bg-ink-50 p-3 text-sm"
+                className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
               />
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-3 text-sm text-ink-700">
@@ -140,14 +141,14 @@ export function ClubDetailClient({
                       value={displayAlias}
                       onChange={(e) => setDisplayAlias(e.target.value)}
                       placeholder="公開顯示暱稱（選填）"
-                      className="rounded-xl border border-line-input px-2.5 py-1 text-sm"
+                      className={`${controlClasses} min-h-11`}
                     />
                   )}
                 </div>
                 <button
                   type="submit"
                   disabled={qBusy || questionText.trim().length < 5}
-                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-accent-600 px-5 text-sm font-semibold text-white disabled:opacity-50"
+                  className={buttonClasses({ variant: 'primary', size: 'md' })}
                 >
                   <Send className="h-3.5 w-3.5" aria-hidden="true" />
                   送出問題
@@ -189,7 +190,7 @@ export function ClubDetailClient({
                 value={joinNote}
                 onChange={(e) => setJoinNote(e.target.value)}
                 placeholder="簡短自我介紹或班級／暱稱讓幹部辨識（選填）"
-                className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-line-input bg-white px-3 text-sm"
+                className={`${controlClasses} min-h-11 min-w-0 flex-1`}
               />
               <button
                 type="submit"

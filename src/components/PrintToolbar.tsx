@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowLeft, Download, Printer } from 'lucide-react';
 
+import { buttonClasses } from '@/components/ui';
 export function PrintToolbar({
   slug,
   year,
@@ -27,7 +28,7 @@ export function PrintToolbar({
       <div className="flex flex-wrap items-center gap-2">
         <a
           href={`/api/clubs/${slug}/summary/${year}/export?format=md`}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-ink-300 bg-white px-4 py-2 text-sm font-semibold text-ink-800 hover:bg-ink-50"
+          className={buttonClasses({ variant: 'secondary', size: 'md' })}
         >
           <Download className="h-4 w-4" aria-hidden="true" />
           <span>下載 Markdown (.md)</span>
@@ -35,7 +36,7 @@ export function PrintToolbar({
         <button
           type="button"
           onClick={() => window.print()}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700"
+          className={buttonClasses({ variant: 'primary', size: 'md' })}
         >
           <Printer className="h-4 w-4" aria-hidden="true" />
           <span>列印／另存 PDF (A4)</span>

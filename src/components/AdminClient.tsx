@@ -6,7 +6,7 @@ import { BarChart3, CheckCircle2, Download, ShieldAlert, XCircle } from 'lucide-
 import { formatTaipeiDateTime } from '@/lib/academic-year';
 import { REPORT_REASONS } from '@/lib/constants';
 
-import { Notice, Tabs, useConfirm } from '@/components/ui';
+import { Notice, Tabs, buttonClasses, controlClasses, useConfirm } from '@/components/ui';
 export interface AdminPageData {
   applications: {
     id: string;
@@ -257,7 +257,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                   placeholder="審核意見／駁回原因（選填）"
                   value={notes[app.id] || ''}
                   onChange={(e) => setNotes((prev) => ({ ...prev, [app.id]: e.target.value }))}
-                  className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11 w-full`}
                 />
 
                 <div className="flex gap-2">
@@ -317,14 +317,14 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                   placeholder="處置說明（若下架或停權將通知該社團社長）"
                   value={notes[rep.id] || ''}
                   onChange={(e) => setNotes((prev) => ({ ...prev, [rep.id]: e.target.value }))}
-                  className="min-h-[44px] w-full rounded-xl border border-line-input px-3 py-2 text-sm"
+                  className={`${controlClasses} min-h-11 w-full`}
                 />
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     disabled={busyId === rep.id}
                     onClick={() => void resolveReport(rep.id, 'keep')}
-                    className="min-h-[44px] rounded-xl border border-ink-300 bg-white px-3.5 py-2 text-sm font-semibold text-ink-700"
+                    className={buttonClasses({ variant: 'secondary', size: 'md' })}
                   >
                     判定保留
                   </button>
@@ -340,7 +340,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     type="button"
                     disabled={busyId === rep.id}
                     onClick={() => void resolveReport(rep.id, 'suspend_club')}
-                    className="min-h-[44px] rounded-xl bg-danger-600 px-3.5 py-2 text-sm font-semibold text-white"
+                    className={buttonClasses({ variant: 'danger', size: 'md' })}
                   >
                     暫停社團發文權限
                   </button>
@@ -406,7 +406,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                       type="button"
                       disabled={busyId === p.id}
                       onClick={() => void restorePost(p.id)}
-                      className="shrink-0 rounded-xl bg-accent-600 px-3 py-1.5 font-bold text-white"
+                      className={buttonClasses({ variant: 'primary', size: 'sm', className: 'shrink-0' })}
                     >
                       復原公開
                     </button>
@@ -435,7 +435,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                 aria-label="起始日期"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
-                className="rounded-xl border border-line-input px-2.5 py-1.5 text-sm"
+                className={`${controlClasses} min-h-11`}
               />
               <span className="text-sm text-ink-500">至</span>
               <input
@@ -443,11 +443,11 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                 aria-label="結束日期"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
-                className="rounded-xl border border-line-input px-2.5 py-1.5 text-sm"
+                className={`${controlClasses} min-h-11`}
               />
               <a
                 href={`/api/admin/analytics/export?${csvQs.toString()}`}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700"
+                className={buttonClasses({ variant: 'primary', size: 'md' })}
               >
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>匯出 Power BI CSV</span>

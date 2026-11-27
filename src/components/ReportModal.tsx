@@ -6,6 +6,7 @@ import { Flag, X } from 'lucide-react';
 import type { ReportReason, ReportTargetType } from '@/db/schema';
 import { REPORT_REASONS } from '@/lib/constants';
 
+import { buttonClasses, controlClasses } from '@/components/ui';
 export function ReportModal({
   targetType,
   targetId,
@@ -69,7 +70,7 @@ export function ReportModal({
       <button
         type="button"
         onClick={handleOpen}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-ink-300 bg-white px-3 py-2 text-sm font-semibold text-ink-600 transition-colors hover:bg-danger-50 hover:text-danger-700"
+        className={buttonClasses({ variant: 'secondary', size: 'md' })}
       >
         <Flag className="h-3.5 w-3.5" aria-hidden="true" />
         <span>{buttonLabel}</span>
@@ -103,7 +104,7 @@ export function ReportModal({
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="w-full rounded-xl bg-accent-600 py-2.5 text-sm font-semibold text-white hover:bg-accent-700"
+                  className={buttonClasses({ variant: 'primary', size: 'md', className: 'w-full' })}
                 >
                   完成
                 </button>
@@ -117,7 +118,7 @@ export function ReportModal({
                   <select
                     value={reason}
                     onChange={(e) => setReason(e.target.value as ReportReason)}
-                    className="w-full rounded-xl border border-line-input bg-white px-3 py-2.5 text-sm text-ink-900"
+                    className={`${controlClasses} min-h-11 w-full`}
                   >
                     {Object.entries(REPORT_REASONS).map(([k, v]) => (
                       <option key={k} value={k}>
@@ -137,7 +138,7 @@ export function ReportModal({
                     value={detail}
                     onChange={(e) => setDetail(e.target.value)}
                     placeholder="請簡述問題所在或佐證連結，利於管理員快速判讀。"
-                    className="w-full rounded-xl border border-line-input px-3 py-2 text-sm text-ink-900"
+                    className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
                   />
                 </div>
 
@@ -158,7 +159,7 @@ export function ReportModal({
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="rounded-xl bg-danger-600 px-4 py-2 text-sm font-semibold text-white hover:bg-danger-700 disabled:opacity-50"
+                    className={buttonClasses({ variant: 'danger', size: 'md' })}
                   >
                     {submitting ? '送出中...' : '送出檢舉'}
                   </button>

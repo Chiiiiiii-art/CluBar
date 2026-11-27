@@ -22,7 +22,7 @@ import { formatTaipeiDate, formatTaipeiDateTime } from '@/lib/academic-year';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { CLUB_CATEGORIES, POST_KIND_LABELS } from '@/lib/constants';
 import { computeClubPulse } from '@/lib/discovery/fairness';
-import { Badge, ClubMark } from '@/components/ui';
+import { Badge, ClubMark, buttonClasses } from '@/components/ui';
 import { realMediaUrl } from '@/lib/media/placeholder';
 import {
   clampedAspectRatio,
@@ -161,7 +161,7 @@ export default async function ClubPublicPage({
           </div>
           <Link
             href={`/clubs/apply?claim=${encodeURIComponent(publicClub.slug)}`}
-            className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-xl bg-accent-600 px-4 text-center text-sm font-semibold text-white hover:bg-accent-700"
+            className={buttonClasses({ variant: 'primary', size: 'md', className: 'shrink-0' })}
           >
             認領這個社團
           </Link>
@@ -275,7 +275,7 @@ export default async function ClubPublicPage({
               currentUser?.platformRole === 'platform_admin') && (
               <Link
                 href={`/clubs/${publicClub.slug}/manage`}
-                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-ink-300 bg-white px-3.5 py-2 text-sm font-semibold text-ink-800 hover:bg-ink-50"
+                className={buttonClasses({ variant: 'secondary', size: 'md' })}
               >
                 <Settings className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>社團管理後台</span>
@@ -295,7 +295,7 @@ export default async function ClubPublicPage({
               <Link
                 key={ev.id}
                 href={`/e/${ev.shortCode}`}
-                className="flex flex-col justify-between gap-2 rounded-xl border border-line bg-white p-4 transition-colors hover:border-ink-300"
+                className={buttonClasses({ variant: 'secondary', size: 'md', className: 'flex-col justify-between' })}
               >
                 <h3 className="text-sm font-semibold text-ink-900">{ev.title}</h3>
                 <div className="flex flex-wrap gap-2 text-sm text-ink-600">
@@ -351,7 +351,7 @@ export default async function ClubPublicPage({
               {publicClub.verification_status === 'unclaimed_directory' && (
                 <Link
                   href={`/clubs/apply?claim=${encodeURIComponent(publicClub.slug)}`}
-                  className="inline-flex min-h-[44px] items-center rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700"
+                  className={buttonClasses({ variant: 'primary', size: 'md' })}
                 >
                   我是幹部，立即認領
                 </Link>
@@ -373,7 +373,7 @@ export default async function ClubPublicPage({
                 <Link
                   key={post.id}
                   href={`/posts/${post.id}`}
-                  className="group flex flex-col overflow-hidden rounded-xl border border-line bg-white hover:shadow-md"
+                  className={buttonClasses({ variant: 'secondary', size: 'md', className: 'group flex-col overflow-hidden' })}
                 >
                   <div
                     className="relative bg-ink-100"
