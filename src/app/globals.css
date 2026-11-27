@@ -3,6 +3,7 @@
 :root {
   --bg: #fff7ed;
   --surface: #ffffff;
+  --surface-warm: #fff3e6;
   --muted: #fdf4f0;
   --border: #fceae1;
   --border-strong: #f6d5c3;
@@ -11,6 +12,7 @@
   --primary: #c2410c;
   --primary-hover: #9a3412;
   --brand: #ea580c;
+  --brand-dark: #c2410c;
   --secondary: #2563eb;
   --danger: #dc2626;
 }
@@ -20,6 +22,8 @@
     background-color: var(--bg);
     color: var(--fg);
     scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    scroll-padding-bottom: 5.5rem;
   }
 
   body {
@@ -35,10 +39,29 @@
     cursor: pointer;
   }
 
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  [tabindex] {
+    scroll-margin-top: 5rem;
+    scroll-margin-bottom: 5.5rem;
+  }
+
   :focus-visible {
     outline: 2px solid var(--brand);
     outline-offset: 2px;
   }
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

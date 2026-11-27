@@ -6,13 +6,9 @@ import { signIn } from '@/auth';
 import { db, isDatabaseConfigured } from '@/db';
 import { users } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
+import { sanitizeInternalPath } from '@/lib/validators';
 
 export const dynamic = 'force-dynamic';
-
-function sanitizeCallbackUrl(raw?: string): string {
-  if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return '/';
-  return raw;
-}
 
 export default async function LoginPage({
   searchParams,
@@ -21,7 +17,7 @@ export default async function LoginPage({
 }) {
   const user = await getCurrentUser().catch(() => null);
   const params = await searchParams;
-  const callbackUrl = sanitizeCallbackUrl(params.callbackUrl);
+  const callbackUrl = sanitizeInternalPath(params.callbackUrl, '/');
 
   if (user?.id) {
     redirect(callbackUrl);
@@ -137,14 +133,14 @@ export default async function LoginPage({
           <div className="mt-6 border-t border-[var(--border)] pt-6">
             <div className="mb-3 flex items-center gap-2 text-xs font-bold text-slate-700">
               <Terminal className="h-4 w-4 text-[var(--primary)]" aria-hidden="true" />
-              <span>開發／Demo 測試帳號快速登入（僅非正式環境啟用）</span>
+              <span>開發測試帳號快速登入（僅非正式環境啟用）</span>
             </div>
             {devAccounts.length === 0 ? (
               <p className="text-xs text-slate-500">
-                資料庫尚未建立或尚未執行 `npm run db:seed`。
+                目前尚無可用測試帳號，請先完成資料初始化。
               </p>
             ) : (
-              <div className="grid gap-2">
+              <div className="grid gap-2 sm:grid-cols-2">
                 {devAccounts.map((acc) => (
                   <form
                     key={acc.id}
@@ -157,7 +153,9 @@ export default async function LoginPage({
                         });
                       } catch (err) {
                         if (err instanceof AuthError) {
-                          redirect('/login?error=DevLoginFailed');
+                          redirect(
+                            `/login?error=DevLoginFailed&callbackUrl=${encodeURIComponent(callbackUrl)}`
+                          );
                         }
                         throw err;
                       }
@@ -165,13 +163,13 @@ export default async function LoginPage({
                   >
                     <button
                       type="submit"
-                      className="flex w-full items-center justify-between rounded-xl border border-[var(--border-strong)] bg-white px-3.5 py-2.5 text-left text-xs transition-colors hover:bg-orange-50"
+                      className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl border border-[var(--border-strong)] bg-white px-3.5 py-2 text-left text-xs transition-colors hover:bg-orange-50"
                     >
-                      <div>
-                        <p className="font-bold text-slate-900">{acc.displayName}</p>
-                        <p className="text-[11px] text-slate-500">{acc.email}</p>
+                      <div className="min-w-0">
+                        <p className="truncate font-bold text-slate-900">{acc.displayName}</p>
+                        <p className="truncate text-[11px] text-slate-500">{acc.email}</p>
                       </div>
-                      <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
                         {acc.platformRole === 'platform_admin'
                           ? '平台管理員'
                           : acc.campusEmail

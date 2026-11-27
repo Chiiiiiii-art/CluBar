@@ -104,11 +104,14 @@ export function ClubDetailClient({
             </p>
           ) : !isCampusVerified ? (
             <p className="mt-2 text-xs text-slate-600">
-              為防範廣告騷擾，提問須先至{' '}
-              <Link href="/me" className="font-bold text-[var(--brand)] underline">
-                足跡與個人 → 完成 .edu.tw 驗證
+              為防範廣告騷擾，提問須先{' '}
+              <Link
+                href={`/me?returnTo=${encodeURIComponent(`/clubs/${clubSlug}`)}`}
+                className="inline-flex min-h-[44px] items-center font-bold text-[var(--brand)] underline"
+              >
+                完成 .edu.tw 校園信箱驗證
               </Link>
-              。
+              ，驗證完就能回到這頁繼續提問。
             </p>
           ) : (
             <form onSubmit={handleAsk} className="mt-3 space-y-3">
@@ -144,7 +147,7 @@ export function ClubDetailClient({
                 <button
                   type="submit"
                   disabled={qBusy || questionText.trim().length < 5}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-[var(--brand)] px-5 text-xs font-bold text-white disabled:opacity-50"
                 >
                   <Send className="h-3.5 w-3.5" aria-hidden="true" />
                   送出問題
@@ -168,11 +171,11 @@ export function ClubDetailClient({
             <p className="mt-2 text-xs text-slate-600">
               <Link
                 href={`/login?callbackUrl=${encodeURIComponent(`/clubs/${clubSlug}`)}`}
-                className="font-bold text-[var(--brand)] underline"
+                className="inline-flex min-h-[44px] items-center font-bold text-[var(--brand)] underline"
               >
                 登入帳號
               </Link>{' '}
-              後可申請同校認證社員，或至「我的社團」輸入幹部邀請碼。
+              後可申請同校認證社員，或至「我的聚」輸入幹部邀請碼。
             </p>
           ) : !isSameUniversity ? (
             <p className="mt-2 text-xs text-slate-600">
@@ -186,12 +189,12 @@ export function ClubDetailClient({
                 value={joinNote}
                 onChange={(e) => setJoinNote(e.target.value)}
                 placeholder="簡短自我介紹或班級／暱稱讓幹部辨識（選填）"
-                className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-xs"
+                className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-white px-3 text-xs"
               />
               <button
                 type="submit"
                 disabled={joinBusy}
-                className="rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50"
+                className="min-h-[44px] rounded-full bg-slate-900 px-4 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50"
               >
                 {joinBusy ? '送出中...' : '申請認證社員'}
               </button>

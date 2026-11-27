@@ -38,6 +38,10 @@ export function Navbar({
   const isMe =
     pathname.startsWith('/me') || pathname.startsWith('/u/') || pathname.startsWith('/login');
   const isAdmin = pathname.startsWith('/admin');
+  const loginHref =
+    pathname && pathname !== '/login'
+      ? `/login?callbackUrl=${encodeURIComponent(pathname)}`
+      : '/login';
 
   return (
     <>
@@ -46,21 +50,22 @@ export function Navbar({
           <div className="flex items-center gap-6">
             <Link
               href="/"
-              className="flex items-center gap-2.5 font-bold tracking-tight text-slate-900"
+              className="flex min-h-[44px] items-center gap-2.5 font-bold tracking-tight text-slate-900"
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--brand)] text-white shadow-sm">
                 <Sparkles className="h-5 w-5" aria-hidden="true" />
               </span>
               <span className="flex flex-col leading-none">
                 <span className="text-base font-extrabold">社團聚</span>
-                <span className="text-[11px] font-medium text-slate-500">CluBar v2</span>
+                <span className="text-[11px] font-medium text-slate-500">CluBar</span>
               </span>
             </Link>
 
             <nav className="hidden items-center gap-1 md:flex" aria-label="主導覽列">
               <Link
                 href="/"
-                className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                aria-current={isDiscover ? 'page' : undefined}
+                className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                   isDiscover
                     ? 'bg-orange-100 text-orange-900'
                     : 'text-slate-700 hover:bg-orange-50'
@@ -70,7 +75,8 @@ export function Navbar({
               </Link>
               <Link
                 href="/together"
-                className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                aria-current={isTogether ? 'page' : undefined}
+                className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                   isTogether
                     ? 'bg-orange-100 text-orange-900'
                     : 'text-slate-700 hover:bg-orange-50'
@@ -80,18 +86,20 @@ export function Navbar({
               </Link>
               <Link
                 href="/my-clubs"
-                className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                aria-current={isMyClubs ? 'page' : undefined}
+                className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                   isMyClubs
                     ? 'bg-orange-100 text-orange-900'
                     : 'text-slate-700 hover:bg-orange-50'
                 }`}
               >
-                我的社團
+                我的聚
               </Link>
               {user?.platformRole === 'platform_admin' && (
                 <Link
                   href="/admin"
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
+                  aria-current={isAdmin ? 'page' : undefined}
+                  className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                     isAdmin
                       ? 'bg-blue-100 text-blue-900'
                       : 'text-blue-700 hover:bg-blue-50'
@@ -107,6 +115,7 @@ export function Navbar({
             {user ? (
               <Link
                 href="/me"
+                aria-current={isMe ? 'page' : undefined}
                 className="relative inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[var(--border-strong)] bg-white px-3.5 py-2 text-sm font-semibold text-slate-900 shadow-xs transition-colors hover:bg-orange-50"
               >
                 <User className="h-4 w-4 text-[var(--primary)]" aria-hidden="true" />
@@ -125,7 +134,8 @@ export function Navbar({
               </Link>
             ) : (
               <Link
-                href="/login"
+                href={loginHref}
+                aria-current={isMe ? 'page' : undefined}
                 className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[var(--primary-hover)]"
               >
                 <LogIn className="h-4 w-4" aria-hidden="true" />
@@ -143,6 +153,7 @@ export function Navbar({
       >
         <Link
           href="/"
+          aria-current={isDiscover ? 'page' : undefined}
           className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold ${
             isDiscover ? 'text-[var(--primary)]' : 'text-slate-600'
           }`}
@@ -152,6 +163,7 @@ export function Navbar({
         </Link>
         <Link
           href="/together"
+          aria-current={isTogether ? 'page' : undefined}
           className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold ${
             isTogether ? 'text-[var(--primary)]' : 'text-slate-600'
           }`}
@@ -161,15 +173,17 @@ export function Navbar({
         </Link>
         <Link
           href="/my-clubs"
+          aria-current={isMyClubs ? 'page' : undefined}
           className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold ${
             isMyClubs ? 'text-[var(--primary)]' : 'text-slate-600'
           }`}
         >
           <FolderHeart className="h-5 w-5" aria-hidden="true" />
-          <span>我的社團</span>
+          <span>我的聚</span>
         </Link>
         <Link
-          href={user ? '/me' : '/login'}
+          href={user ? '/me' : loginHref}
+          aria-current={isMe ? 'page' : undefined}
           className={`relative flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold ${
             isMe ? 'text-[var(--primary)]' : 'text-slate-600'
           }`}

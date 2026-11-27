@@ -27,6 +27,7 @@ import { EVENT_THEME_PRESETS, LEARNING_HOURS_LABELS } from '@/lib/constants';
 import { uploadDualAlbumPhoto } from '@/lib/media/client-upload';
 import type { EventFullViewDTO } from '@/lib/services/events';
 import { ImageUploader } from '@/components/ImageUploader';
+import { MarkdownView } from '@/components/MarkdownView';
 
 function formatUtcStamp(iso: string): string {
   return new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
@@ -92,12 +93,18 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 export function EventPageClient({
   initialData,
   viewer,
+  authProviders = { hasEntra: true, hasGoogle: false, enableDevLogin: false },
 }: {
   initialData: EventFullViewDTO;
   viewer: {
     isLoggedIn: boolean;
     isCampusVerified: boolean;
     universityId: string | null;
+  };
+  authProviders?: {
+    hasEntra: boolean;
+    hasGoogle: boolean;
+    enableDevLogin: boolean;
   };
 }) {
   const [data, setData] = useState<EventFullViewDTO>(initialData);
@@ -522,8 +529,14 @@ export function EventPageClient({
       ? Math.max(0.7, Math.min(2.2, detail.cover_media.width / detail.cover_media.height))
       : 16 / 9;
 
+  const loginCtaLabel = authProviders.hasGoogle && authProviders.hasEntra
+    ? '使用 Google／微軟登入即可報名'
+    : authProviders.hasEntra
+      ? '使用微軟／校園帳號登入報名'
+      : '登入帳號即可一鍵報名';
+
   return (
-    <div className="mx-auto max-w-4xl space-y-6 pb-12">
+    <div className="mx-auto max-w-4xl space-y-6 pb-24 md:pb-12">
       {/* Status Banner */}
       {detail.status === 'cancelled' && (
         <div className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-bold text-red-800">
@@ -559,11 +572,6 @@ export function EventPageClient({
               >
                 {detail.club.university_short_name} · {detail.club.name}
               </Link>
-              {detail.club.is_demo && (
-                <span className="rounded-full bg-amber-200/90 px-2.5 py-0.5 text-[11px] font-bold text-amber-950">
-                  Demo 展示活動
-                </span>
-              )}
               {detail.co_host_clubs.map((co) => (
                 <Link
                   key={co.id}
@@ -719,7 +727,7 @@ export function EventPageClient({
                           type="button"
                           disabled={!viewer.isLoggedIn || busyAction === `vote-${opt.id}`}
                           onClick={() => handlePollVote(opt.id)}
-                          className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition ${
+                          className={`min-h-[44px] rounded-full px-4 text-xs font-bold transition ${
                             opt.viewer_voted
                               ? 'bg-[var(--brand)] text-white'
                               : 'border border-[var(--border-strong)] bg-white text-slate-700 hover:bg-slate-50'
@@ -732,7 +740,7 @@ export function EventPageClient({
                             type="button"
                             disabled={busyAction === `lock-${opt.id}`}
                             onClick={() => handleLockPollOption(opt.id)}
-                            className="rounded-full border border-emerald-600 bg-white px-3 py-1.5 text-xs font-bold text-emerald-700 hover:bg-emerald-50"
+                            className="min-h-[44px] rounded-full border border-emerald-600 bg-white px-3.5 text-xs font-bold text-emerald-700 hover:bg-emerald-50"
                           >
                             鎖定此時段
                           </button>
@@ -743,8 +751,8 @@ export function EventPageClient({
                   {!viewer.isLoggedIn && (
                     <p className="text-xs text-slate-500">
                       <Link
-                        href={`/login?callbackUrl=/e/${detail.short_code}`}
-                        className="font-bold text-[var(--brand)] underline"
+                        href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`}
+                        className="inline-flex min-h-[44px] items-center font-bold text-[var(--brand)] underline"
                       >
                         登入帳號
                       </Link>{' '}
@@ -760,18 +768,18 @@ export function EventPageClient({
           {detail.description_md && (
             <section className="rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm">
               <h2 className="text-base font-extrabold text-slate-900">活動詳細介紹</h2>
-              <div className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
-                {detail.description_md}
+              <div className="mt-3">
+                <MarkdownView content={detail.description_md} />
               </div>
             </section>
           )}
         </div>
 
         {/* Right Column: RSVP, Attendees, Calendar Sync */}
-        <div className="space-y-6 md:col-span-5">
+        <div id="rsvp-section" className="space-y-6 md:col-span-5">
           {/* RSVP Card */}
           <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-6 shadow-sm">
-            <h2 className="text-base font-extrabold text-slate-900">1-Click 快速報名</h2>
+            <h2 className="text-base font-extrabold text-slate-900">報名這場活動</h2>
             <p className="mt-1 text-xs text-slate-600">
               {detail.capacity
                 ? `目前 ${detail.going_count} / ${detail.capacity} 人報名`
@@ -781,24 +789,24 @@ export function EventPageClient({
             {!viewer.isLoggedIn ? (
               <div className="mt-4 space-y-3">
                 <Link
-                  href={`/login?callbackUrl=/e/${detail.short_code}`}
-                  className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--brand)] px-5 py-3 text-sm font-extrabold text-white hover:bg-[var(--brand-dark)]"
+                  href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`}
+                  className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-[var(--brand)] px-5 py-3 text-sm font-extrabold text-white hover:bg-[var(--brand-dark)]"
                 >
-                  使用 Google／微軟登入即可一鍵報名
+                  {loginCtaLabel}
                 </Link>
                 {detail.campus_only && (
                   <p className="text-center text-[11px] text-slate-500">
-                    註：此活動限定 {detail.club.university_short_name} 校內身分，登入後須先驗證 .edu.tw 信箱。
+                    此活動限 {detail.club.university_short_name} 學生，登入後須驗證 .edu.tw 信箱。
                   </p>
                 )}
               </div>
             ) : campusRestricted ? (
               <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
                 <p className="font-bold">此活動限 {detail.club.university_short_name} 學生報名</p>
-                <p className="mt-1">請先於個人中心完成同校 .edu.tw 信箱驗證後再回來報名。</p>
+                <p className="mt-1">完成同校 .edu.tw 信箱驗證後，即可一鍵回到這場活動報名。</p>
                 <Link
-                  href="/me"
-                  className="mt-3 inline-flex rounded-full bg-amber-900 px-3.5 py-1.5 font-bold text-white"
+                  href={`/me?returnTo=${encodeURIComponent(`/e/${detail.short_code}`)}`}
+                  className="mt-3 inline-flex min-h-[44px] items-center rounded-full bg-amber-900 px-4 text-xs font-bold text-white hover:bg-amber-950"
                 >
                   前往完成校園認證
                 </Link>
@@ -854,19 +862,19 @@ export function EventPageClient({
                     type="button"
                     disabled={busyAction !== null || detail.status === 'cancelled'}
                     onClick={() => handleRsvp('going')}
-                    className={`flex-1 rounded-full px-4 py-2.5 text-sm font-extrabold transition ${
+                    className={`min-h-[44px] flex-1 rounded-full px-4 py-2.5 text-sm font-extrabold transition ${
                       viewer_rsvp?.status === 'going'
                         ? 'bg-emerald-600 text-white'
                         : 'bg-[var(--brand)] text-white hover:bg-[var(--brand-dark)]'
                     } disabled:opacity-50`}
                   >
-                    {viewer_rsvp?.status === 'going' ? '✓ 我已報名參加' : '我要參加 (Going)'}
+                    {viewer_rsvp?.status === 'going' ? '✓ 我已報名參加' : '我要參加'}
                   </button>
                   <button
                     type="button"
                     disabled={busyAction !== null || detail.status === 'cancelled'}
                     onClick={() => handleRsvp('interested')}
-                    className={`rounded-full px-4 py-2.5 text-sm font-bold transition ${
+                    className={`min-h-[44px] rounded-full px-4 py-2.5 text-sm font-bold transition ${
                       viewer_rsvp?.status === 'interested'
                         ? 'bg-amber-500 text-white'
                         : 'border border-[var(--border-strong)] bg-white text-slate-800 hover:bg-slate-50'
@@ -881,7 +889,7 @@ export function EventPageClient({
                     type="button"
                     disabled={busyAction !== null}
                     onClick={() => handleRsvp('cancelled')}
-                    className="w-full text-center text-xs font-medium text-slate-500 hover:text-red-600"
+                    className="min-h-[44px] w-full text-center text-xs font-medium text-slate-500 hover:text-red-600"
                   >
                     取消本次報名
                   </button>
@@ -950,7 +958,7 @@ export function EventPageClient({
                     href={googleUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border)] px-3.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
                   >
                     Google 日曆
                   </a>
@@ -960,7 +968,7 @@ export function EventPageClient({
                     href={outlookUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border)] px-3.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
                   >
                     Outlook
                   </a>
@@ -968,9 +976,9 @@ export function EventPageClient({
                 <a
                   href={`/api/calendar/events/${detail.short_code}.ics`}
                   download={`${detail.short_code}.ics`}
-                  className="inline-flex items-center gap-1 rounded-full border border-[var(--border)] px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                  className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-[var(--border)] px-3.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
                 >
-                  <Download className="h-3 w-3" aria-hidden="true" />
+                  <Download className="h-3.5 w-3.5" aria-hidden="true" />
                   下載 .ics
                 </a>
                 {viewer.isLoggedIn && (
@@ -1398,6 +1406,49 @@ export function EventPageClient({
           </div>
         )}
       </section>
+
+      {/* Mobile Sticky Bottom RSVP Bar (Luma Pattern) */}
+      <div className="no-print fixed inset-x-0 bottom-[57px] z-30 border-t border-[var(--border-strong)] bg-white/95 px-4 py-2.5 backdrop-blur md:hidden">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
+          <div className="min-w-0 text-xs">
+            <p className="truncate font-bold text-slate-900">{detail.title}</p>
+            <p className="text-[11px] text-slate-600">
+              {detail.fee_ntd === 0 ? '免費' : `NT$${detail.fee_ntd}`} · 已有 {detail.going_count} 人報名
+            </p>
+          </div>
+          {!viewer.isLoggedIn ? (
+            <Link
+              href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`}
+              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-[var(--brand)] px-4 text-xs font-extrabold text-white"
+            >
+              登入報名
+            </Link>
+          ) : campusRestricted ? (
+            <Link
+              href={`/me?returnTo=${encodeURIComponent(`/e/${detail.short_code}`)}`}
+              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-amber-900 px-4 text-xs font-extrabold text-white"
+            >
+              去驗學校信箱
+            </Link>
+          ) : viewer_rsvp?.status === 'going' ? (
+            <a
+              href="#rsvp-section"
+              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-emerald-600 px-4 text-xs font-extrabold text-white"
+            >
+              ✓ 已報名
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled={busyAction !== null || detail.status === 'cancelled'}
+              onClick={() => handleRsvp('going')}
+              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-[var(--brand)] px-5 text-xs font-extrabold text-white disabled:opacity-50"
+            >
+              我要參加
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

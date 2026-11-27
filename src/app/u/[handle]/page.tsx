@@ -65,7 +65,7 @@ export default async function PublicPortfolioPage({
             <h1 className="text-2xl font-black text-slate-900">{portfolio.display_name}</h1>
           </div>
           <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-900">
-            實質歷練 1D Portfolio
+            公開社團成長頁
           </span>
         </div>
 
@@ -105,22 +105,28 @@ export default async function PublicPortfolioPage({
           <Layers className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
           社團參與與幹部經歷 ({portfolio.clubs.length})
         </h2>
-        <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
-          {portfolio.clubs.map((c, idx) => (
-            <Link
-              key={`${c.club_id}-${idx}`}
-              href={`/clubs/${c.slug}`}
-              className="rounded-2xl bg-[var(--surface-warm)] p-3.5 text-xs hover:bg-orange-100/70"
-            >
-              <p className="font-bold text-slate-900">
-                {c.university_short_name} · {c.name}
-              </p>
-              <p className="mt-1 text-slate-600">
-                {c.role.toUpperCase()} {c.title ? `(${c.title})` : ''} · {c.is_active ? '現任' : '歷屆'}
-              </p>
-            </Link>
-          ))}
-        </div>
+        {portfolio.clubs.length === 0 ? (
+          <p className="mt-3 text-xs leading-relaxed text-slate-600">
+            目前尚未公開社團職務或歷屆經歷。完成校園驗證並加入社團後，系統會自動整理為公開履歷證據。
+          </p>
+        ) : (
+          <div className="mt-3 grid gap-2.5 sm:grid-cols-2">
+            {portfolio.clubs.map((c, idx) => (
+              <Link
+                key={`${c.club_id}-${idx}`}
+                href={`/clubs/${c.slug}`}
+                className="flex min-h-[44px] flex-col justify-center rounded-2xl bg-[var(--surface-warm)] p-3.5 text-xs hover:bg-orange-100/70"
+              >
+                <p className="font-bold text-slate-900">
+                  {c.university_short_name} · {c.name}
+                </p>
+                <p className="mt-1 text-slate-600">
+                  {c.role.toUpperCase()} {c.title ? `(${c.title})` : ''} · {c.is_active ? '現任' : '歷屆'}
+                </p>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="rounded-3xl border border-[var(--border)] bg-white p-6">
@@ -128,19 +134,25 @@ export default async function PublicPortfolioPage({
           <CalendarCheck className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
           參與活動與公開成果 ({portfolio.works_and_moments.length})
         </h2>
-        <div className="mt-3 space-y-2 text-xs">
-          {portfolio.works_and_moments.map((w) => (
-            <Link
-              key={`${w.source}-${w.id}`}
-              href={w.url}
-              className="block rounded-2xl bg-slate-50 p-3.5 hover:bg-slate-100"
-            >
-              <span className="font-bold text-[var(--brand)]">[{w.kind_label}]</span>{' '}
-              <span className="font-bold text-slate-900">{w.title}</span>
-              <span className="ml-2 text-slate-500">· {w.club_name}</span>
-            </Link>
-          ))}
-        </div>
+        {portfolio.works_and_moments.length === 0 ? (
+          <p className="mt-3 text-xs leading-relaxed text-slate-600">
+            尚未累積公開活動簽到或成果作品。到「別的聚」報名體驗活動並現場簽到，就會記錄在這裡。
+          </p>
+        ) : (
+          <div className="mt-3 space-y-2 text-xs">
+            {portfolio.works_and_moments.map((w) => (
+              <Link
+                key={`${w.source}-${w.id}`}
+                href={w.url}
+                className="flex min-h-[44px] items-center rounded-2xl bg-slate-50 p-3.5 hover:bg-slate-100"
+              >
+                <span className="font-bold text-[var(--brand)]">[{w.kind_label}]</span>{' '}
+                <span className="ml-1 font-bold text-slate-900">{w.title}</span>
+                <span className="ml-2 text-slate-500">· {w.club_name}</span>
+              </Link>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );

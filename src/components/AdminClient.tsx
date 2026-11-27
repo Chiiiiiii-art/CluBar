@@ -69,6 +69,13 @@ export function AdminClient({ data }: { data: AdminPageData }) {
   const [toDate, setToDate] = useState('');
 
   const reviewApp = async (id: string, action: 'approve' | 'reject') => {
+    if (
+      action === 'reject' &&
+      typeof window !== 'undefined' &&
+      !window.confirm('確定要駁回此社團申請嗎？系統將通知申請人。')
+    ) {
+      return;
+    }
     setBusyId(id);
     setMsg(null);
     try {
@@ -93,6 +100,13 @@ export function AdminClient({ data }: { data: AdminPageData }) {
     id: string,
     resolution: 'keep' | 'takedown' | 'suspend_club'
   ) => {
+    if (resolution !== 'keep' && typeof window !== 'undefined') {
+      const promptMsg =
+        resolution === 'suspend_club'
+          ? '確定要停權此社團嗎？停權後公開門面與活動將無法檢視。'
+          : '確定要下架此則檢舉內容嗎？';
+      if (!window.confirm(promptMsg)) return;
+    }
     setBusyId(id);
     setMsg(null);
     try {
@@ -156,7 +170,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
       <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-6 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-bold text-blue-700">Platform Governance Console</p>
+            <p className="text-xs font-bold text-blue-700">社團認證與平台審核</p>
             <h1 className="mt-1 text-2xl font-extrabold text-slate-900">平台治理與數據匯出後台</h1>
           </div>
           <div className="flex flex-wrap gap-2 text-xs font-bold">
@@ -180,7 +194,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
         <button
           type="button"
           onClick={() => setTab('applications')}
-          className={`rounded-xl px-4 py-2 text-xs font-bold ${
+          className={`min-h-[44px] rounded-xl px-4 py-2 text-xs font-bold ${
             tab === 'applications'
               ? 'bg-[var(--primary)] text-white'
               : 'border border-[var(--border-strong)] bg-white text-slate-700'
@@ -191,7 +205,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
         <button
           type="button"
           onClick={() => setTab('reports')}
-          className={`rounded-xl px-4 py-2 text-xs font-bold ${
+          className={`min-h-[44px] rounded-xl px-4 py-2 text-xs font-bold ${
             tab === 'reports'
               ? 'bg-[var(--primary)] text-white'
               : 'border border-[var(--border-strong)] bg-white text-slate-700'
@@ -202,7 +216,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
         <button
           type="button"
           onClick={() => setTab('restore')}
-          className={`rounded-xl px-4 py-2 text-xs font-bold ${
+          className={`min-h-[44px] rounded-xl px-4 py-2 text-xs font-bold ${
             tab === 'restore'
               ? 'bg-[var(--primary)] text-white'
               : 'border border-[var(--border-strong)] bg-white text-slate-700'
@@ -213,7 +227,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
         <button
           type="button"
           onClick={() => setTab('analytics')}
-          className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold ${
+          className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold ${
             tab === 'analytics'
               ? 'bg-[#2563EB] text-white'
               : 'border border-[var(--border-strong)] bg-white text-slate-700'
@@ -281,7 +295,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     type="button"
                     disabled={busyId === app.id}
                     onClick={() => void reviewApp(app.id, 'approve')}
-                    className="inline-flex items-center gap-1 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+                    className="inline-flex min-h-[44px] items-center gap-1 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>核准開通</span>
@@ -290,7 +304,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     type="button"
                     disabled={busyId === app.id}
                     onClick={() => void reviewApp(app.id, 'reject')}
-                    className="inline-flex items-center gap-1 rounded-xl border border-red-300 bg-white px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
+                    className="inline-flex min-h-[44px] items-center gap-1 rounded-xl border border-red-300 bg-white px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
                   >
                     <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>駁回</span>
@@ -320,7 +334,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     {REPORT_REASONS[rep.reason].label}
                   </span>
                   <span className="text-slate-500">
-                    對象：{REPORT_TARGET_LABELS[rep.targetType] ?? rep.targetType} (<code>{rep.targetType}</code>) / <code>{rep.targetId}</code>
+                    對象：{REPORT_TARGET_LABELS[rep.targetType] ?? rep.targetType} · 編號 {rep.targetId.slice(0, 8)}
                   </span>
                 </div>
                 {rep.detail && (
@@ -333,14 +347,14 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                   placeholder="處置說明（若下架或停權將通知該社團社長）"
                   value={notes[rep.id] || ''}
                   onChange={(e) => setNotes((prev) => ({ ...prev, [rep.id]: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs"
+                  className="min-h-[44px] w-full rounded-xl border border-slate-300 px-3 py-2 text-xs"
                 />
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     disabled={busyId === rep.id}
                     onClick={() => void resolveReport(rep.id, 'keep')}
-                    className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700"
+                    className="min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700"
                   >
                     判定保留
                   </button>
@@ -348,7 +362,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     type="button"
                     disabled={busyId === rep.id}
                     onClick={() => void resolveReport(rep.id, 'takedown')}
-                    className="rounded-xl bg-amber-600 px-3.5 py-2 text-xs font-bold text-white"
+                    className="min-h-[44px] rounded-xl bg-amber-600 px-3.5 py-2 text-xs font-bold text-white"
                   >
                     下架此項目內容
                   </button>
@@ -356,7 +370,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     type="button"
                     disabled={busyId === rep.id}
                     onClick={() => void resolveReport(rep.id, 'suspend_club')}
-                    className="rounded-xl bg-red-600 px-3.5 py-2 text-xs font-bold text-white"
+                    className="min-h-[44px] rounded-xl bg-red-600 px-3.5 py-2 text-xs font-bold text-white"
                   >
                     暫停社團發文權限
                   </button>

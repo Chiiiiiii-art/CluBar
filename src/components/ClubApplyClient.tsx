@@ -130,13 +130,14 @@ export function ClubApplyClient({
           <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs text-amber-950">
             <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
             <div>
-              <p className="font-bold">須先完成 `.edu.tw` 校園信箱驗證才可送出申請</p>
+              <p className="font-bold">須先完成校園信箱（.edu.tw）驗證才可送出申請</p>
               <p className="mt-1">
-                請先前往{' '}
-                <Link href="/me" className="font-bold text-blue-700 underline">
-                  個人中心完成校園信箱 OTP 驗證
+                <Link
+                  href="/me?returnTo=/clubs/apply"
+                  className="inline-flex min-h-[44px] items-center font-bold text-blue-700 underline"
+                >
+                  前往個人中心驗證學校信箱 →
                 </Link>
-                。
               </p>
             </div>
           </div>
@@ -151,7 +152,7 @@ export function ClubApplyClient({
             setSelectedClubId('');
             setError(null);
           }}
-          className={`rounded-2xl px-4 py-2.5 text-xs font-bold ${
+          className={`min-h-[44px] rounded-2xl px-4 py-2 text-xs font-bold ${
             tab === 'directory_claim'
               ? 'bg-[var(--primary)] text-white'
               : 'border border-[var(--border-strong)] bg-white text-slate-700'
@@ -165,7 +166,7 @@ export function ClubApplyClient({
             setTab('new_club');
             setError(null);
           }}
-          className={`rounded-2xl px-4 py-2.5 text-xs font-bold ${
+          className={`min-h-[44px] rounded-2xl px-4 py-2 text-xs font-bold ${
             tab === 'new_club'
               ? 'bg-[var(--primary)] text-white'
               : 'border border-[var(--border-strong)] bg-white text-slate-700'
@@ -180,7 +181,7 @@ export function ClubApplyClient({
             setSelectedClubId('');
             setError(null);
           }}
-          className={`rounded-2xl px-4 py-2.5 text-xs font-bold ${
+          className={`min-h-[44px] rounded-2xl px-4 py-2 text-xs font-bold ${
             tab === 'owner_takeover'
               ? 'bg-[var(--primary)] text-white'
               : 'border border-[var(--border-strong)] bg-white text-slate-700'
@@ -206,6 +207,7 @@ export function ClubApplyClient({
         onSubmit={handleSubmit}
         className="space-y-5 rounded-3xl border border-[var(--border-strong)] bg-white p-6 shadow-xs"
       >
+        <fieldset disabled={!campusVerified} className="space-y-5 disabled:opacity-60">
         {tab === 'new_club' ? (
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -372,11 +374,12 @@ export function ClubApplyClient({
         <button
           type="submit"
           disabled={submitting || !campusVerified}
-          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[var(--primary)] px-5 py-3 text-sm font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
+          className="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl bg-[var(--primary)] px-5 py-3 text-sm font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
         >
           <Sparkles className="h-4 w-4" aria-hidden="true" />
           <span>{submitting ? '提交中...' : '送出社團申請'}</span>
         </button>
+        </fieldset>
       </form>
     </div>
   );

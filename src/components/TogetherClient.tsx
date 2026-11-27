@@ -274,25 +274,25 @@ export function TogetherClient({
           <div>
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-[var(--primary)]" aria-hidden="true" />
-              <h1 className="text-xl font-extrabold text-slate-900">一起聚｜跨校同好實作舞台</h1>
+              <h1 className="text-xl font-extrabold text-slate-900">一起聚｜跨校同好舞台</h1>
             </div>
             <p className="mt-1 text-sm text-slate-600">
-              以細分興趣領域串聯各校社團與認證社員，作品試玩、Rebound 接力、跨校 Jam 與前輩經驗傳承。
+              依興趣領域看跨校作品試玩、找友社合作，或向前輩請益。
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             {(
               [
-                ['stage', '作品試玩與 Rebound', Compass],
-                ['jam', `跨校共作 Jam (${jams.length})`, Sparkles],
-                ['mentors', '前輩請益 & 實務經驗', BookOpen],
+                ['stage', '作品試玩與接力', Compass],
+                ['jam', `跨校共創徵集 (${jams.length})`, Sparkles],
+                ['mentors', '前輩請益與筆記', BookOpen],
               ] as const
             ).map(([key, label, Icon]) => (
               <button
                 key={key}
                 type="button"
                 onClick={() => (key === 'mentors' ? openMentorsTab() : setSubTab(key))}
-                className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold ${
+                className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold ${
                   subTab === key
                     ? 'bg-[var(--brand)] text-white'
                     : 'border border-[var(--border-strong)] bg-white text-slate-700 hover:bg-slate-50'
@@ -310,7 +310,7 @@ export function TogetherClient({
           <button
             type="button"
             onClick={() => setSelectedDomain('')}
-            className={`min-h-[34px] rounded-full px-3 text-xs font-semibold ${
+            className={`min-h-[44px] rounded-full px-3.5 text-xs font-semibold ${
               !selectedDomain
                 ? 'bg-slate-900 text-white'
                 : 'bg-[var(--muted)] text-slate-700 hover:bg-orange-100'
@@ -323,7 +323,7 @@ export function TogetherClient({
               key={d.id}
               type="button"
               onClick={() => setSelectedDomain(d.id)}
-              className={`min-h-[34px] rounded-full px-3 text-xs font-semibold ${
+              className={`min-h-[44px] rounded-full px-3.5 text-xs font-semibold ${
                 selectedDomain === d.id
                   ? 'bg-slate-900 text-white'
                   : 'bg-[var(--muted)] text-slate-700 hover:bg-orange-100'
@@ -435,38 +435,53 @@ export function TogetherClient({
             </form>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {filteredItems.map((item) => (
-              <Link
-                key={item.id}
-                href={`/together/${item.id}`}
-                className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 shadow-xs transition hover:border-orange-300"
-              >
-                <div className="flex flex-wrap items-center gap-2 text-xs">
-                  <span className="rounded-full bg-orange-100 px-2.5 py-0.5 font-bold text-orange-900">
-                    #{item.domain_name}
-                  </span>
-                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-semibold text-slate-700">
-                    {TOGETHER_ITEM_TYPE_LABELS[item.item_type]}
-                  </span>
-                  {item.embed_url && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700">
-                      <Link2 className="h-3 w-3" aria-hidden="true" />
-                      可試玩／預覽
+          {filteredItems.length === 0 ? (
+            <div className="space-y-3 rounded-3xl border border-dashed border-[var(--border)] bg-white p-8 text-center text-sm text-slate-500">
+              <p>目前沒有符合此領域的作品試玩或徵集。</p>
+              {selectedDomain && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedDomain('')}
+                  className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border-strong)] bg-white px-4 text-xs font-bold text-slate-800 hover:bg-slate-50"
+                >
+                  查看全部領域
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {filteredItems.map((item) => (
+                <Link
+                  key={item.id}
+                  href={`/together/${item.id}`}
+                  className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 shadow-xs transition hover:border-orange-300"
+                >
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className="rounded-full bg-orange-100 px-2.5 py-0.5 font-bold text-orange-900">
+                      #{item.domain_name}
                     </span>
-                  )}
-                </div>
-                <h2 className="text-base font-extrabold text-slate-900">{item.title}</h2>
-                <p className="line-clamp-3 text-sm text-slate-600">{item.content_md}</p>
-                <div className="mt-auto flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs">
-                  <span className="font-semibold text-blue-700">
-                    {item.club.university_short_name} · {item.club.name}
-                  </span>
-                  <span className="text-slate-500">回覆 {item.reply_count}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-semibold text-slate-700">
+                      {TOGETHER_ITEM_TYPE_LABELS[item.item_type]}
+                    </span>
+                    {item.embed_url && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700">
+                        <Link2 className="h-3 w-3" aria-hidden="true" />
+                        可試玩／預覽
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-base font-extrabold text-slate-900">{item.title}</h2>
+                  <p className="line-clamp-3 text-sm text-slate-600">{item.content_md}</p>
+                  <div className="mt-auto flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs">
+                    <span className="font-semibold text-blue-700">
+                      {item.club.university_short_name} · {item.club.name}
+                    </span>
+                    <span className="text-slate-500">回覆 {item.reply_count}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -555,8 +570,17 @@ export function TogetherClient({
           )}
 
           {filteredJams.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-[var(--border)] bg-white p-8 text-center text-sm text-slate-500">
-              此領域目前沒有開放中的跨校 Jam 徵集。
+            <div className="space-y-3 rounded-3xl border border-dashed border-[var(--border)] bg-white p-8 text-center text-sm text-slate-500">
+              <p>此領域目前沒有開放中的跨校共創徵集。</p>
+              {selectedDomain && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedDomain('')}
+                  className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border-strong)] bg-white px-4 text-xs font-bold text-slate-800 hover:bg-slate-50"
+                >
+                  查看全部領域
+                </button>
+              )}
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
@@ -610,15 +634,18 @@ export function TogetherClient({
           <section className="space-y-4 rounded-3xl border border-[var(--border)] bg-white p-6">
             <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
               <HandHeart className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
-              歷屆學長姐經驗請益牆 (Alumni Ping)
+              歷屆前輩請益牆
             </h2>
             {!isCampusVerified ? (
               <p className="text-xs text-slate-600">
-                為保護前輩隱私與避免垃圾訊息，須{' '}
-                <Link href="/me" className="font-bold text-[var(--brand)] underline">
-                  完成 .edu.tw 校園信箱驗證
+                為保護前輩隱私，需{' '}
+                <Link
+                  href="/me?returnTo=/together"
+                  className="inline-flex min-h-[44px] items-center font-bold text-[var(--brand)] underline"
+                >
+                  完成校園信箱驗證
                 </Link>{' '}
-                才能瀏覽與發起 1 對 1 請益（每人每日上限 3 次）。
+                才可發起 1 對 1 請益（每人每日上限 3 次）。
               </p>
             ) : alumni.length === 0 ? (
               <p className="text-xs text-slate-500">目前尚無開啟請益接待的前輩名錄。</p>
@@ -727,27 +754,42 @@ export function TogetherClient({
           {/* Practical Resources */}
           <section className="space-y-4 rounded-3xl border border-[var(--border)] bg-white p-6">
             <h2 className="text-base font-extrabold text-slate-900">
-              跨校去識別化實務經驗清單（前屆換屆共筆與行政備忘）
+              跨校前輩實務筆記（去識別化共筆與行政備忘）
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {filteredResources.map((r) => (
-                <article
-                  key={r.id}
-                  className="space-y-2 rounded-2xl border border-[var(--border)] bg-slate-50 p-4"
-                >
-                  <div className="flex items-center justify-between text-[11px] font-bold">
-                    <span className="rounded-full bg-orange-100 px-2 py-0.5 text-orange-900">
-                      #{r.domain_name}
-                    </span>
-                    <span className="text-slate-500">來源：{r.source_university_short_name}</span>
-                  </div>
-                  <h3 className="text-sm font-extrabold text-slate-900">{r.title}</h3>
-                  <p className="whitespace-pre-wrap text-xs leading-relaxed text-slate-700">
-                    {r.content_md}
-                  </p>
-                </article>
-              ))}
-            </div>
+            {filteredResources.length === 0 ? (
+              <div className="space-y-3 rounded-2xl border border-dashed border-[var(--border)] bg-slate-50/70 p-6 text-center text-xs text-slate-600">
+                <p>此領域目前還沒有跨校實務筆記。</p>
+                {selectedDomain && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDomain('')}
+                    className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border-strong)] bg-white px-4 font-bold text-slate-800 hover:bg-slate-50"
+                  >
+                    查看全部領域
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {filteredResources.map((r) => (
+                  <article
+                    key={r.id}
+                    className="space-y-2 rounded-2xl border border-[var(--border)] bg-slate-50 p-4"
+                  >
+                    <div className="flex items-center justify-between text-[11px] font-bold">
+                      <span className="rounded-full bg-orange-100 px-2 py-0.5 text-orange-900">
+                        #{r.domain_name}
+                      </span>
+                      <span className="text-slate-500">來源：{r.source_university_short_name}</span>
+                    </div>
+                    <h3 className="text-sm font-extrabold text-slate-900">{r.title}</h3>
+                    <p className="whitespace-pre-wrap text-xs leading-relaxed text-slate-700">
+                      {r.content_md}
+                    </p>
+                  </article>
+                ))}
+              </div>
+            )}
 
             {isCampusVerified && (
               <form

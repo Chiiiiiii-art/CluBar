@@ -66,69 +66,89 @@ export function BlendClient({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <section className="rounded-3xl border border-[var(--border-strong)] bg-gradient-to-br from-orange-50 via-white to-blue-50 p-6 shadow-xs sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-900">
-            <Sparkles className="h-3.5 w-3.5" />
-            CluBar 校園興趣 Blend
-          </span>
-          <span className="text-xs font-semibold text-slate-600">{universityName}</span>
-        </div>
-
-        <h1 className="mt-4 text-2xl font-extrabold text-slate-900 sm:text-3xl">
-          {partnerName
-            ? `${creatorName} × ${partnerName}：合拍指數 ${matchScore ?? 75}%`
-            : `${creatorName} 邀請你做一場校園興趣合拍！`}
-        </h1>
-
-        {sharedDomains.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {sharedDomains.map((d) => (
-              <span
-                key={d}
-                className="rounded-full border border-[var(--border-strong)] bg-white px-3.5 py-1 text-xs font-bold text-orange-900"
-              >
-                #{d}
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-900">
+                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                校園興趣合拍結果
               </span>
-            ))}
+              <span className="text-xs font-semibold text-slate-600">{universityName}</span>
+            </div>
+
+            <h1 className="mt-4 text-2xl font-extrabold text-slate-900 sm:text-3xl">
+              {partnerName
+                ? `${creatorName} × ${partnerName}：合拍指數 ${matchScore ?? 75}%`
+                : `${creatorName} 邀請你做一場校園興趣合拍！`}
+            </h1>
+
+            {sharedDomains.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {sharedDomains.map((d) => (
+                  <span
+                    key={d}
+                    className="rounded-full border border-[var(--border-strong)] bg-white px-3.5 py-1 text-xs font-bold text-orange-900"
+                  >
+                    #{d}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {error && (
+              <p className="mt-4 rounded-xl bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+                {error}
+              </p>
+            )}
+
+            <div className="mt-6 flex flex-wrap gap-2.5">
+              {!partnerName && !isCreator && !isExpired && (
+                <button
+                  type="button"
+                  disabled={joining}
+                  onClick={handleJoin}
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[var(--primary)] px-5 text-sm font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
+                >
+                  <Users className="h-4 w-4" aria-hidden="true" />
+                  <span>{joining ? '合拍計算中...' : isLoggedIn ? '加入雙人合拍（看共同推薦）' : '登入加入合拍'}</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={copyLink}
+                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[var(--border-strong)] bg-white px-4 text-xs font-bold text-slate-800"
+              >
+                {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                <span>{copied ? '已複製邀請連結' : '複製邀請連結給朋友'}</span>
+              </button>
+
+              <a
+                href={`/api/og/blend/${shortCode}?format=story`}
+                download={`clubar-blend-${shortCode}.png`}
+                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-4 text-xs font-bold text-blue-800 hover:bg-blue-100"
+              >
+                <Download className="h-4 w-4" aria-hidden="true" />
+                <span>下載 IG 限動分享卡</span>
+              </a>
+
+              <Link
+                href="/"
+                className="inline-flex min-h-[44px] items-center rounded-xl border border-[var(--border)] bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50"
+              >
+                回別的聚逛活動 →
+              </Link>
+            </div>
           </div>
-        )}
 
-        {error && (
-          <p className="mt-4 rounded-xl bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
-            {error}
-          </p>
-        )}
-
-        <div className="mt-6 flex flex-wrap gap-2.5">
-          {!partnerName && !isCreator && !isExpired && (
-            <button
-              type="button"
-              disabled={joining}
-              onClick={handleJoin}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[var(--primary)] px-5 text-sm font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
-            >
-              <Users className="h-4 w-4" />
-              <span>{joining ? '合拍計算中...' : isLoggedIn ? '加入雙人合拍（看共同推薦）' : '登入與 TA 合拍'}</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={copyLink}
-            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[var(--border-strong)] bg-white px-4 text-xs font-bold text-slate-800"
-          >
-            {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-            <span>{copied ? '已複製邀請連結' : '複製邀請連結給朋友'}</span>
-          </button>
-
-          <a
-            href={`/api/og/blend/${shortCode}?format=story`}
-            download={`clubar-blend-${shortCode}.png`}
-            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-4 text-xs font-bold text-blue-800 hover:bg-blue-100"
-          >
-            <Download className="h-4 w-4" />
-            <span>下載 IG 限動 9:16 分享卡</span>
-          </a>
+          <div className="mx-auto w-36 shrink-0 overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-white shadow-sm sm:mx-0 sm:w-40">
+            <img
+              src={`/api/og/blend/${shortCode}?format=story`}
+              alt="IG 限動 9:16 合拍分享卡預覽"
+              className="aspect-[9/16] w-full object-cover"
+              loading="lazy"
+            />
+          </div>
         </div>
       </section>
 

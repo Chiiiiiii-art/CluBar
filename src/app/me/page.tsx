@@ -17,15 +17,34 @@ import {
 } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { buildUserPortfolio } from '@/lib/services/portfolio';
+import { sanitizeInternalPath } from '@/lib/validators';
 import { MeClient, type MePageData } from '@/components/MeClient';
 
 export const dynamic = 'force-dynamic';
 
-export default async function MePage() {
-  if (!isDatabaseConfigured()) redirect('/login?callbackUrl=/me');
+export default async function MePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ returnTo?: string }>;
+}) {
+  const sp = await searchParams;
+  const safeReturnTo = sanitizeInternalPath(sp.returnTo, '');
+  if (!isDatabaseConfigured()) {
+    redirect(
+      safeReturnTo
+        ? `/login?callbackUrl=${encodeURIComponent(`/me?returnTo=${safeReturnTo}`)}`
+        : '/login?callbackUrl=/me'
+    );
+  }
 
   const user = await getCurrentUser();
-  if (!user) redirect('/login?callbackUrl=/me');
+  if (!user) {
+    redirect(
+      safeReturnTo
+        ? `/login?callbackUrl=${encodeURIComponent(`/me?returnTo=${safeReturnTo}`)}`
+        : '/login?callbackUrl=/me'
+    );
+  }
 
   const [
     [uniRow],
@@ -213,6 +232,7 @@ export default async function MePage() {
   return (
     <MeClient
       data={data}
+      returnTo={safeReturnTo}
       signOutAction={async () => {
         'use server';
         await signOut({ redirectTo: '/' });

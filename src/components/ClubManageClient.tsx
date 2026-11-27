@@ -28,6 +28,7 @@ import type {
   PostStatus,
 } from '@/db/schema';
 import { formatTaipeiDate } from '@/lib/academic-year';
+import { shouldRouteDraftToEvent } from '@/lib/validators';
 import { uploadShortVideo } from '@/lib/media/client-upload';
 import { POST_KIND_LABELS } from '@/lib/constants';
 import { ImageUploader } from '@/components/ImageUploader';
@@ -634,6 +635,14 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
 
   async function handleStartHandover(e: React.FormEvent) {
     e.preventDefault();
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm(
+        `確定要向 ${handoverEmail.trim()} 發起社長交接嗎？對方接受後，社長管理權限將正式移交。`
+      )
+    ) {
+      return;
+    }
     setBusy('handover');
     setBannerErr(null);
     try {
@@ -697,8 +706,8 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
 
       <div className="flex flex-wrap gap-2">
         {[
-          { key: 'events', label: '活動與喬時間', icon: Calendar },
-          { key: 'posts', label: 'Vision 海報 AI & 發文', icon: FileText },
+          { key: 'events', label: '活動與投票時間', icon: Calendar },
+          { key: 'posts', label: '海報轉草稿 & 發文', icon: FileText },
           { key: 'members', label: '社員邀請碼 & 幹部', icon: Users },
           { key: 'questions', label: '問答箱 & FAQ', icon: HelpCircle },
           { key: 'evaluation', label: '評鑑密件 & 報告匯出', icon: Archive },
@@ -710,7 +719,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               key={t.key}
               type="button"
               onClick={() => switchTab(t.key as typeof tab)}
-              className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-xl px-4 text-xs font-bold ${
+              className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 text-xs font-bold ${
                 tab === t.key
                   ? 'bg-[var(--brand)] text-white'
                   : 'border border-[var(--border-strong)] bg-white text-slate-700 hover:bg-slate-50'
@@ -731,7 +740,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               onSubmit={handleCreateEvent}
               className="space-y-4 rounded-3xl border border-[var(--border-strong)] bg-white p-6"
             >
-              <h2 className="text-base font-extrabold text-slate-900">建立 Partiful 風格體驗活動</h2>
+              <h2 className="text-base font-extrabold text-slate-900">建立體驗活動</h2>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="mb-1 block text-xs font-bold text-slate-700">活動名稱 *</label>
@@ -1004,43 +1013,60 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   </button>
                 </div>
 
-                {aiResult && (
-                  <div className="space-y-2 rounded-2xl bg-white p-4 text-xs">
-                    {aiResult.degraded && (
-                      <p className="font-bold text-amber-800">
-                        {aiResult.warnings.join(' ')}
-                      </p>
-                    )}
-                    <p className="font-bold text-slate-900">抽出標題：{aiResult.draft.title}</p>
-                    <p className="text-slate-700">{aiResult.draft.summary}</p>
-                    {aiResult.draft.missing_beginner_fields.length > 0 && (
-                      <p className="font-semibold text-orange-800">
-                        ⚠️ 海報未載明新手資訊建議補填：{aiResult.draft.missing_beginner_fields.join('、')}
-                      </p>
-                    )}
-                    {aiResult.draft.poster_text_heavy && (
-                      <p className="font-semibold text-blue-800">
-                        💡 偵測到海報文字密集，建議於活動頁補純文字時間地點以利螢幕閱讀與搜尋。
-                      </p>
-                    )}
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      <button
-                        type="button"
-                        onClick={applyAiToEvent}
-                        className="rounded-full bg-[var(--brand)] px-3.5 py-1.5 font-bold text-white"
-                      >
-                        帶入「建立活動」表單
-                      </button>
-                      <button
-                        type="button"
-                        onClick={applyAiToPost}
-                        className="rounded-full border border-[var(--border-strong)] px-3.5 py-1.5 font-bold text-slate-800"
-                      >
-                        帶入下方「作品／日常」表單
-                      </button>
-                    </div>
-                  </div>
-                )}
+                {aiResult &&
+                  (() => {
+                    const preferEvent = shouldRouteDraftToEvent(aiResult.draft, aiRawText);
+                    return (
+                      <div className="space-y-2 rounded-2xl bg-white p-4 text-xs">
+                        {aiResult.degraded && (
+                          <p className="font-bold text-amber-800">
+                            {aiResult.warnings.join(' ')}
+                          </p>
+                        )}
+                        <p className="font-bold text-slate-900">抽出標題：{aiResult.draft.title}</p>
+                        <p className="text-slate-700">{aiResult.draft.summary}</p>
+                        {preferEvent && (
+                          <p className="rounded-xl border border-orange-200 bg-orange-50 px-3 py-2 font-semibold text-orange-950">
+                            偵測到活動招募／時間地點資訊：建議直接「帶入建立活動」開放報名或投票時間，避免活動宣傳海報混入日常動態牆。
+                          </p>
+                        )}
+                        {aiResult.draft.missing_beginner_fields.length > 0 && (
+                          <p className="font-semibold text-orange-800">
+                            新手資訊建議補填：{aiResult.draft.missing_beginner_fields.join('、')}
+                          </p>
+                        )}
+                        {aiResult.draft.poster_text_heavy && (
+                          <p className="font-semibold text-blue-800">
+                            偵測到海報文字較密，建議補純文字時間地點以利搜尋與閱讀。
+                          </p>
+                        )}
+                        <div className="flex flex-wrap gap-2 pt-2">
+                          <button
+                            type="button"
+                            onClick={applyAiToEvent}
+                            className={`min-h-[44px] rounded-full px-4 font-bold ${
+                              preferEvent
+                                ? 'bg-[var(--brand)] text-white'
+                                : 'border border-[var(--border-strong)] bg-white text-slate-800 hover:bg-slate-50'
+                            }`}
+                          >
+                            帶入「建立活動」表單
+                          </button>
+                          <button
+                            type="button"
+                            onClick={applyAiToPost}
+                            className={`min-h-[44px] rounded-full px-4 font-bold ${
+                              preferEvent
+                                ? 'border border-[var(--border-strong)] bg-white text-slate-600 hover:bg-slate-50'
+                                : 'bg-[var(--brand)] text-white'
+                            }`}
+                          >
+                            {preferEvent ? '仍要帶入「作品／日常」表單' : '帶入下方「作品／日常」表單'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
               </div>
 
               <form
@@ -1549,19 +1575,21 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 placeholder="常用廠商／器材維修窗口備忘"
                 className="w-full rounded-xl border border-[var(--border)] p-3 text-xs"
               />
-              <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-700">
+              <label className="flex min-h-[44px] cursor-pointer items-center gap-2.5 text-xs text-slate-700">
                 <input
                   type="checkbox"
                   checked={shareDeid}
                   onChange={(e) => setShareDeid(e.target.checked)}
+                  className="h-4 w-4 rounded accent-[var(--brand)]"
                 />
-                <Check className="h-3.5 w-3.5 text-emerald-600" />
-                同意將上述通用經驗去識別化後公開至「一起聚 → 實務經驗清單」造福他校幹部
+                <span>
+                  同意將以上去識別化經驗公開至「一起聚 → 前輩請益與筆記」（個人與社團聯絡方式不會公開）
+                </span>
               </label>
               <button
                 type="submit"
                 disabled={busy === 'handover'}
-                className="rounded-full bg-[var(--brand)] px-5 py-2 text-xs font-extrabold text-white"
+                className="min-h-[44px] rounded-full bg-[var(--brand)] px-5 py-2 text-xs font-extrabold text-white"
               >
                 送出交接邀請與避雷便條
               </button>

@@ -128,16 +128,22 @@ export function TogetherDetailClient({
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 pb-12">
-      <Link href="/together" className="inline-flex text-xs font-bold text-slate-600 hover:underline">
-        ← 返回一起聚跨校舞台
+    <div className="mx-auto max-w-3xl min-w-0 space-y-6 overflow-hidden pb-12">
+      <Link
+        href="/together"
+        className="inline-flex min-h-[44px] items-center text-xs font-bold text-slate-600 hover:underline"
+      >
+        ← 返回一起聚
       </Link>
 
       {parentItem && (
-        <div className="rounded-2xl border border-orange-200 bg-[var(--surface-warm)] px-4 py-3 text-xs">
+        <div className="break-words rounded-2xl border border-orange-200 bg-[var(--surface-warm)] px-4 py-3 text-xs">
           <Repeat2 className="mr-1.5 inline h-3.5 w-3.5 text-[var(--brand)]" aria-hidden="true" />
           接力回應自{' '}
-          <Link href={`/together/${parentItem.id}`} className="font-bold text-[var(--brand)] underline">
+          <Link
+            href={`/together/${parentItem.id}`}
+            className="break-words font-bold text-[var(--brand)] underline"
+          >
             {parentItem.club_name}｜{parentItem.title}
           </Link>
         </div>
@@ -178,9 +184,9 @@ export function TogetherDetailClient({
             href={item.embed_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-strong)] bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-100"
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-[var(--border-strong)] bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-100"
           >
-            開啟白名單作品連結
+            開啟作品連結
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
           </a>
         )}
@@ -190,10 +196,10 @@ export function TogetherDetailClient({
             <button
               type="button"
               onClick={() => setShowRebound((v) => !v)}
-              className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white"
             >
               <Repeat2 className="h-3.5 w-3.5" aria-hidden="true" />
-              發起 Rebound 接力回應此作品
+              接力回應此作品
             </button>
           </div>
         )}
@@ -213,7 +219,7 @@ export function TogetherDetailClient({
           onSubmit={handleCreateRebound}
           className="space-y-3 rounded-3xl border border-orange-200 bg-[var(--surface-warm)] p-6 text-xs"
         >
-          <p className="font-bold text-slate-900">代表社團發布 Rebound 接力作品</p>
+          <p className="font-bold text-slate-900">代表社團發布接力回應</p>
           <select
             value={replyClubId}
             onChange={(e) => setReplyClubId(e.target.value)}
@@ -250,9 +256,9 @@ export function TogetherDetailClient({
           <button
             type="submit"
             disabled={busy === 'rebound'}
-            className="rounded-full bg-[var(--brand)] px-4 py-2 font-bold text-white"
+            className="min-h-[44px] rounded-full bg-[var(--brand)] px-4 py-2 font-bold text-white"
           >
-            送出 Rebound
+            送出接力作品
           </button>
         </form>
       )}
@@ -260,7 +266,7 @@ export function TogetherDetailClient({
       {rebounds.length > 0 && (
         <section className="space-y-2 rounded-3xl border border-[var(--border)] bg-white p-6">
           <h2 className="text-sm font-extrabold text-slate-900">
-            Rebound 接力衍生牆 ({rebounds.length})
+            接力回應作品 ({rebounds.length})
           </h2>
           {rebounds.map((rb) => (
             <Link
@@ -313,7 +319,7 @@ export function TogetherDetailClient({
           </form>
         ) : (
           <p className="text-xs text-slate-500">
-            認證社員或社團幹部登入並切換「我的社團」即可代表社團參與交流。
+            認證社員或幹部登入並從「我的聚」代表社團後即可參與交流。
           </p>
         )}
 

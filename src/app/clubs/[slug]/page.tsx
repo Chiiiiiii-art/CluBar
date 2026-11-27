@@ -151,17 +151,17 @@ export default async function ClubPublicPage({
           <div className="flex items-start gap-2.5 text-sm text-amber-950">
             <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
             <div>
-              <p className="font-bold">尚未認領之校方名錄社團</p>
+              <p className="font-bold">這個社團還沒在社團聚開通主頁</p>
               <p className="text-xs text-amber-900">
-                若您是本社團現任幹部，歡迎申請認證接管並開始發布活動與日常紀錄。
+                目前僅列出校方公開名錄資料。如果你是幹部，認領後就能放上活動與日常紀錄。
               </p>
             </div>
           </div>
           <Link
             href={`/clubs/apply?claim=${encodeURIComponent(publicClub.slug)}`}
-            className="shrink-0 rounded-xl bg-[var(--primary)] px-4 py-2 text-center text-xs font-bold text-white"
+            className="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-xl bg-[var(--primary)] px-4 text-center text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
           >
-            申請認領社團
+            認領這個社團
           </Link>
         </div>
       )}
@@ -195,15 +195,21 @@ export default async function ClubPublicPage({
                 >
                   {categoryMeta.label}
                 </span>
-                {publicClub.verification_status === 'verified' && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-0.5 text-xs font-bold text-blue-700">
-                    <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                    官方認證社團
+                {publicClub.verification_status === 'verified' ? (
+                  <>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-0.5 text-xs font-bold text-blue-700">
+                      <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                      官方認證社團
+                    </span>
+                    <span className="rounded-full bg-emerald-50 px-3 py-0.5 text-xs font-semibold text-emerald-700">
+                      {publicClub.pulse_label}
+                    </span>
+                  </>
+                ) : (
+                  <span className="rounded-full bg-amber-100 px-3 py-0.5 text-xs font-semibold text-amber-900">
+                    待認領校方名錄
                   </span>
                 )}
-                <span className="rounded-full bg-emerald-50 px-3 py-0.5 text-xs font-semibold text-emerald-700">
-                  {publicClub.pulse_label}
-                </span>
               </div>
               <h1 className="text-2xl font-extrabold text-slate-900 sm:text-3xl">
                 {publicClub.name}
@@ -238,14 +244,34 @@ export default async function ClubPublicPage({
           )}
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--border)] pt-4">
-            <ClubOfficialLinks clubId={publicClub.id} links={publicClub.external_links} />
+            <ClubOfficialLinks
+              clubId={publicClub.id}
+              links={
+                publicClub.verification_status === 'unclaimed_directory'
+                  ? [
+                      ...(publicClub.official_directory_url
+                        ? [
+                            {
+                              type: 'website' as const,
+                              label: '校方社團官方名錄',
+                              url: publicClub.official_directory_url,
+                            },
+                          ]
+                        : []),
+                      ...publicClub.external_links.filter(
+                        (l) => !l.url.includes('example.com')
+                      ),
+                    ]
+                  : publicClub.external_links
+              }
+            />
             {(membershipRole === 'owner' ||
               membershipRole === 'editor' ||
               membershipRole === 'alumni' ||
               currentUser?.platformRole === 'platform_admin') && (
               <Link
                 href={`/clubs/${publicClub.slug}/manage`}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-800 hover:bg-slate-50"
+                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-800 hover:bg-slate-50"
               >
                 <Settings className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>社團管理後台</span>
@@ -303,49 +329,78 @@ export default async function ClubPublicPage({
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-xl font-extrabold text-slate-900">社團日常與代表作品牆</h2>
-          <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-900">
-            本學期共同累積 {nrcCount} 則社員日常足跡
-          </span>
+          {publicClub.verification_status === 'verified' && (
+            <span className="rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-900">
+              本學期共同累積 {nrcCount} 則社員日常足跡
+            </span>
+          )}
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {publicPosts.map((post) => {
-            const kindMeta = POST_KIND_LABELS[post.post_kind];
-            const firstMedia = post.media_items[0];
-            return (
-              <Link
-                key={post.id}
-                href={`/posts/${post.id}`}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-xs hover:shadow-md"
-              >
-                <div
-                  className="relative bg-[var(--muted)]"
-                  style={{ aspectRatio: clampedAspectRatio(firstMedia?.width, firstMedia?.height) }}
+        {publicPosts.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-[var(--border-strong)] bg-white p-8 text-center">
+            <p className="text-sm font-bold text-slate-900">這個社團目前還沒有公開作品或日常紀錄</p>
+            <p className="mt-1 text-xs text-slate-600">
+              {publicClub.verification_status === 'unclaimed_directory'
+                ? '等現任幹部完成認領後，就會陸續放上社團簡介、體驗活動與日常照片。'
+                : '社團剛開通主頁，歡迎先從下方問答箱提問或稍後再回來看看。'}
+            </p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2.5">
+              {publicClub.verification_status === 'unclaimed_directory' && (
+                <Link
+                  href={`/clubs/apply?claim=${encodeURIComponent(publicClub.slug)}`}
+                  className="inline-flex min-h-[44px] items-center rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
                 >
-                  <img
-                    src={firstMedia?.url || '/images/demo/moment-4x5.svg'}
-                    alt={firstMedia?.alt || post.headline}
-                    loading="lazy"
-                    className="h-full w-full object-cover"
-                  />
-                  <span
-                    className={`absolute top-3 left-3 rounded-full px-2.5 py-0.5 text-xs font-bold ${kindMeta.badgeClass}`}
-                  >
-                    {kindMeta.label}
-                  </span>
-                </div>
-                <div className="flex flex-1 flex-col gap-2 p-4">
-                  <h3 className="line-clamp-2 text-sm font-bold text-slate-900 group-hover:text-[var(--primary)]">
-                    {post.headline}
-                  </h3>
-                  <span className="mt-auto text-xs text-slate-500">
-                    {formatTaipeiDate(post.published_at)}
-                  </span>
-                </div>
+                  我是幹部，立即認領
+                </Link>
+              )}
+              <Link
+                href="/"
+                className="inline-flex min-h-[44px] items-center rounded-xl border border-[var(--border-strong)] bg-[var(--muted)] px-4 text-xs font-bold text-slate-800 hover:bg-orange-100"
+              >
+                回別的聚看其他社團
               </Link>
-            );
-          })}
-        </div>
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {publicPosts.map((post) => {
+              const kindMeta = POST_KIND_LABELS[post.post_kind];
+              const firstMedia = post.media_items[0];
+              return (
+                <Link
+                  key={post.id}
+                  href={`/posts/${post.id}`}
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-xs hover:shadow-md"
+                >
+                  <div
+                    className="relative bg-[var(--muted)]"
+                    style={{ aspectRatio: clampedAspectRatio(firstMedia?.width, firstMedia?.height) }}
+                  >
+                    <img
+                      src={firstMedia?.url || '/images/demo/moment-4x5.svg'}
+                      alt={firstMedia?.alt || post.headline}
+                      loading="lazy"
+                      className="h-full w-full object-cover"
+                    />
+                    <span
+                      className={`absolute top-3 left-3 rounded-full px-2.5 py-0.5 text-xs font-bold ${kindMeta.badgeClass}`}
+                    >
+                      {kindMeta.label}
+                    </span>
+                  </div>
+                  <div className="flex flex-1 flex-col gap-2 p-4">
+                    <h3 className="line-clamp-2 text-sm font-bold text-slate-900 group-hover:text-[var(--primary)]">
+                      {post.headline}
+                    </h3>
+                    <span className="mt-auto text-xs text-slate-500">
+                      {formatTaipeiDate(post.published_at)}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {questions.length > 0 && (

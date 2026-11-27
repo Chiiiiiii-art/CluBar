@@ -53,6 +53,13 @@ export function OnboardingClient({
   const [result, setResult] = useState<RecommendResult | null>(null);
   const [blendLoading, setBlendLoading] = useState(false);
 
+  const goStep = (next: 1 | 2 | 3) => {
+    setStep(next);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   const toggleGoal = (id: string) => {
     setGoals((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < 2 ? [...prev, id] : [prev[1]!, id]
@@ -82,7 +89,7 @@ export function OnboardingClient({
       const json = await res.json();
       if (res.ok) {
         setResult(json);
-        setStep(3);
+        goStep(3);
         document.cookie = `clubar_univ=${encodeURIComponent(universityId)}; path=/; max-age=2592000; SameSite=Lax`;
         window.localStorage.setItem(
           'clubar_onboarding',
@@ -136,8 +143,8 @@ export function OnboardingClient({
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="rounded-3xl border border-[var(--border-strong)] bg-white p-6 shadow-xs sm:p-8">
         <div className="flex items-center gap-2 text-xs font-bold text-[var(--primary)]">
-          <Sparkles className="h-4 w-4" />
-          <span>免登入適性破冰（步驟 {step} / 3）</span>
+          <Sparkles className="h-4 w-4" aria-hidden="true" />
+          <span>免登入找社團方向（步驟 {step} / 3）</span>
         </div>
 
         {step === 1 && (
@@ -166,11 +173,11 @@ export function OnboardingClient({
             <div className="flex justify-end">
               <button
                 type="button"
-                onClick={() => setStep(2)}
+                onClick={() => goStep(2)}
                 className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[var(--primary)] px-6 text-sm font-bold text-white"
               >
                 <span>下一步</span>
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -208,7 +215,7 @@ export function OnboardingClient({
                     key={d.id}
                     type="button"
                     onClick={() => toggleDomain(d.id)}
-                    className={`min-h-[40px] rounded-full px-4 text-xs font-bold ${
+                    className={`min-h-[44px] rounded-full px-4 text-xs font-bold ${
                       domainIds.includes(d.id)
                         ? 'bg-[var(--primary)] text-white'
                         : 'bg-[var(--muted)] text-slate-700 hover:bg-orange-100'
@@ -228,9 +235,9 @@ export function OnboardingClient({
                     key={v.id}
                     type="button"
                     onClick={() => setVibe(v.id)}
-                    className={`min-h-[40px] rounded-xl border px-3.5 text-xs font-bold ${
+                    className={`min-h-[44px] rounded-xl border px-3.5 text-xs font-bold ${
                       vibe === v.id
-                        ? 'border-blue-600 bg-blue-50 text-blue-900'
+                        ? 'border-[var(--primary)] bg-orange-50 text-orange-950'
                         : 'border-slate-200 bg-white text-slate-700'
                     }`}
                   >
@@ -243,7 +250,7 @@ export function OnboardingClient({
             <div className="flex justify-between">
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={() => goStep(1)}
                 className="min-h-[44px] rounded-xl border border-slate-300 px-4 text-xs font-bold text-slate-700"
               >
                 上一步
@@ -255,7 +262,7 @@ export function OnboardingClient({
                 className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[var(--primary)] px-6 text-sm font-bold text-white disabled:opacity-50"
               >
                 <span>{loading ? '配對中...' : '立刻看結果（免註冊）'}</span>
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -273,8 +280,8 @@ export function OnboardingClient({
                   onClick={handleCreateBlend}
                   className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
                 >
-                  <Share2 className="h-4 w-4" />
-                  <span>{isLoggedIn ? '生成專屬分享圖卡 & 邀朋友 Blend' : '登入生成個人興趣 Blend 分享卡'}</span>
+                  <Share2 className="h-4 w-4" aria-hidden="true" />
+                  <span>{isLoggedIn ? '做一張分享卡，約朋友合拍' : '登入做個人興趣分享卡'}</span>
                 </button>
                 <Link
                   href={`/?university_id=${encodeURIComponent(universityId)}`}

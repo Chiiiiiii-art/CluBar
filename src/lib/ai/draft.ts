@@ -293,3 +293,5 @@ export async function generateVisionOrRawDraft(
     };
   }
 }
+
+export { shouldRouteDraftToEvent } from '@/lib/validators';

@@ -78,6 +78,7 @@ export function DiscoverClient({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showOnboardingPrompt, setShowOnboardingPrompt] = useState(false);
+  const [showExamples, setShowExamples] = useState(false);
 
   useEffect(() => {
     try {
@@ -161,7 +162,7 @@ export function DiscoverClient({
       if (opts.beginnerOnly) sp.set('beginner_only', 'true');
       if (opts.nonMemberOnly) sp.set('non_member_only', 'true');
       if (opts.freeOnly) sp.set('free_only', 'true');
-      if (opts.hoursOnly) sp.set('hours_type', 'life');
+      if (opts.hoursOnly) sp.set('has_hours', 'true');
       if (opts.votingOnly) sp.set('voting_only', 'true');
       if (opts.excludeIds?.length) sp.set('exclude_ids', opts.excludeIds.join(','));
 
@@ -271,17 +272,44 @@ export function DiscoverClient({
     }
   };
 
+  const hasActiveEventFilters =
+    dateRange !== 'all' ||
+    beginnerOnly ||
+    nonMemberOnly ||
+    freeOnly ||
+    hoursOnly ||
+    votingOnly ||
+    Boolean(selectedDomainId) ||
+    Boolean(activeNlQuery);
+
+  const resetAllFilters = () => {
+    setQuery('');
+    setActiveNlQuery(null);
+    setSelectedDomainId('');
+    setDateRange('all');
+    setBeginnerOnly(false);
+    setNonMemberOnly(false);
+    setFreeOnly(false);
+    setHoursOnly(false);
+    setVotingOnly(false);
+    if (activeTab === 'stream') {
+      void loadStream({ uniId: selectedUniId });
+    } else {
+      void loadEvents({ uniId: selectedUniId });
+    }
+  };
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* First-visit zero-friction onboarding invitation */}
       {showOnboardingPrompt && (
-        <section className="flex flex-col justify-between gap-3 rounded-3xl border border-orange-300 bg-gradient-to-r from-orange-50 via-amber-50 to-blue-50 p-4 shadow-xs sm:flex-row sm:items-center sm:p-5">
-          <div className="space-y-1">
+        <section className="flex flex-col justify-between gap-2.5 rounded-2xl border border-orange-300 bg-gradient-to-r from-orange-50 via-amber-50 to-blue-50 px-4 py-3 shadow-xs sm:flex-row sm:items-center">
+          <div className="min-w-0">
             <p className="text-sm font-extrabold text-slate-900">
-              第一次找社團？30 秒免註冊測出你的校園興趣 Blend
+              30 秒挑出適合你的社團
             </p>
             <p className="text-xs text-slate-600">
-              選你的學校與 2–3 個偏好問題，立即濾出零基礎友善體驗與潛在寶藏小社團，還能約朋友合拍。
+              選學校與偏好，免註冊看對應作品與體驗課。
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
@@ -289,13 +317,13 @@ export function DiscoverClient({
               href="/onboarding"
               className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
             >
-              <span>開始適性破冰</span>
-              <ArrowRight className="h-4 w-4" />
+              <span>開始挑選</span>
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <button
               type="button"
               onClick={() => setShowOnboardingPrompt(false)}
-              className="min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-white px-3 text-xs font-semibold text-slate-600"
+              className="min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-orange-50"
             >
               先逛逛
             </button>
@@ -303,22 +331,22 @@ export function DiscoverClient({
         </section>
       )}
 
-      {/* Lightweight progressive discovery capsule + sibling tabs */}
-      <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-4 shadow-xs sm:p-5">
-        <div className="flex flex-col gap-3">
+      {/* Compact discovery bar + sibling tabs */}
+      <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-3.5 shadow-xs sm:p-4">
+        <div className="flex flex-col gap-2.5">
           {/* Sibling Dual Tabs + School Picker */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div
               className="inline-flex rounded-2xl bg-[var(--muted)] p-1"
               role="tablist"
-              aria-label="別的聚雙分頁切換"
+              aria-label="別的聚分頁切換"
             >
               <button
                 type="button"
                 role="tab"
                 aria-selected={activeTab === 'stream'}
                 onClick={() => handleTabSwitch('stream')}
-                className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-xl px-4 text-xs font-bold transition-colors sm:text-sm ${
+                className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-colors sm:px-4 sm:text-sm ${
                   activeTab === 'stream'
                     ? 'bg-white text-[var(--primary)] shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -332,7 +360,7 @@ export function DiscoverClient({
                 role="tab"
                 aria-selected={activeTab === 'events'}
                 onClick={() => handleTabSwitch('events')}
-                className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-xl px-4 text-xs font-bold transition-colors sm:text-sm ${
+                className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-colors sm:px-4 sm:text-sm ${
                   activeTab === 'events'
                     ? 'bg-white text-blue-700 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -348,7 +376,7 @@ export function DiscoverClient({
                 aria-label="選擇學校"
                 value={selectedUniId}
                 onChange={(e) => handleUniChange(e.target.value)}
-                className="min-h-[40px] rounded-xl border border-slate-200 bg-[var(--muted)] px-3 text-xs font-semibold text-slate-800"
+                className="h-11 rounded-xl border border-slate-200 bg-[var(--muted)] px-3 py-0 text-xs font-semibold leading-none text-slate-800"
               >
                 <option value="">全部大專校院</option>
                 {universities.map((u) => (
@@ -359,10 +387,10 @@ export function DiscoverClient({
               </select>
               <Link
                 href="/onboarding"
-                className="hidden min-h-[40px] items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-3 text-xs font-bold text-orange-900 sm:inline-flex"
+                className="hidden min-h-[44px] items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-3.5 text-xs font-bold text-orange-900 hover:bg-orange-100 sm:inline-flex"
               >
                 <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                <span>興趣 Blend</span>
+                <span>興趣測驗</span>
               </Link>
             </div>
           </div>
@@ -378,46 +406,39 @@ export function DiscoverClient({
             <Search className="h-4 w-4 shrink-0 text-slate-500" aria-hidden="true" />
             <input
               type="text"
+              aria-label="白話搜尋社團或活動"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="白話搜尋：週四晚上想學畫畫沒基礎、或週末去爬郊山..."
-              className="min-h-[40px] w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+              placeholder="搜尋主題、時間或新手問題..."
+              className="min-h-[44px] w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
             />
             {activeNlQuery && (
               <button
                 type="button"
-                onClick={() => {
-                  setQuery('');
-                  setActiveNlQuery(null);
-                  if (activeTab === 'stream') {
-                    void loadStream({ uniId: selectedUniId, domainId: selectedDomainId });
-                  } else {
-                    void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId });
-                  }
-                }}
-                className="inline-flex min-h-[36px] items-center gap-1 rounded-xl bg-white px-2.5 text-xs font-semibold text-slate-600"
+                onClick={resetAllFilters}
+                className="inline-flex min-h-[44px] shrink-0 items-center gap-1 rounded-xl bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
               >
-                <RotateCcw className="h-3.5 w-3.5" />
+                <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                 重置
               </button>
             )}
             <button
               type="submit"
               disabled={loading}
-              className="min-h-[40px] shrink-0 rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
+              className="min-h-[44px] shrink-0 rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
             >
               {loading ? '搜尋中' : '探索'}
             </button>
           </form>
 
-          {/* Horizontal interest domains */}
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          {/* Horizontal interest domains (scrollbar hidden, >=44px touch height) */}
+          <div className="no-scrollbar flex items-center gap-2 overflow-x-auto">
             {domains.map((d) => (
               <button
                 key={d.id}
                 type="button"
                 onClick={() => handleDomainSelect(d.id)}
-                className={`min-h-[36px] shrink-0 rounded-full px-3.5 text-xs font-semibold transition-colors ${
+                className={`min-h-[44px] shrink-0 rounded-full px-3.5 text-xs font-semibold transition-colors ${
                   selectedDomainId === d.id
                     ? 'bg-[var(--primary)] text-white'
                     : 'bg-[var(--muted)] text-slate-700 hover:bg-orange-100'
@@ -428,44 +449,81 @@ export function DiscoverClient({
             ))}
           </div>
 
-          {/* Action Event filters (only visible in Tab B) */}
+          {/* Action Event filters or Progressive Prompt Helper */}
           {activeTab === 'events' ? (
-            <div className="flex flex-wrap gap-1.5 border-t border-[var(--border)] pt-2.5">
-              {[
-                { label: '本週活動', active: dateRange === 'this_week', onClick: () => { const n = dateRange === 'this_week' ? 'all' : 'this_week'; setDateRange(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange: n, beginnerOnly, nonMemberOnly, freeOnly, hoursOnly, votingOnly }); } },
-                { label: '零基礎可', active: beginnerOnly, onClick: () => { const n = !beginnerOnly; setBeginnerOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly: n, nonMemberOnly, freeOnly, hoursOnly, votingOnly }); } },
-                { label: '非社員可', active: nonMemberOnly, onClick: () => { const n = !nonMemberOnly; setNonMemberOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly, nonMemberOnly: n, freeOnly, hoursOnly, votingOnly }); } },
-                { label: '免費參加', active: freeOnly, onClick: () => { const n = !freeOnly; setFreeOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly, nonMemberOnly, freeOnly: n, hoursOnly, votingOnly }); } },
-                { label: '有學習時數', active: hoursOnly, onClick: () => { const n = !hoursOnly; setHoursOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly, nonMemberOnly, freeOnly, hoursOnly: n, votingOnly }); } },
-                { label: 'TBD 喬時間中', active: votingOnly, onClick: () => { const n = !votingOnly; setVotingOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly, nonMemberOnly, freeOnly, hoursOnly, votingOnly: n }); } },
-              ].map((chip) => (
-                <button
-                  key={chip.label}
-                  type="button"
-                  onClick={chip.onClick}
-                  className={`min-h-[34px] rounded-full border px-3 text-xs font-semibold transition-colors ${
-                    chip.active
-                      ? 'border-blue-600 bg-blue-600 text-white'
-                      : 'border-slate-200 bg-white text-slate-700 hover:bg-blue-50'
-                  }`}
-                >
-                  {chip.label}
-                </button>
-              ))}
+            <div className="space-y-2 border-t border-[var(--border)] pt-2">
+              <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto sm:flex-wrap">
+                {[
+                  { label: '本週活動', active: dateRange === 'this_week', onClick: () => { const n = dateRange === 'this_week' ? 'all' : 'this_week'; setDateRange(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange: n, beginnerOnly, nonMemberOnly, freeOnly, hoursOnly, votingOnly }); } },
+                  { label: '零基礎可', active: beginnerOnly, onClick: () => { const n = !beginnerOnly; setBeginnerOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly: n, nonMemberOnly, freeOnly, hoursOnly, votingOnly }); } },
+                  { label: '非社員可', active: nonMemberOnly, onClick: () => { const n = !nonMemberOnly; setNonMemberOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly, nonMemberOnly: n, freeOnly, hoursOnly, votingOnly }); } },
+                  { label: '免費參加', active: freeOnly, onClick: () => { const n = !freeOnly; setFreeOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly, nonMemberOnly, freeOnly: n, hoursOnly, votingOnly }); } },
+                  { label: '有學習時數', active: hoursOnly, onClick: () => { const n = !hoursOnly; setHoursOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly, nonMemberOnly, freeOnly, hoursOnly: n, votingOnly }); } },
+                  { label: '時間投票中', active: votingOnly, onClick: () => { const n = !votingOnly; setVotingOnly(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange, beginnerOnly, nonMemberOnly, freeOnly, hoursOnly, votingOnly: n }); } },
+                ].map((chip) => (
+                  <button
+                    key={chip.label}
+                    type="button"
+                    onClick={chip.onClick}
+                    className={`min-h-[44px] shrink-0 rounded-full border px-3.5 text-xs font-semibold transition-colors ${
+                      chip.active
+                        ? 'border-blue-600 bg-blue-600 text-white'
+                        : 'border-slate-200 bg-white text-slate-700 hover:bg-blue-50'
+                    }`}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+                {hasActiveEventFilters && (
+                  <button
+                    type="button"
+                    onClick={resetAllFilters}
+                    className="inline-flex min-h-[44px] shrink-0 items-center gap-1 rounded-full border border-slate-300 bg-slate-50 px-3.5 text-xs font-bold text-slate-700 hover:bg-slate-100"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                    清除條件
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
-            <div className="flex flex-wrap gap-1.5">
-              {DISCOVER_EXAMPLE_PROMPTS.map((ex) => (
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <button
-                  key={ex}
                   type="button"
-                  onClick={() => void submitQuery(ex, 'stream')}
-                  className="inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-50/70 px-3 py-1 text-[11px] font-medium text-orange-900 hover:bg-orange-100"
+                  onClick={() => setShowExamples((v) => !v)}
+                  aria-expanded={showExamples}
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50/70 px-3.5 text-xs font-semibold text-orange-900 hover:bg-orange-100"
                 >
-                  <Sparkles className="h-3 w-3 text-[var(--brand)]" aria-hidden="true" />
-                  {ex}
+                  <Sparkles className="h-3.5 w-3.5 text-[var(--brand)]" aria-hidden="true" />
+                  <span>{showExamples ? '收合範例問法' : '不知道怎麼搜？看範例問法'}</span>
                 </button>
-              ))}
+                {(selectedDomainId || activeNlQuery) && (
+                  <button
+                    type="button"
+                    onClick={resetAllFilters}
+                    className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                    清除篩選
+                  </button>
+                )}
+              </div>
+              {showExamples && (
+                <div className="flex flex-wrap gap-2">
+                  {DISCOVER_EXAMPLE_PROMPTS.map((ex) => (
+                    <button
+                      key={ex}
+                      type="button"
+                      onClick={() => void submitQuery(ex, 'stream')}
+                      className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50/70 px-3.5 py-1.5 text-left text-xs font-medium text-orange-900 hover:bg-orange-100"
+                    >
+                      <Sparkles className="h-3.5 w-3.5 shrink-0 text-[var(--brand)]" aria-hidden="true" />
+                      <span>{ex}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -479,7 +537,7 @@ export function DiscoverClient({
 
       {degradedWarning && (
         <div className="flex items-center gap-2 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs font-semibold text-amber-950">
-          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-700" />
+          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
           <span>{degradedWarning}</span>
         </div>
       )}
@@ -490,50 +548,62 @@ export function DiscoverClient({
         </div>
       )}
 
-      {/* Results Grid */}
-      {activeTab === 'stream' ? (
+      {/* Results Area with Skeletons (U3) & CSS Masonry (D-02) */}
+      {loading ? (
+        <div
+          aria-busy="true"
+          aria-label="正在載入內容"
+          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {[0, 1, 2, 3, 4, 5].map((idx) => (
+            <div
+              key={idx}
+              className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white p-4 shadow-xs"
+            >
+              <div
+                className="w-full animate-pulse rounded-xl bg-[var(--muted)]"
+                style={{ aspectRatio: idx % 2 === 0 ? '4 / 5' : '16 / 10' }}
+              />
+              <div className="mt-3 h-4 w-4/5 animate-pulse rounded bg-slate-100" />
+              <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-slate-100" />
+            </div>
+          ))}
+        </div>
+      ) : activeTab === 'stream' ? (
         streamItems.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-[var(--border-strong)] bg-white p-10 text-center">
-            <Compass className="mx-auto h-8 w-8 text-slate-400" />
-            <p className="mt-2 text-sm font-bold text-slate-900">沒有更多符合條件的現場動態了</p>
+            <Compass className="mx-auto h-8 w-8 text-slate-400" aria-hidden="true" />
+            <p className="mt-2 text-sm font-bold text-slate-900">沒有符合目前條件的現場內容</p>
+            <p className="mt-1 text-xs text-slate-600">清除搜尋或切換其他興趣領域看看。</p>
             <button
               type="button"
-              onClick={() => {
-                setSelectedDomainId('');
-                void loadStream({ uniId: selectedUniId });
-              }}
-              className="mt-3 min-h-[40px] rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white"
+              onClick={resetAllFilters}
+              className="mt-4 inline-flex min-h-[44px] items-center rounded-xl bg-[var(--primary)] px-5 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
             >
-              回到最新現場流
+              回到全部現場流
             </button>
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="columns-1 gap-5 sm:columns-2 lg:columns-3">
             {streamItems.map((card) => (
-              <PostCard
-                key={card.id}
-                card={card}
-                sourceSurface={activeNlQuery ? 'discover_nl' : 'discover_stream'}
-              />
+              <div key={card.id} className="mb-5 break-inside-avoid">
+                <PostCard
+                  card={card}
+                  sourceSurface={activeNlQuery ? 'discover_nl' : 'discover_stream'}
+                />
+              </div>
             ))}
           </div>
         )
       ) : eventItems.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-[var(--border-strong)] bg-white p-10 text-center">
-          <Calendar className="mx-auto h-8 w-8 text-slate-400" />
-          <p className="mt-2 text-sm font-bold text-slate-900">目前條件下尚無近期體驗活動</p>
+          <Calendar className="mx-auto h-8 w-8 text-slate-400" aria-hidden="true" />
+          <p className="mt-2 text-sm font-bold text-slate-900">目前條件下沒有近期體驗活動</p>
+          <p className="mt-1 text-xs text-slate-600">放寬篩選條件就能看到更多活動。</p>
           <button
             type="button"
-            onClick={() => {
-              setDateRange('all');
-              setBeginnerOnly(false);
-              setNonMemberOnly(false);
-              setFreeOnly(false);
-              setHoursOnly(false);
-              setVotingOnly(false);
-              void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId });
-            }}
-            className="mt-3 min-h-[40px] rounded-xl bg-blue-600 px-4 text-xs font-bold text-white"
+            onClick={resetAllFilters}
+            className="mt-4 inline-flex min-h-[44px] items-center rounded-xl bg-blue-600 px-5 text-xs font-bold text-white hover:bg-blue-700"
           >
             清除活動篩選條件
           </button>
@@ -550,9 +620,9 @@ export function DiscoverClient({
       <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 text-center sm:flex-row sm:text-left">
         <div className="text-xs text-slate-600">
           <p className="font-bold text-slate-800">
-            本批次呈現 {activeTab === 'stream' ? streamMeta.count : eventMeta.count} 則（單社團最多 2 則・不連發・零讚粉排行）
+            已看 {activeTab === 'stream' ? streamMeta.count : eventMeta.count} 則，每個社團最多顯示 2 則、不依讚數排序
           </p>
-          <p className="mt-0.5">逛累了可直接切換分頁看活動，或約朋友測一場雙人興趣 Blend。</p>
+          <p className="mt-0.5">換下一批，或切換分頁看體驗活動與社團日常。</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {(activeTab === 'stream' ? streamMeta.has_more : eventMeta.has_more) && (

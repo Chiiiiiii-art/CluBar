@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { and, eq, inArray, isNull, or } from 'drizzle-orm';
 import { auth } from '@/auth';
 import { db, isDatabaseConfigured } from '@/db';
@@ -17,9 +18,14 @@ import { isBootstrapAdminAccount } from '@/lib/validators';
 
 export type AuthenticatedUser = typeof users.$inferSelect;
 
-export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
+export const getCurrentUser = cache(async (): Promise<AuthenticatedUser | null> => {
   if (!isDatabaseConfigured()) return null;
-  const session = await auth();
+  let session = null;
+  try {
+    session = await auth();
+  } catch {
+    return null;
+  }
   const userId = session?.user?.id;
   if (!userId) return null;
 
@@ -42,7 +48,7 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
   }
 
   return user;
-}
+});
 
 export async function requireAuth(): Promise<AuthenticatedUser> {
   const user = await getCurrentUser();

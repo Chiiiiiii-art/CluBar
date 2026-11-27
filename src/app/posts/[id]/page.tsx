@@ -114,11 +114,6 @@ export default async function PostDetailPage({
               {post.mood_tag}
             </span>
           )}
-          {post.club.is_demo && (
-            <span className="rounded-full bg-slate-800 px-3 py-0.5 text-xs font-bold text-white">
-              示範資料 (Demo)
-            </span>
-          )}
         </div>
 
         <h1 className="mt-4 text-xl font-extrabold leading-snug text-slate-900 sm:text-2xl">

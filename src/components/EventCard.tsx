@@ -24,9 +24,9 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
 
   const timeLabel =
     event.schedule_mode === 'voting'
-      ? 'TBD 投票喬時間中'
+      ? '時間投票中'
       : event.schedule_mode === 'tbd'
-        ? '時間 TBD 待定'
+        ? '時間待定'
         : event.starts_at
           ? formatTaipeiDateTime(event.starts_at)
           : '時間待定';
@@ -59,8 +59,8 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
             />
           ) : null}
           {event.schedule_mode !== 'scheduled' && (
-            <span className="absolute top-3 left-3 rounded-full bg-amber-500 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-xs">
-              {event.schedule_mode === 'voting' ? '投票喬時間中' : 'TBD 搶先看'}
+            <span className="absolute top-3 left-3 rounded-full bg-amber-600 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-xs">
+              {event.schedule_mode === 'voting' ? '時間投票中' : '時間待定'}
             </span>
           )}
         </div>
@@ -110,7 +110,7 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
         </div>
 
         {/* Element 4: Non-vanity attendance momentum prompt */}
-        <div className="mt-auto flex items-center justify-between border-t border-[var(--border)] pt-2.5 text-xs">
+        <div className="mt-auto flex items-center justify-between border-t border-[var(--border)] pt-1.5 text-xs">
           <span className="inline-flex items-center gap-1 font-semibold text-slate-700">
             <Users className="h-3.5 w-3.5 text-blue-600" aria-hidden="true" />
             {event.going_count > 0
@@ -119,7 +119,7 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
           </span>
           <Link
             href={`/e/${event.short_code}`}
-            className="font-bold text-blue-700 hover:underline"
+            className="inline-flex min-h-[44px] items-center font-bold text-blue-700 hover:underline"
           >
             詳情／報名 →
           </Link>

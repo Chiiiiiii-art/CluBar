@@ -99,9 +99,11 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 export function MeClient({
   data,
   signOutAction,
+  returnTo = '',
 }: {
   data: MePageData;
   signOutAction: () => Promise<void>;
+  returnTo?: string;
 }) {
   const router = useRouter();
   const [campusEmail, setCampusEmail] = useState('');
@@ -111,6 +113,7 @@ export function MeClient({
   const [verifyMsg, setVerifyMsg] = useState<string | null>(null);
   const [verifyErr, setVerifyErr] = useState<string | null>(null);
   const [verifyBusy, setVerifyBusy] = useState(false);
+  const [otpJustVerified, setOtpJustVerified] = useState(false);
 
   const [handovers, setHandovers] = useState(data.pendingHandovers);
   const [handoverBusy, setHandoverBusy] = useState<string | null>(null);
@@ -186,6 +189,7 @@ export function MeClient({
         setVerifyErr(json?.error?.message || '驗證碼驗證失敗。');
         return;
       }
+      setOtpJustVerified(true);
       setVerifyMsg(`已完成 ${json.university_name} 校園身分驗證！`);
       router.refresh();
     } catch {
@@ -387,17 +391,30 @@ export function MeClient({
           </form>
         </div>
 
-        {!data.user.campusVerifiedAt && (
+        {returnTo && (data.user.campusVerifiedAt || otpJustVerified) && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-xs text-emerald-950">
+            <p className="font-bold">校園身分已完成驗證，可立即回到原本頁面繼續操作。</p>
+            <Link
+              href={returnTo}
+              className="inline-flex min-h-[44px] items-center rounded-xl bg-emerald-700 px-4 font-bold text-white hover:bg-emerald-800"
+            >
+              返回原本頁面 →
+            </Link>
+          </div>
+        )}
+
+        {!data.user.campusVerifiedAt && !otpJustVerified && (
           <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50/70 p-4 sm:p-5">
             <div className="flex items-start gap-2.5">
               <MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" aria-hidden="true" />
               <div className="flex-1 space-y-3">
                 <div>
                   <h2 className="text-sm font-bold text-slate-900">
-                    驗證大專校院 `.edu.tw` 校園信箱（解鎖社員認證、發問、與幹部權限）
+                    驗證大專校院校園信箱（.edu.tw），解鎖社員認證、發問與幹部權限
                   </h2>
                   <p className="mt-0.5 text-xs text-slate-600">
-                    支援全台大專校院 `.edu.tw` 網域（如 `@cc.ncu.edu.tw`、`@ntust.edu.tw`）；本資料僅供身分驗證，不對外公開。
+                    支援全台大專校院教育信箱（例如 @cc.ncu.edu.tw、@ntust.edu.tw）；此資料僅用於身分認證，不會對外公開。
+                    {returnTo ? ' 驗證完成後會顯示返回原頁按鈕。' : ''}
                   </p>
                 </div>
 
@@ -408,13 +425,13 @@ export function MeClient({
                       required
                       value={campusEmail}
                       onChange={(e) => setCampusEmail(e.target.value)}
-                      placeholder="輸入您的 .edu.tw 校園信箱"
-                      className="flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm"
+                      placeholder="輸入你的 .edu.tw 校園信箱"
+                      className="min-h-[44px] flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm"
                     />
                     <button
                       type="submit"
                       disabled={verifyBusy}
-                      className="rounded-xl bg-[#2563EB] px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+                      className="min-h-[44px] rounded-xl bg-[#2563EB] px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50"
                     >
                       {verifyBusy ? '寄送中...' : '寄送 6 位數驗證碼'}
                     </button>
@@ -429,12 +446,12 @@ export function MeClient({
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value)}
                       placeholder={`輸入寄往 ${otpUni || campusEmail} 的 6 位數驗證碼`}
-                      className="flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm"
+                      className="min-h-[44px] flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm"
                     />
                     <button
                       type="submit"
                       disabled={verifyBusy}
-                      className="rounded-xl bg-[#2563EB] px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+                      className="min-h-[44px] rounded-xl bg-[#2563EB] px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50"
                     >
                       {verifyBusy ? '驗證中...' : '確認驗證'}
                     </button>
@@ -444,7 +461,7 @@ export function MeClient({
                         setOtpSent(false);
                         setOtpCode('');
                       }}
-                      className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                      className="min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
                     >
                       更換信箱
                     </button>
@@ -703,9 +720,9 @@ export function MeClient({
 
         {data.memberships.length === 0 ? (
           <p className="text-sm text-slate-600">
-            您目前尚未加入任何認證社團。可至{' '}
+            你目前尚未加入任何認證社團。可至{' '}
             <Link href="/my-clubs" className="font-bold text-blue-700 underline">
-              我的社團
+              我的聚
             </Link>{' '}
             輸入邀請碼，或前往{' '}
             <Link href="/clubs/apply" className="font-bold text-blue-700 underline">
@@ -745,7 +762,7 @@ export function MeClient({
                   {m.role !== 'member' && (
                     <Link
                       href={`/clubs/${m.slug}/manage`}
-                      className="inline-flex items-center gap-1 rounded-xl bg-[var(--primary)] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
+                      className="inline-flex min-h-[44px] items-center gap-1 rounded-xl bg-[var(--primary)] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
                     >
                       <Settings className="h-3.5 w-3.5" aria-hidden="true" />
                       <span>{m.role === 'alumni' ? '檢視年度成果' : '進入管理後台'}</span>
@@ -753,7 +770,7 @@ export function MeClient({
                   )}
                   <Link
                     href={`/clubs/${m.slug}`}
-                    className="inline-flex items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex min-h-[44px] items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                   >
                     <span>公開主頁</span>
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -770,12 +787,18 @@ export function MeClient({
         <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs">
           <div className="mb-3 flex items-center gap-2">
             <Bookmark className="h-4 w-4 text-[var(--primary)]" aria-hidden="true" />
-            <h2 className="text-base font-extrabold text-slate-900">我的私密收藏貼文與活動</h2>
+            <h2 className="text-base font-extrabold text-slate-900">我的收藏</h2>
           </div>
           {data.bookmarks.length === 0 ? (
-            <p className="text-xs text-slate-500">
-              尚未收藏任何作品或活動貼文，前往「別的聚」探索感興趣的內容吧。
-            </p>
+            <div className="space-y-3 rounded-2xl bg-[var(--muted)]/40 p-4 text-xs text-slate-600">
+              <p>還沒收藏任何作品或活動。</p>
+              <Link
+                href="/"
+                className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border-strong)] bg-white px-4 font-bold text-slate-800 hover:bg-slate-50"
+              >
+                去別的聚逛逛 →
+              </Link>
+            </div>
           ) : (
             <ul className="space-y-2.5">
               {data.bookmarks.map((b) => (
@@ -805,10 +828,18 @@ export function MeClient({
         <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs">
           <div className="mb-3 flex items-center gap-2">
             <Heart className="h-4 w-4 text-[var(--primary)]" aria-hidden="true" />
-            <h2 className="text-base font-extrabold text-slate-900">我追蹤的社團（追蹤分流設定）</h2>
+            <h2 className="text-base font-extrabold text-slate-900">我追蹤的社團（通知偏好）</h2>
           </div>
           {follows.length === 0 ? (
-            <p className="text-xs text-slate-500">尚未追蹤任何社團。</p>
+            <div className="space-y-3 rounded-2xl bg-[var(--muted)]/40 p-4 text-xs text-slate-600">
+              <p>尚未追蹤任何社團，追蹤後可選擇「只收新活動」或「全部動態」。</p>
+              <Link
+                href="/"
+                className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border-strong)] bg-white px-4 font-bold text-slate-800 hover:bg-slate-50"
+              >
+                去別的聚找社團 →
+              </Link>
+            </div>
           ) : (
             <ul className="space-y-2.5">
               {follows.map((f) => (
@@ -833,10 +864,10 @@ export function MeClient({
                     onChange={(e) =>
                       handleChangeFollowMode(f.clubId, e.target.value as FollowMode)
                     }
-                    className="rounded-xl border border-[var(--border-strong)] bg-white px-2.5 py-1 text-xs font-semibold text-slate-700"
+                    className="min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-white px-3 py-1 text-xs font-semibold text-slate-700"
                   >
-                    <option value="all">追全動態</option>
-                    <option value="events_only">只追新活動</option>
+                    <option value="all">全部動態</option>
+                    <option value="events_only">只收新活動</option>
                   </select>
                 </li>
               ))}
