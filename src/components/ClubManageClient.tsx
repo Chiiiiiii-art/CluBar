@@ -7,6 +7,7 @@ import {
   ArrowRightLeft,
   Calendar,
   Check,
+  ChevronDown,
   Copy,
   Download,
   FileText,
@@ -105,6 +106,25 @@ interface VisionDraftState {
   };
 }
 
+const ROLE_LABEL: Record<string, string> = {
+  owner: '社長',
+  editor: '幹部',
+  member: '認證社員',
+  alumni: '歷屆校友',
+  platform_admin: '平台管理員',
+};
+const SCHEDULE_MODE_LABEL: Record<string, string> = {
+  scheduled: '已定時間',
+  tbd: '時間待定',
+  voting: '投票喬時間中',
+};
+const EVENT_STATUS_LABEL: Record<string, string> = {
+  draft: '草稿',
+  open: '開放報名',
+  completed: '已結束',
+  cancelled: '已取消',
+};
+
 export function ClubManageClient({ data }: { data: ManageClubData }) {
   const confirm = useConfirm();
   const isReadOnlyAlumni = data.myRole === 'alumni';
@@ -121,6 +141,8 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
 
   // Events state
   const [eventsList, setEventsList] = useState(data.events);
+  // D-12: the 4-section create form starts collapsed once the club has events.
+  const [eventFormOpen, setEventFormOpen] = useState(data.events.length === 0);
   const [evTitle, setEvTitle] = useState('');
   const [evSummary, setEvSummary] = useState('');
   const [evDesc, setEvDesc] = useState('');
@@ -364,6 +386,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
     }
     if (!d.extracted_event.starts_at_hint) setEvMode('tbd');
     setTab('events');
+    setEventFormOpen(true);
     setBannerMsg('已將海報／文案解析欄位帶入活動建立表單，請補齊正確時間後送出！');
   }
 
@@ -675,12 +698,12 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-300 bg-white p-5">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-strong bg-surface p-5">
         <div>
-          <p className="text-sm font-semibold text-ink-500">
-            {data.club.universityName} · 您的權限：{data.myRole}
+          <p className="text-sm font-semibold text-fg-subtle">
+            {data.club.universityName} · 您的權限：{ROLE_LABEL[data.myRole] ?? data.myRole}
           </p>
-          <h1 className="text-xl font-bold text-ink-900">{data.club.name} 管理後台</h1>
+          <h1 className="text-xl font-bold text-fg">{data.club.name} 管理後台</h1>
         </div>
         <Link
           href={`/clubs/${data.club.slug}`}
@@ -691,7 +714,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
       </div>
 
       {isReadOnlyAlumni && (
-        <div className="rounded-xl border border-accent-200 bg-accent-50 px-4 py-3 text-sm font-semibold text-accent-900">
+        <div className="rounded-xl border border-accent-200 bg-brand-soft px-4 py-3 text-sm font-semibold text-accent-900">
           您目前為歷屆幹部／校友（只讀檢視權限）：可查閱私密評鑑歸檔、匯出年度成果報告與歷屆避雷便條，無法異動現任活動或成員權限。
         </div>
       )}
@@ -723,17 +746,33 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
       {tab === 'events' && (
         <div className="space-y-6">
           {canWrite && (
+            <details
+              open={eventFormOpen}
+              onToggle={(e) => setEventFormOpen(e.currentTarget.open)}
+              className="group rounded-xl border border-border-strong bg-surface"
+            >
+              <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-6 py-3 [&::-webkit-details-marker]:hidden">
+                <span>
+                  <span className="block text-base font-bold text-fg">建立體驗活動</span>
+                  <span className="block text-sm text-fg-muted">
+                    4 個區塊：基本資訊、時間地點、參加條件、內容與報名
+                  </span>
+                </span>
+                <ChevronDown
+                  className="h-5 w-5 shrink-0 text-fg-muted transition-transform group-open:rotate-180"
+                  aria-hidden="true"
+                />
+              </summary>
             <form
               onSubmit={handleCreateEvent}
-              className="rounded-xl border border-ink-300 bg-white p-6"
+              className="border-t border-line px-6 pb-6"
             >
-              <h2 className="text-base font-bold text-ink-900">建立體驗活動</h2>
               <div className="mt-4 divide-y divide-line">
                 <fieldset className="min-w-0 space-y-4 pb-6">
-                  <legend className="text-sm font-semibold text-ink-900">基本資訊</legend>
+                  <legend className="text-sm font-semibold text-fg">基本資訊</legend>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label htmlFor="club-manage-evtitle" className="mb-1 block text-sm font-semibold text-ink-700">活動名稱 *</label>
+                      <label htmlFor="club-manage-evtitle" className="mb-1 block text-sm font-semibold text-fg-secondary">活動名稱 *</label>
                       <input id="club-manage-evtitle"
                         required
                         minLength={2}
@@ -745,22 +784,22 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                       />
                     </div>
                     <div>
-                      <label htmlFor="club-manage-evtheme" className="mb-1 block text-sm font-semibold text-ink-700">主題底色</label>
+                      <label htmlFor="club-manage-evtheme" className="mb-1 block text-sm font-semibold text-fg-secondary">主題底色</label>
                       <select id="club-manage-evtheme"
                         value={evTheme}
                         onChange={(e) => setEvTheme(e.target.value as typeof evTheme)}
                         className={`${controlClasses} min-h-11 w-full`}
                       >
-                        <option value="warm_paper">暖陽松果 (Warm Paper)</option>
-                        <option value="campus_blue">晴空講義 (Campus Blue)</option>
-                        <option value="forest_trail">山林野營 (Forest Trail)</option>
-                        <option value="midnight_jam">暗房霓虹 (Midnight Jam)</option>
+                        <option value="warm_paper">暖陽松果</option>
+                        <option value="campus_blue">晴空講義</option>
+                        <option value="forest_trail">山林野營</option>
+                        <option value="midnight_jam">暗房霓虹</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                    <label htmlFor="club-manage-evsummary" className="block text-sm font-medium text-ink-800">
+                    <label htmlFor="club-manage-evsummary" className="block text-sm font-medium text-fg-body">
                       亮點摘要
                     </label>
                     <input id="club-manage-evsummary"
@@ -782,18 +821,18 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 </fieldset>
 
                 <fieldset className="min-w-0 space-y-4 py-6">
-                  <legend className="text-sm font-semibold text-ink-900">時間與地點</legend>
+                  <legend className="text-sm font-semibold text-fg">時間與地點</legend>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label htmlFor="club-manage-evmode" className="mb-1 block text-sm font-semibold text-ink-700">時程模式</label>
+                      <label htmlFor="club-manage-evmode" className="mb-1 block text-sm font-semibold text-fg-secondary">時程模式</label>
                       <select id="club-manage-evmode"
                         value={evMode}
                         onChange={(e) => setEvMode(e.target.value as typeof evMode)}
                         className={`${controlClasses} min-h-11 w-full`}
                       >
-                        <option value="scheduled">已確定時間 (Scheduled)</option>
-                        <option value="tbd">先刊登再定時間 (TBD)</option>
-                        <option value="voting">讓同學投票喬時間／主題 (Voting)</option>
+                        <option value="scheduled">已確定時間</option>
+                        <option value="tbd">先刊登再定時間</option>
+                        <option value="voting">讓同學投票喬時間／主題</option>
                       </select>
                     </div>
                   </div>
@@ -801,7 +840,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   {evMode === 'scheduled' && (
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
-                        <label htmlFor="club-manage-evstart" className="mb-1 block text-sm font-semibold text-ink-700">開始時間 *</label>
+                        <label htmlFor="club-manage-evstart" className="mb-1 block text-sm font-semibold text-fg-secondary">開始時間 *</label>
                         <input id="club-manage-evstart"
                           type="datetime-local"
                           required
@@ -811,7 +850,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                         />
                       </div>
                       <div>
-                        <label htmlFor="club-manage-evend" className="mb-1 block text-sm font-semibold text-ink-700">結束時間（選填）</label>
+                        <label htmlFor="club-manage-evend" className="mb-1 block text-sm font-semibold text-fg-secondary">結束時間（選填）</label>
                         <input id="club-manage-evend"
                           type="datetime-local"
                           value={evEnd}
@@ -823,8 +862,8 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   )}
 
                   {evMode === 'voting' && (
-                    <div className="space-y-2 rounded-xl bg-ink-50 p-4">
-                      <p className="text-sm font-semibold text-ink-800">設定投票選項（最多填 3 個候選項目）：</p>
+                    <div className="space-y-2 rounded-xl bg-surface-subtle p-4">
+                      <p className="text-sm font-semibold text-fg-body">設定投票選項（最多填 3 個候選項目）：</p>
                       {pollLabels.map((lbl, idx) => (
                         <input aria-label="投票選項"
                           key={idx}
@@ -840,7 +879,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   )}
 
                   <div>
-                    <label htmlFor="club-manage-evlocation" className="mb-1 block text-sm font-semibold text-ink-700">地點 *</label>
+                    <label htmlFor="club-manage-evlocation" className="mb-1 block text-sm font-semibold text-fg-secondary">地點 *</label>
                     <input id="club-manage-evlocation"
                       required
                       value={evLocation}
@@ -851,10 +890,10 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 </fieldset>
 
                 <fieldset className="min-w-0 space-y-4 py-6">
-                  <legend className="text-sm font-semibold text-ink-900">參加條件</legend>
+                  <legend className="text-sm font-semibold text-fg">參加條件</legend>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label htmlFor="club-manage-evfee" className="mb-1 block text-sm font-semibold text-ink-700">單次費用 (NT$)</label>
+                      <label htmlFor="club-manage-evfee" className="mb-1 block text-sm font-semibold text-fg-secondary">單次費用 (NT$)</label>
                       <input id="club-manage-evfee"
                         type="number"
                         min={0}
@@ -865,7 +904,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm font-medium text-ink-700">
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm font-medium text-fg-secondary">
                     <label className="flex min-h-11 cursor-pointer items-center gap-1.5">
                       <input type="checkbox" checked={evBeginner} onChange={(e) => setEvBeginner(e.target.checked)} />
                       零基礎友善
@@ -882,7 +921,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                      <label htmlFor="club-manage-evhourscat" className="block text-sm font-medium text-ink-800">
+                      <label htmlFor="club-manage-evhourscat" className="block text-sm font-medium text-fg-body">
                         學習時數
                       </label>
                       <select id="club-manage-evhourscat"
@@ -897,7 +936,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                       </select>
                     </div>
                     <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                      <label htmlFor="club-manage-evhourscount" className="block text-sm font-medium text-ink-800">
+                      <label htmlFor="club-manage-evhourscount" className="block text-sm font-medium text-fg-body">
                         時數（小時）
                       </label>
                       <input id="club-manage-evhourscount"
@@ -913,7 +952,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   </div>
 
                   <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                    <label htmlFor="club-manage-evprenotes" className="block text-sm font-medium text-ink-800">
+                    <label htmlFor="club-manage-evprenotes" className="block text-sm font-medium text-fg-body">
                       行前提醒
                     </label>
                     <input id="club-manage-evprenotes"
@@ -926,9 +965,9 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 </fieldset>
 
                 <fieldset className="min-w-0 space-y-4 pt-6">
-                  <legend className="text-sm font-semibold text-ink-900">詳細內容與報名</legend>
+                  <legend className="text-sm font-semibold text-fg">詳細內容與報名</legend>
                   <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                    <label htmlFor="club-manage-evdesc" className="block text-sm font-medium text-ink-800">
+                    <label htmlFor="club-manage-evdesc" className="block text-sm font-medium text-fg-body">
                       活動介紹
                     </label>
                     <textarea id="club-manage-evdesc"
@@ -941,7 +980,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   </div>
 
                   <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                    <label htmlFor="club-manage-evexturl" className="block text-sm font-medium text-ink-800">
+                    <label htmlFor="club-manage-evexturl" className="block text-sm font-medium text-fg-body">
                       外部報名表單（選填）
                     </label>
                     <input id="club-manage-evexturl"
@@ -953,7 +992,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                     />
                   </div>
 
-                  <label className="flex min-h-11 cursor-pointer items-center gap-1.5 text-sm font-medium text-ink-700">
+                  <label className="flex min-h-11 cursor-pointer items-center gap-1.5 text-sm font-medium text-fg-secondary">
                     <input type="checkbox" checked={evIncludeEval} onChange={(e) => setEvIncludeEval(e.target.checked)} />
                     納入本學年評鑑報表
                   </label>
@@ -970,24 +1009,25 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 </button>
               </div>
             </form>
+            </details>
           )}
 
-          <div className="space-y-3 rounded-xl border border-line bg-white p-5">
-            <h2 className="text-base font-bold text-ink-900">近期活動清單</h2>
+          <div className="space-y-3 rounded-xl border border-line bg-surface p-5">
+            <h2 className="text-base font-bold text-fg">近期活動清單</h2>
             {eventsList.map((ev) => (
               <div
                 key={ev.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-ink-100 p-4"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface-sunken p-4"
               >
                 <div>
-                  <p className="text-sm font-semibold text-ink-900">{ev.title}</p>
-                  <p className="text-sm text-ink-500">
-                    模式：{ev.scheduleMode} · 狀態：{ev.status}
+                  <p className="text-sm font-semibold text-fg">{ev.title}</p>
+                  <p className="text-sm text-fg-subtle">
+                    {SCHEDULE_MODE_LABEL[ev.scheduleMode] ?? ev.scheduleMode} · {EVENT_STATUS_LABEL[ev.status] ?? ev.status}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
                   {canWrite && (
-                    <label className="flex cursor-pointer items-center gap-1 text-sm font-semibold text-ink-700">
+                    <label className="flex cursor-pointer items-center gap-1 text-sm font-semibold text-fg-secondary">
                       <input
                         type="checkbox"
                         checked={ev.includeInEvaluation}
@@ -998,7 +1038,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   )}
                   <Link
                     href={`/e/${ev.shortCode}`}
-                    className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'text-accent-700' })}
+                    className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'text-brand-soft-fg' })}
                   >
                     /e/{ev.shortCode}
                   </Link>
@@ -1014,13 +1054,13 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
         <div className="space-y-6">
           {canWrite && (
             <>
-              <div className="space-y-3 rounded-xl border border-accent-200 bg-ink-50 p-6">
-                <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
-                  <Sparkles className="h-4 w-4 text-accent-600" />
+              <div className="space-y-3 rounded-xl border border-accent-200 bg-surface-subtle p-6">
+                <h2 className="flex items-center gap-2 text-base font-bold text-fg">
+                  <Sparkles className="h-4 w-4 text-brand" />
                   Vision AI 海報辨識 ＆ 零散文案整理（不捏造日期與費用）
                 </h2>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-airawtext" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="club-manage-airawtext" className="block text-sm font-medium text-fg-body">
                     貼上公告、筆記或企劃
                   </label>
                   <textarea id="club-manage-airawtext"
@@ -1060,17 +1100,22 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   (() => {
                     const preferEvent = shouldRouteDraftToEvent(aiResult.draft, aiRawText);
                     return (
-                      <div className="space-y-2 rounded-xl bg-white p-4 text-sm">
+                      <div className="space-y-2 rounded-xl bg-surface p-4 text-sm">
                         {aiResult.degraded && (
                           <p className="font-bold text-warning-800">
                             {aiResult.warnings.join(' ')}
                           </p>
                         )}
-                        <p className="font-bold text-ink-900">抽出標題：{aiResult.draft.title}</p>
-                        <p className="text-ink-700">{aiResult.draft.summary}</p>
+                        <p className="font-bold text-fg">抽出標題：{aiResult.draft.title}</p>
+                        <p className="text-fg-secondary">{aiResult.draft.summary}</p>
                         {preferEvent && (
-                          <p className="rounded-xl border border-accent-200 bg-accent-50 px-3 py-2 font-semibold text-accent-950">
+                          <p className="rounded-xl border border-accent-200 bg-brand-soft px-3 py-2 font-semibold text-accent-950">
                             偵測到活動招募／時間地點資訊：建議直接「帶入建立活動」開放報名或投票時間，避免活動宣傳海報混入日常動態牆。
+                          </p>
+                        )}
+                        {aiResult.degraded && !preferEvent && (
+                          <p className="rounded-xl border border-notice-warning-border bg-warning-soft px-3 py-2 font-semibold text-warning-fg">
+                            AI 這次沒能讀懂素材內容。如果這是活動宣傳海報或社課行事曆，請改按「帶入建立活動」；日常動態牆只放社員的現場紀錄。
                           </p>
                         )}
                         {aiResult.draft.missing_beginner_fields.length > 0 && (
@@ -1089,8 +1134,8 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                             onClick={applyAiToEvent}
                             className={`min-h-[44px] rounded-full px-4 font-bold ${
                               preferEvent
-                                ? 'bg-accent-600 text-white'
-                                : 'border border-ink-300 bg-white text-ink-800 hover:bg-ink-50'
+                                ? 'bg-brand text-on-brand'
+                                : 'border border-border-strong bg-surface text-fg-body hover:bg-surface-subtle'
                             }`}
                           >
                             帶入「建立活動」表單
@@ -1100,8 +1145,8 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                             onClick={applyAiToPost}
                             className={`min-h-[44px] rounded-full px-4 font-bold ${
                               preferEvent
-                                ? 'border border-ink-300 bg-white text-ink-600 hover:bg-ink-50'
-                                : 'bg-accent-600 text-white'
+                                ? 'border border-border-strong bg-surface text-fg-muted hover:bg-surface-subtle'
+                                : 'bg-brand text-on-brand'
                             }`}
                           >
                             {preferEvent ? '仍要帶入「作品／日常」表單' : '帶入下方「作品／日常」表單'}
@@ -1114,12 +1159,12 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
 
               <form
                 onSubmit={handlePublishPost}
-                className="space-y-4 rounded-xl border border-line bg-white p-6"
+                className="space-y-4 rounded-xl border border-line bg-surface p-6"
               >
-                <h2 className="text-base font-bold text-ink-900">發布社團日常／實作作品</h2>
+                <h2 className="text-base font-bold text-fg">發布社團日常／實作作品</h2>
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                    <label htmlFor="club-manage-postkind" className="block text-sm font-medium text-ink-800">
+                    <label htmlFor="club-manage-postkind" className="block text-sm font-medium text-fg-body">
                       內容類型
                     </label>
                     <select id="club-manage-postkind"
@@ -1127,12 +1172,12 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                       onChange={(e) => setPostKind(e.target.value as 'nrc_moment' | 'wip_work')}
                       className={`${controlClasses} min-h-11`}
                     >
-                      <option value="wip_work">實作作品 (WIP Work)</option>
-                      <option value="nrc_moment">社員日常 (NRC Moment)</option>
+                      <option value="wip_work">實作作品</option>
+                      <option value="nrc_moment">社員日常</option>
                     </select>
                   </div>
                   <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                    <label htmlFor="club-manage-postheadline" className="block text-sm font-medium text-ink-800">
+                    <label htmlFor="club-manage-postheadline" className="block text-sm font-medium text-fg-body">
                       一句話亮點
                     </label>
                     <input id="club-manage-postheadline"
@@ -1147,7 +1192,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   </div>
                 </div>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-postcontentmd" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="club-manage-postcontentmd" className="block text-sm font-medium text-fg-body">
                     內容
                   </label>
                   <textarea id="club-manage-postcontentmd"
@@ -1165,8 +1210,8 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   maxImages={6}
                   purpose="post_image"
                 />
-                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-ink-300 px-3 py-1.5 text-sm font-semibold text-ink-700">
-                  <Film className="h-3.5 w-3.5 text-accent-600" />
+                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border-strong px-3 py-1.5 text-sm font-semibold text-fg-secondary">
+                  <Film className="h-3.5 w-3.5 text-brand" />
                   上傳 ≤15 秒短影 (MP4/WebM)
                   <input
                     type="file"
@@ -1196,22 +1241,22 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
             </>
           )}
 
-          <div className="space-y-3 rounded-xl border border-line bg-white p-5">
-            <h2 className="text-base font-bold text-ink-900">已發布內容與評鑑標記</h2>
+          <div className="space-y-3 rounded-xl border border-line bg-surface p-5">
+            <h2 className="text-base font-bold text-fg">已發布內容與評鑑標記</h2>
             {postsList.map((p) => (
               <div
                 key={p.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-ink-100 p-4"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface-sunken p-4"
               >
                 <div>
                   <span className="text-xs font-bold text-accent-800">
                     {POST_KIND_LABELS[p.postKind].label}
                   </span>
-                  <p className="text-sm font-semibold text-ink-900">{p.headline}</p>
+                  <p className="text-sm font-semibold text-fg">{p.headline}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   {canWrite && (
-                    <label className="flex cursor-pointer items-center gap-1 text-sm font-semibold text-ink-700">
+                    <label className="flex cursor-pointer items-center gap-1 text-sm font-semibold text-fg-secondary">
                       <input
                         type="checkbox"
                         checked={p.includeInEvaluation}
@@ -1222,7 +1267,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   )}
                   <Link
                     href={`/posts/${p.id}`}
-                    className="rounded-xl bg-white px-3 py-1.5 text-sm font-semibold text-ink-800"
+                    className="rounded-xl bg-surface px-3 py-1.5 text-sm font-semibold text-fg-body"
                   >
                     檢視
                   </Link>
@@ -1237,10 +1282,10 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
       {tab === 'members' && (
         <div className="space-y-6">
           {canWrite && (
-            <div className="space-y-4 rounded-xl border border-line bg-white p-6">
+            <div className="space-y-4 rounded-xl border border-line bg-surface p-6">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
-                  <KeyRound className="h-4 w-4 text-accent-600" />
+                <h2 className="flex items-center gap-2 text-base font-bold text-fg">
+                  <KeyRound className="h-4 w-4 text-brand" />
                   軌一：產生社員限時邀請碼（嚴格限同校 .edu.tw）
                 </h2>
                 <button
@@ -1257,18 +1302,18 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   {inviteCodes.map((c) => (
                     <div
                       key={c.id}
-                      className="flex items-center justify-between rounded-xl border border-line bg-ink-50 px-3 py-2 text-sm"
+                      className="flex items-center justify-between rounded-xl border border-line bg-surface-subtle px-3 py-2 text-sm"
                     >
                       <div>
-                        <span className="font-mono font-bold text-ink-900">{c.code}</span>
-                        <p className="text-xs text-ink-500">
+                        <span className="font-mono font-bold text-fg">{c.code}</span>
+                        <p className="text-xs text-fg-subtle">
                           已使用 {c.used_count} 次 · 到期 {c.expires_at.slice(0, 10)}
                         </p>
                       </div>
                       <button
                         type="button"
                         onClick={() => navigator.clipboard.writeText(c.code)}
-                        className="inline-flex items-center gap-1 font-bold text-accent-600"
+                        className="inline-flex items-center gap-1 font-bold text-brand"
                       >
                         <Copy className="h-3 w-3" />
                         複製
@@ -1281,39 +1326,39 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
           )}
 
           {canWrite && (
-            <div className="space-y-3 rounded-xl border border-line bg-white p-6">
-              <h2 className="text-base font-bold text-ink-900">軌二：待審入社認證申請</h2>
+            <div className="space-y-3 rounded-xl border border-line bg-surface p-6">
+              <h2 className="text-base font-bold text-fg">軌二：待審入社認證申請</h2>
               {joinRequests.length === 0 ? (
-                <p className="text-sm text-ink-500">尚無待審入社申請。</p>
+                <p className="text-sm text-fg-subtle">尚無待審入社申請。</p>
               ) : (
                 joinRequests.map((r) => (
                   <div
                     key={r.id}
-                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-ink-50 p-3 text-sm"
+                    className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface-subtle p-3 text-sm"
                   >
                     <div>
-                      <p className="font-bold text-ink-900">{r.display_name}</p>
-                      {r.note && <p className="text-ink-600">{r.note}</p>}
+                      <p className="font-bold text-fg">{r.display_name}</p>
+                      {r.note && <p className="text-fg-muted">{r.note}</p>}
                     </div>
                     {r.status === 'pending' ? (
                       <div className="flex gap-2">
                         <button
                           type="button"
                           onClick={() => handleReviewMemberRequest(r.id, 'approve')}
-                          className={buttonClasses({ variant: 'primary', size: 'sm', className: 'bg-success-600 hover:bg-success-700 active:bg-success-800' })}
+                          className={buttonClasses({ variant: 'primary', size: 'sm', className: 'bg-success hover:bg-success-700 active:bg-success-800' })}
                         >
                           核准為認證社員
                         </button>
                         <button
                           type="button"
                           onClick={() => handleReviewMemberRequest(r.id, 'reject')}
-                          className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'border-danger-200 text-danger-700 hover:bg-danger-50' })}
+                          className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'border-danger-200 text-danger-fg hover:bg-danger-soft' })}
                         >
                           婉拒
                         </button>
                       </div>
                     ) : (
-                      <span className="font-bold text-ink-600">{r.status}</span>
+                      <span className="font-bold text-fg-muted">{r.status}</span>
                     )}
                   </div>
                 ))
@@ -1324,12 +1369,12 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
           {canWrite && (
             <form
               onSubmit={handleAddMember}
-              className="space-y-3 rounded-xl border border-line bg-white p-6"
+              className="space-y-3 rounded-xl border border-line bg-surface p-6"
             >
-              <h2 className="text-base font-bold text-ink-900">手動新增幹部／社員</h2>
+              <h2 className="text-base font-bold text-fg">手動新增幹部／社員</h2>
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-targetmemberemail" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="club-manage-targetmemberemail" className="block text-sm font-medium text-fg-body">
                     對方的學校信箱
                   </label>
                   <input id="club-manage-targetmemberemail"
@@ -1341,7 +1386,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   />
                 </div>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-targetmemberrole" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="club-manage-targetmemberrole" className="block text-sm font-medium text-fg-body">
                     身分
                   </label>
                   <select id="club-manage-targetmemberrole"
@@ -1349,12 +1394,12 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                     onChange={(e) => setTargetMemberRole(e.target.value as 'editor' | 'member')}
                     className={`${controlClasses} min-h-11`}
                   >
-                    <option value="member">認證社員 (Member)</option>
-                    {isOwner && <option value="editor">幹部 (Editor)</option>}
+                    <option value="member">認證社員</option>
+                    {isOwner && <option value="editor">幹部</option>}
                   </select>
                 </div>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-targetmembertitle" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="club-manage-targetmembertitle" className="block text-sm font-medium text-fg-body">
                     職稱（選填）
                   </label>
                   <input id="club-manage-targetmembertitle"
@@ -1375,17 +1420,17 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
             </form>
           )}
 
-          <div className="space-y-2 rounded-xl border border-line bg-white p-5">
-            <h2 className="text-base font-bold text-ink-900">成員與歷屆名單</h2>
+          <div className="space-y-2 rounded-xl border border-line bg-surface p-5">
+            <h2 className="text-base font-bold text-fg">成員與歷屆名單</h2>
             {data.members.map((m, idx) => (
               <div
                 key={`${m.userId}-${idx}`}
-                className="flex items-center justify-between rounded-xl bg-ink-100 px-4 py-3 text-sm"
+                className="flex items-center justify-between rounded-xl bg-surface-sunken px-4 py-3 text-sm"
               >
-                <span className="font-bold text-ink-900">
+                <span className="font-bold text-fg">
                   {m.displayName} {m.title ? `（${m.title}）` : ''}
                 </span>
-                <span className="text-sm font-semibold text-ink-600">
+                <span className="text-sm font-semibold text-fg-muted">
                   {m.role} {m.endedAt ? '· 已卸任' : '· 現行有效'}
                 </span>
               </div>
@@ -1396,10 +1441,10 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
 
       {/* QUESTIONS & FAQ TAB */}
       {tab === 'questions' && (
-        <div className="space-y-4 rounded-xl border border-line bg-white p-6">
-          <h2 className="text-base font-bold text-ink-900">新生問答收件匣 ＆ 置頂 FAQ 管理</h2>
+        <div className="space-y-4 rounded-xl border border-line bg-surface p-6">
+          <h2 className="text-base font-bold text-fg">新生問答收件匣 ＆ 置頂 FAQ 管理</h2>
           {questionsInbox.length === 0 ? (
-            <p className="text-sm text-ink-500">目前尚無提問。</p>
+            <p className="text-sm text-fg-subtle">目前尚無提問。</p>
           ) : (
             questionsInbox.map((q) => {
               const draft = replyDrafts[q.id] ?? {
@@ -1409,12 +1454,12 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 highlight: false,
               };
               return (
-                <div key={q.id} className="space-y-2 rounded-xl bg-ink-50 p-4 text-sm">
+                <div key={q.id} className="space-y-2 rounded-xl bg-surface-subtle p-4 text-sm">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-ink-900">
+                    <span className="font-bold text-fg">
                       {q.display_asker}：{q.question_text}
                     </span>
-                    <span className="rounded-full bg-white px-2 py-0.5 text-xs font-bold text-ink-600">
+                    <span className="rounded-full bg-surface px-2 py-0.5 text-xs font-bold text-fg-muted">
                       {q.status}
                     </span>
                   </div>
@@ -1495,12 +1540,12 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
       {/* PRIVATE EVAL ARCHIVE & EXPORT TAB */}
       {tab === 'evaluation' && (
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-300 bg-white p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-strong bg-surface p-6">
             <div>
-              <h2 className="text-base font-bold text-ink-900">
+              <h2 className="text-base font-bold text-fg">
                 一鍵匯出年度評鑑報告（含 Co-Club 共辦實績與內部索引）
               </h2>
-              <p className="text-sm text-ink-600">
+              <p className="text-sm text-fg-muted">
                 預設採計上學年 5 月 1 日至當年 5 月 31 日，僅整合有勾選「納入評鑑」之內容。
               </p>
             </div>
@@ -1523,13 +1568,13 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
           </div>
 
           {canWrite && (
-            <div className="space-y-3 rounded-xl border border-line bg-white p-6">
-              <h3 className="text-sm font-semibold text-ink-900">
+            <div className="space-y-3 rounded-xl border border-line bg-surface p-6">
+              <h3 className="text-sm font-semibold text-fg">
                 上傳私密內部評鑑檔案（Private Azure 容器，至少保存 6 年）
               </h3>
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-archtitle" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="club-manage-archtitle" className="block text-sm font-medium text-fg-body">
                     檔案標題
                   </label>
                   <input id="club-manage-archtitle"
@@ -1540,7 +1585,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   />
                 </div>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-archcategory" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="club-manage-archcategory" className="block text-sm font-medium text-fg-body">
                     檔案類型
                   </label>
                   <select id="club-manage-archcategory"
@@ -1556,7 +1601,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   </select>
                 </div>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="club-manage-archdate" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="club-manage-archdate" className="block text-sm font-medium text-fg-body">
                     日期
                   </label>
                   <input id="club-manage-archdate"
@@ -1580,19 +1625,19 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
             </div>
           )}
 
-          <div className="space-y-2 rounded-xl border border-line bg-white p-6">
-            <h3 className="text-sm font-semibold text-ink-900">社團私密檔案清冊（下載皆寫入稽核紀錄）</h3>
+          <div className="space-y-2 rounded-xl border border-line bg-surface p-6">
+            <h3 className="text-sm font-semibold text-fg">社團私密檔案清冊（下載皆寫入稽核紀錄）</h3>
             {archiveFiles.length === 0 ? (
-              <p className="text-sm text-ink-500">目前尚無私密評鑑歸檔檔案。</p>
+              <p className="text-sm text-fg-subtle">目前尚無私密評鑑歸檔檔案。</p>
             ) : (
               archiveFiles.map((f) => (
                 <div
                   key={f.id}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-ink-50 p-3 text-sm"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface-subtle p-3 text-sm"
                 >
                   <div>
-                    <p className="font-bold text-ink-900">{f.title}</p>
-                    <p className="text-ink-500">
+                    <p className="font-bold text-fg">{f.title}</p>
+                    <p className="text-fg-subtle">
                       分類：{f.archive_category} · 發生日：{f.occurred_on} ·{' '}
                       {Math.round(f.size_bytes / 1024)} KB
                     </p>
@@ -1617,7 +1662,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
       {tab === 'handover' && (
         <div className="space-y-6">
           {data.pendingHandover && (
-            <div className="rounded-xl border border-warning-300 bg-warning-50 p-4 text-sm font-semibold text-warning-950">
+            <div className="rounded-xl border border-warning-300 bg-warning-soft p-4 text-sm font-semibold text-warning-950">
               目前有進行中的社長交接邀請：等待 {data.pendingHandover.toUserName} 於{' '}
               {formatTaipeiDate(data.pendingHandover.expiresAt)} 前接受。
             </div>
@@ -1626,30 +1671,32 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
           {isOwner && !data.pendingHandover && (
             <form
               onSubmit={handleStartHandover}
-              className="space-y-4 rounded-xl border border-ink-300 bg-white p-6"
+              className="space-y-4 rounded-xl border border-border-strong bg-surface p-6"
             >
-              <h2 className="text-base font-bold text-ink-900">
+              <h2 className="text-base font-bold text-fg">
                 發起 3 步換屆交接 ＆ 撰寫下屆避雷便條
               </h2>
-              <p className="text-sm text-ink-600">
-                填寫下屆接任社長同校 .edu.tw 信箱，並留下場地／核銷／廠商實務備忘；對方確認後系統自動將您轉為歷屆校友保留歸檔權限。
+              <p className="text-sm text-fg-muted">
+                只有接任社長的信箱是必填。三則備忘都可以先空著，之後再補；對方確認後，系統會自動把您轉為歷屆校友並保留歸檔權限。
               </p>
               <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                <label htmlFor="club-manage-handoveremail" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="club-manage-handoveremail" className="block text-sm font-medium text-fg-body">
                   接任社長的學校信箱
+                  <span className="ml-1 font-normal text-fg-muted">（必填）</span>
                 </label>
                 <input id="club-manage-handoveremail"
                   type="email"
                   required
                   value={handoverEmail}
                   onChange={(e) => setHandoverEmail(e.target.value)}
-                  placeholder="接任社長的同校 .edu.tw 信箱 *"
+                  placeholder="例如 s1234567@cc.ncu.edu.tw"
                   className={`${controlClasses} min-h-11 w-full`}
                 />
               </div>
               <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                <label htmlFor="club-manage-venuetips" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="club-manage-venuetips" className="block text-sm font-medium text-fg-body">
                   場地與器材眉角
+                  <span className="ml-1 font-normal text-fg-muted">（選填）</span>
                 </label>
                 <textarea id="club-manage-venuetips"
                   rows={2}
@@ -1660,8 +1707,9 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 />
               </div>
               <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                <label htmlFor="club-manage-hoursdeadlines" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="club-manage-hoursdeadlines" className="block text-sm font-medium text-fg-body">
                   時數認證與核銷期限
+                  <span className="ml-1 font-normal text-fg-muted">（選填）</span>
                 </label>
                 <textarea id="club-manage-hoursdeadlines"
                   rows={2}
@@ -1672,8 +1720,9 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 />
               </div>
               <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                <label htmlFor="club-manage-contactsvendors" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="club-manage-contactsvendors" className="block text-sm font-medium text-fg-body">
                   常用廠商與維修窗口
+                  <span className="ml-1 font-normal text-fg-muted">（選填）</span>
                 </label>
                 <textarea id="club-manage-contactsvendors"
                   rows={2}
@@ -1683,12 +1732,12 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
                 />
               </div>
-              <label className="flex min-h-[44px] cursor-pointer items-center gap-2.5 text-sm text-ink-700">
+              <label className="flex min-h-[44px] cursor-pointer items-center gap-2.5 text-sm text-fg-secondary">
                 <input
                   type="checkbox"
                   checked={shareDeid}
                   onChange={(e) => setShareDeid(e.target.checked)}
-                  className="h-4 w-4 rounded accent-accent-600"
+                  className="h-4 w-4 rounded accent-brand"
                 />
                 <span>
                   同意將以上去識別化經驗公開至「一起聚 → 前輩請益與筆記」（個人與社團聯絡方式不會公開）
@@ -1704,17 +1753,17 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
             </form>
           )}
 
-          <div className="space-y-3 rounded-xl border border-line bg-white p-5">
-            <h2 className="text-base font-bold text-ink-900">歷屆交接避雷便條（僅幹部／校友可見）</h2>
+          <div className="space-y-3 rounded-xl border border-line bg-surface p-5">
+            <h2 className="text-base font-bold text-fg">歷屆交接避雷便條（僅幹部／校友可見）</h2>
             {data.handoverNotes.length === 0 ? (
-              <p className="text-sm text-ink-500">尚無交接備忘錄。</p>
+              <p className="text-sm text-fg-subtle">尚無交接備忘錄。</p>
             ) : (
               data.handoverNotes.map((n) => (
                 <div
                   key={n.id}
-                  className="space-y-1 rounded-xl bg-ink-100 p-4 text-sm text-ink-700"
+                  className="space-y-1 rounded-xl bg-surface-sunken p-4 text-sm text-fg-secondary"
                 >
-                  <p className="font-bold text-ink-900">記錄日期：{formatTaipeiDate(n.createdAt)}</p>
+                  <p className="font-bold text-fg">記錄日期：{formatTaipeiDate(n.createdAt)}</p>
                   {n.venueTips && <p>場地眉角：{n.venueTips}</p>}
                   {n.hoursAndDeadlines && <p>時數與死線：{n.hoursAndDeadlines}</p>}
                   {n.contactsAndVendors && <p>廠商窗口：{n.contactsAndVendors}</p>}

@@ -83,14 +83,14 @@ export function ReportModal({
           aria-modal="true"
           aria-label="檢舉違規內容"
         >
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+          <div className="w-full max-w-md rounded-xl bg-surface p-6 shadow-xl">
             <div className="flex items-center justify-between border-b border-line pb-3">
-              <h3 className="text-base font-bold text-ink-900">回報違規或侵權內容</h3>
+              <h3 className="text-base font-bold text-fg">回報違規或侵權內容</h3>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="關閉視窗"
-                className="rounded-lg p-1 text-ink-500 hover:bg-ink-100"
+                className="rounded-lg p-1 text-fg-subtle hover:bg-surface-sunken"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -98,7 +98,7 @@ export function ReportModal({
 
             {done ? (
               <div className="mt-4 space-y-4">
-                <p className="rounded-xl bg-success-50 p-4 text-sm font-medium text-success-900">
+                <p className="rounded-xl bg-success-soft p-4 text-sm font-medium text-success-900">
                   已收到您的檢舉回報，平台管理員將會儘速檢視並依法規與社群守則處置。
                 </p>
                 <button
@@ -112,7 +112,7 @@ export function ReportModal({
             ) : (
               <form onSubmit={handleSubmit} className="mt-4 space-y-4">
                 <div>
-                  <label htmlFor="report-reason" className="mb-1.5 block text-sm font-semibold text-ink-700">
+                  <label htmlFor="report-reason" className="mb-1.5 block text-sm font-semibold text-fg-secondary">
                     檢舉原因
                   </label>
                   <select id="report-reason"
@@ -129,7 +129,7 @@ export function ReportModal({
                 </div>
 
                 <div>
-                  <label htmlFor="report-detail" className="mb-1.5 block text-sm font-semibold text-ink-700">
+                  <label htmlFor="report-detail" className="mb-1.5 block text-sm font-semibold text-fg-secondary">
                     補充說明（選填）
                   </label>
                   <textarea id="report-detail"
@@ -143,7 +143,7 @@ export function ReportModal({
                 </div>
 
                 {error && (
-                  <p className="rounded-xl bg-danger-50 px-3 py-2 text-sm font-medium text-danger-700">
+                  <p className="rounded-xl bg-danger-soft px-3 py-2 text-sm font-medium text-danger-fg">
                     {error}
                   </p>
                 )}
@@ -152,7 +152,7 @@ export function ReportModal({
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="rounded-xl border border-ink-300 px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
+                    className="rounded-xl border border-border-strong px-4 py-2 text-sm font-semibold text-fg-secondary hover:bg-surface-subtle"
                   >
                     取消
                   </button>

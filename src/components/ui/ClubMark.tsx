@@ -1,7 +1,16 @@
 import { cn } from './cn';
 
-// Muted, white-text-safe backgrounds (all >= 4.5:1 with white).
-const SWATCHES = ['#4338ca', '#0f766e', '#b45309', '#be123c', '#6d28d9', '#1d4ed8', '#047857', '#52525b'];
+// Muted, white-text-safe backgrounds (all >= 4.5:1 with white), defined in globals.css.
+const SWATCHES = [
+  'var(--color-mark-1)',
+  'var(--color-mark-2)',
+  'var(--color-mark-3)',
+  'var(--color-mark-4)',
+  'var(--color-mark-5)',
+  'var(--color-mark-6)',
+  'var(--color-mark-7)',
+  'var(--color-mark-8)',
+];
 
 function hash(s: string) {
   let h = 0;
@@ -29,7 +38,7 @@ export function ClubMark({
   return (
     <span
       aria-hidden="true"
-      className={cn('inline-flex shrink-0 items-center justify-center font-bold text-white', round ? 'rounded-full' : 'rounded-xl', dims, className)}
+      className={cn('inline-flex shrink-0 items-center justify-center font-bold text-on-brand', round ? 'rounded-full' : 'rounded-xl', dims, className)}
       style={{ backgroundColor: bg }}
     >
       {ch}

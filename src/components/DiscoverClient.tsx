@@ -328,7 +328,7 @@ export function DiscoverClient({
           </p>
           <Link
             href="/onboarding"
-            className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg bg-white px-3 text-sm font-semibold text-ink-900 hover:bg-ink-100"
+            className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg bg-surface px-3 text-sm font-semibold text-fg hover:bg-surface-sunken"
           >
             開始
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -392,8 +392,8 @@ export function DiscoverClient({
           }}
           className="relative"
         >
-          <div className="flex items-center gap-2 rounded-xl border border-line-input bg-white py-1 pr-1 pl-3.5 transition-shadow focus-within:border-accent-600 focus-within:ring-2 focus-within:ring-accent-600/20">
-            <Search className="h-5 w-5 shrink-0 text-ink-500" aria-hidden="true" />
+          <div className="flex items-center gap-2 rounded-xl border border-line-input bg-surface py-1 pr-1 pl-3.5 transition-shadow focus-within:border-brand focus-within:ring-2 focus-within:ring-focus-ring/20">
+            <Search className="h-5 w-5 shrink-0 text-fg-subtle" aria-hidden="true" />
             <input
               type="search"
               aria-label="用一句話搜尋社團或活動"
@@ -402,15 +402,15 @@ export function DiscoverClient({
               onFocus={() => setShowExamples(true)}
               onBlur={() => window.setTimeout(() => setShowExamples(false), 150)}
               placeholder="想找什麼？例如：週末、零基礎、不用買器材"
-              className="min-h-11 w-full min-w-0 bg-transparent text-base text-ink-900 outline-none placeholder:text-ink-500"
+              className="min-h-11 w-full min-w-0 bg-transparent text-base text-fg outline-none placeholder:text-fg-subtle"
             />
             <Button type="submit" loading={loading} size="sm" className="min-h-10">
               搜尋
             </Button>
           </div>
           {examplesVisible && (
-            <div className="absolute inset-x-0 top-full z-20 mt-2 rounded-xl border border-line bg-white p-2 shadow-lg">
-              <p className="px-2 pt-1 pb-2 text-xs font-medium text-ink-500">試試這樣問</p>
+            <div className="absolute inset-x-0 top-full z-20 mt-2 rounded-xl border border-line bg-surface p-2 shadow-lg">
+              <p className="px-2 pt-1 pb-2 text-xs font-medium text-fg-subtle">試試這樣問</p>
               <ul>
                 {DISCOVER_EXAMPLE_PROMPTS.map((ex) => (
                   <li key={ex}>
@@ -421,7 +421,7 @@ export function DiscoverClient({
                         setShowExamples(false);
                         void submitQuery(ex, 'stream');
                       }}
-                      className="flex min-h-11 w-full items-center gap-2 rounded-lg px-2 text-left text-sm text-ink-800 hover:bg-ink-50"
+                      className="flex min-h-11 w-full items-center gap-2 rounded-lg px-2 text-left text-sm text-fg-body hover:bg-surface-subtle"
                     >
                       <Search className="h-4 w-4 shrink-0 text-ink-400" aria-hidden="true" />
                       <span>{ex}</span>
@@ -452,11 +452,11 @@ export function DiscoverClient({
         )}
 
         {hasAnyFilter && (
-          <div className="flex items-center justify-between gap-2 text-sm text-ink-600">
+          <div className="flex items-center justify-between gap-2 text-sm text-fg-muted">
             <span className="min-w-0 truncate">
               {activeNlQuery ? (
                 <>
-                  搜尋「<span className="font-medium text-ink-900">{activeNlQuery}</span>」的結果
+                  搜尋「<span className="font-medium text-fg">{activeNlQuery}</span>」的結果
                 </>
               ) : (
                 '已套用篩選'
@@ -519,7 +519,7 @@ export function DiscoverClient({
 
       {/* Batch pagination */}
       <div className="flex flex-col items-center gap-3 border-t border-line pt-6 text-center">
-        <p className="text-sm text-ink-600">
+        <p className="text-sm text-fg-muted">
           這批 {activeTab === 'stream' ? streamMeta.count : eventMeta.count} 則・每個社團最多 2 則・不依讚數排序
         </p>
         <div className="flex flex-wrap justify-center gap-2">

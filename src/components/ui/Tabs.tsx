@@ -55,7 +55,7 @@ export function Tabs<T extends string>({
       onKeyDown={onKeyDown}
       className={cn(
         variant === 'segmented'
-          ? 'inline-flex rounded-xl bg-ink-100 p-1'
+          ? 'inline-flex rounded-xl bg-surface-sunken p-1'
           : 'no-scrollbar flex gap-1 overflow-x-auto border-b border-line',
         className
       )}
@@ -83,13 +83,13 @@ export function Tabs<T extends string>({
               variant === 'segmented'
                 ? cn(
                     'rounded-lg px-4',
-                    selected ? 'bg-white text-ink-900 shadow-sm' : 'text-ink-600 hover:text-ink-900'
+                    selected ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted hover:text-fg'
                   )
                 : cn(
                     '-mb-px border-b-2 px-3',
                     selected
-                      ? 'border-ink-900 text-ink-900'
-                      : 'border-transparent text-ink-600 hover:text-ink-900'
+                      ? 'border-fg text-fg'
+                      : 'border-transparent text-fg-muted hover:text-fg'
                   )
             )}
           >

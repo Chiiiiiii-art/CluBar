@@ -170,15 +170,15 @@ export function MyClubsClient({
           description="輸入幹部給你的邀請碼，或到社團頁申請加入。"
         />
       ) : (
-        <ul className="divide-y divide-line rounded-xl border border-line bg-white">
+        <ul className="divide-y divide-line rounded-xl border border-line bg-surface">
           {memberships.map((m) => {
             const canManage = m.role === 'owner' || m.role === 'editor' || m.role === 'alumni';
             return (
               <li key={`${m.clubId}-${m.role}`} className="flex items-center gap-3 px-4 py-3 sm:px-5">
                 <ClubMark name={m.name} seed={m.slug} size="md" />
                 <Link href={`/clubs/${m.slug}`} className="min-w-0 flex-1 py-1 hover:underline">
-                  <p className="truncate text-base font-semibold text-ink-900">{m.name}</p>
-                  <p className="truncate text-sm text-ink-600">
+                  <p className="truncate text-base font-semibold text-fg">{m.name}</p>
+                  <p className="truncate text-sm text-fg-muted">
                     {m.universityShortName} · {m.title || ROLE_LABELS[m.role] || m.role}
                   </p>
                 </Link>
@@ -201,17 +201,17 @@ export function MyClubsClient({
       )}
 
       {/* Invite Code Redeem */}
-      <div className="rounded-xl border border-line bg-white p-6">
-        <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
-          <KeyRound className="h-4 w-4 text-accent-600" aria-hidden="true" />
+      <div className="rounded-xl border border-line bg-surface p-6">
+        <h2 className="flex items-center gap-2 text-base font-bold text-fg">
+          <KeyRound className="h-4 w-4 text-brand" aria-hidden="true" />
           輸入幹部邀請碼，成為認證社員
         </h2>
         {!isCampusVerified ? (
-          <p className="mt-2 text-sm text-ink-600">
+          <p className="mt-2 text-sm text-fg-muted">
             邀請碼僅限同校學生驗證使用，請先至{' '}
             <Link
               href="/me?returnTo=/my-clubs"
-              className="inline-flex min-h-[44px] items-center font-bold text-accent-600 underline"
+              className="inline-flex min-h-[44px] items-center font-bold text-brand underline"
             >
               個人中心驗證學校信箱
             </Link>
@@ -236,28 +236,28 @@ export function MyClubsClient({
           </form>
         )}
         {joinMsg && <p className="mt-2 text-sm font-semibold text-success-700">{joinMsg}</p>}
-        {joinErr && <p className="mt-2 text-sm font-semibold text-danger-700">{joinErr}</p>}
+        {joinErr && <p className="mt-2 text-sm font-semibold text-danger-fg">{joinErr}</p>}
       </div>
 
       {/* Quick Post Composer */}
       {selectedClub && (
         <form
           onSubmit={handlePublishPost}
-          className="space-y-4 rounded-xl border border-ink-300 bg-white p-6"
+          className="space-y-4 rounded-xl border border-border-strong bg-surface p-6"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
-              <Sparkles className="h-4 w-4 text-accent-600" aria-hidden="true" />
+            <h2 className="flex items-center gap-2 text-base font-bold text-fg">
+              <Sparkles className="h-4 w-4 text-brand" aria-hidden="true" />
               發一則社團日常
             </h2>
-            <span className="rounded-full bg-accent-50 px-3 py-1 text-sm font-semibold text-accent-900">
+            <span className="rounded-full bg-brand-soft px-3 py-1 text-sm font-semibold text-accent-900">
               免公文格式，記錄真實的社員互動瞬間
             </span>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label htmlFor="my-clubs-selectedclub-slug" className="mb-1 block text-sm font-semibold text-ink-700">發表社團</label>
+              <label htmlFor="my-clubs-selectedclub-slug" className="mb-1 block text-sm font-semibold text-fg-secondary">發表社團</label>
               <select id="my-clubs-selectedclub-slug"
                 value={selectedClub.slug}
                 onChange={(e) => setSelectedSlug(e.target.value)}
@@ -271,7 +271,7 @@ export function MyClubsClient({
               </select>
             </div>
             <div>
-              <label htmlFor="my-clubs-isofficerselected-postkind-nrc-moment" className="mb-1 block text-sm font-semibold text-ink-700">內容類型</label>
+              <label htmlFor="my-clubs-isofficerselected-postkind-nrc-moment" className="mb-1 block text-sm font-semibold text-fg-secondary">內容類型</label>
               <select id="my-clubs-isofficerselected-postkind-nrc-moment"
                 value={isOfficerSelected ? postKind : 'nrc_moment'}
                 onChange={(e) => setPostKind(e.target.value as 'nrc_moment' | 'wip_work')}
@@ -286,7 +286,7 @@ export function MyClubsClient({
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="sm:col-span-2">
-              <label htmlFor="my-clubs-headline" className="mb-1 block text-sm font-semibold text-ink-700">一句話亮點 *</label>
+              <label htmlFor="my-clubs-headline" className="mb-1 block text-sm font-semibold text-fg-secondary">一句話亮點 *</label>
               <input id="my-clubs-headline"
                 type="text"
                 required
@@ -299,7 +299,7 @@ export function MyClubsClient({
               />
             </div>
             <div>
-              <label htmlFor="my-clubs-moodtag" className="mb-1 block text-sm font-semibold text-ink-700">氛圍小標（選填）</label>
+              <label htmlFor="my-clubs-moodtag" className="mb-1 block text-sm font-semibold text-fg-secondary">氛圍小標（選填）</label>
               <input id="my-clubs-moodtag"
                 type="text"
                 maxLength={24}
@@ -312,7 +312,7 @@ export function MyClubsClient({
           </div>
 
           <div>
-            <label htmlFor="my-clubs-contentmd" className="mb-1 block text-sm font-semibold text-ink-700">補充背景（選填）</label>
+            <label htmlFor="my-clubs-contentmd" className="mb-1 block text-sm font-semibold text-fg-secondary">補充背景（選填）</label>
             <textarea id="my-clubs-contentmd"
               rows={2}
               value={contentMd}
@@ -322,7 +322,7 @@ export function MyClubsClient({
             />
           </div>
 
-          <div className="space-y-3 rounded-xl bg-ink-50 p-4">
+          <div className="space-y-3 rounded-xl bg-surface-subtle p-4">
             <ImageUploader
               clubId={selectedClub.clubId}
               value={mediaItems}
@@ -331,8 +331,8 @@ export function MyClubsClient({
               purpose="post_image"
             />
             <div className="flex flex-wrap items-center gap-3 pt-1">
-              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-ink-300 bg-white px-3.5 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50">
-                <Film className="h-4 w-4 text-accent-600" aria-hidden="true" />
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border-strong bg-surface px-3.5 py-2 text-sm font-semibold text-fg-secondary hover:bg-surface-subtle">
+                <Film className="h-4 w-4 text-brand" aria-hidden="true" />
                 {videoBusy ? '處理短影與封面中...' : '或上傳 15 秒內短影 (MP4/WebM ≤25MB)'}
                 <input
                   type="file"
@@ -345,7 +345,7 @@ export function MyClubsClient({
             </div>
           </div>
 
-          <div className="space-y-2 text-sm text-ink-700">
+          <div className="space-y-2 text-sm text-fg-secondary">
             <label className="flex cursor-pointer items-center gap-2 font-semibold">
               <input
                 type="checkbox"
@@ -365,7 +365,7 @@ export function MyClubsClient({
           </div>
 
           {postMsg && <p className="text-sm font-semibold text-success-700">{postMsg}</p>}
-          {postErr && <p className="text-sm font-semibold text-danger-700">{postErr}</p>}
+          {postErr && <p className="text-sm font-semibold text-danger-fg">{postErr}</p>}
 
           <button
             type="submit"

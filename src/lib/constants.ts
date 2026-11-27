@@ -93,7 +93,7 @@ export const LEARNING_HOURS_LABELS: Record<LearningHoursCategory, string> = {
 
 export const TOGETHER_ITEM_TYPE_LABELS: Record<TogetherItemType, string> = {
   showcase: '作品試玩展示',
-  rebound: 'Rebound 接力',
+  rebound: '接力回應',
   field_log: '路線／實務紀錄',
   match_invite: '友社友誼邀約',
   reading_notes: '專題書單觀點',

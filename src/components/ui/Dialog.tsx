@@ -45,7 +45,7 @@ export function Dialog({
       }}
       aria-labelledby={titleId}
       className={cn(
-        'm-auto w-[calc(100%-2rem)] max-w-md rounded-xl border border-line bg-white p-0 text-ink-900 shadow-xl',
+        'm-auto w-[calc(100%-2rem)] max-w-md rounded-xl border border-line bg-surface p-0 text-fg shadow-xl',
         className
       )}
     >
@@ -56,13 +56,13 @@ export function Dialog({
               <h2 id={titleId} className="text-lg font-semibold">
                 {title}
               </h2>
-              {description && <p className="text-sm text-ink-600">{description}</p>}
+              {description && <p className="text-sm text-fg-muted">{description}</p>}
             </div>
             <button
               type="button"
               onClick={onClose}
               aria-label="關閉"
-              className="-mt-2 -mr-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink-500 hover:bg-ink-100 hover:text-ink-900"
+              className="-mt-2 -mr-2 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-fg-subtle hover:bg-surface-sunken hover:text-fg"
             >
               <X className="h-5 w-5" aria-hidden="true" />
             </button>

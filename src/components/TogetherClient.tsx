@@ -191,7 +191,7 @@ export function TogetherClient({
         }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error?.message || '建立 Jam 失敗');
+      if (!res.ok) throw new Error(json?.error?.message || '建立共作企劃失敗');
       setShowJamForm(false);
       setJamTitle('');
       setJamSummary('');
@@ -200,7 +200,7 @@ export function TogetherClient({
         const j = await refreshed.json();
         setJams(j.jams ?? []);
       }
-      setMsg('跨校共作 Jam 徵集已公開！');
+      setMsg('跨校共作企劃已公開徵集！');
     } catch (e2) {
       setErr(e2 instanceof Error ? e2.message : '建立失敗');
     } finally {
@@ -322,11 +322,11 @@ export function TogetherClient({
           {showStageForm && myMemberships.length > 0 && (
             <form
               onSubmit={handleCreateItem}
-              className="space-y-3 rounded-xl border border-ink-300 bg-white p-6"
+              className="space-y-3 rounded-xl border border-border-strong bg-surface p-6"
             >
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="together-clubid" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="together-clubid" className="block text-sm font-medium text-fg-body">
                     代表社團
                   </label>
                   <select id="together-clubid"
@@ -342,7 +342,7 @@ export function TogetherClient({
                   </select>
                 </div>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="together-domainid" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="together-domainid" className="block text-sm font-medium text-fg-body">
                     興趣領域
                   </label>
                   <select id="together-domainid"
@@ -358,7 +358,7 @@ export function TogetherClient({
                   </select>
                 </div>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="together-itemtype" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="together-itemtype" className="block text-sm font-medium text-fg-body">
                     類型
                   </label>
                   <select id="together-itemtype"
@@ -374,7 +374,7 @@ export function TogetherClient({
                 </div>
               </div>
               <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                <label htmlFor="together-title" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="together-title" className="block text-sm font-medium text-fg-body">
                   標題
                 </label>
                 <input id="together-title"
@@ -387,7 +387,7 @@ export function TogetherClient({
                 />
               </div>
               <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                <label htmlFor="together-contentmd" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="together-contentmd" className="block text-sm font-medium text-fg-body">
                   內容
                 </label>
                 <textarea id="together-contentmd"
@@ -401,7 +401,7 @@ export function TogetherClient({
                 />
               </div>
               <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                <label htmlFor="together-embedurl" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="together-embedurl" className="block text-sm font-medium text-fg-body">
                   預覽連結（選填）
                 </label>
                 <input id="together-embedurl"
@@ -423,7 +423,7 @@ export function TogetherClient({
           )}
 
           {filteredItems.length === 0 ? (
-            <div className="space-y-3 rounded-xl border border-dashed border-line bg-white p-8 text-center text-sm text-ink-500">
+            <div className="space-y-3 rounded-xl border border-dashed border-line bg-surface p-8 text-center text-sm text-fg-subtle">
               <p>目前沒有符合此領域的作品試玩或徵集。</p>
               {selectedDomain && (
                 <button
@@ -444,26 +444,26 @@ export function TogetherClient({
                   className={buttonClasses({ variant: 'secondary', size: 'md', className: 'flex-col' })}
                 >
                   <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="rounded-full bg-accent-100 px-2.5 py-0.5 font-bold text-accent-900">
+                    <span className="rounded-full bg-brand-soft-hover px-2.5 py-0.5 font-bold text-accent-900">
                       #{item.domain_name}
                     </span>
-                    <span className="rounded-full bg-ink-100 px-2.5 py-0.5 font-semibold text-ink-700">
+                    <span className="rounded-full bg-surface-sunken px-2.5 py-0.5 font-semibold text-fg-secondary">
                       {TOGETHER_ITEM_TYPE_LABELS[item.item_type]}
                     </span>
                     {item.embed_url && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-accent-50 px-2 py-0.5 font-semibold text-accent-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 font-semibold text-brand-soft-fg">
                         <Link2 className="h-3 w-3" aria-hidden="true" />
                         可試玩／預覽
                       </span>
                     )}
                   </div>
-                  <h2 className="text-base font-bold text-ink-900">{item.title}</h2>
-                  <p className="line-clamp-3 text-sm text-ink-600">{item.content_md}</p>
+                  <h2 className="text-base font-bold text-fg">{item.title}</h2>
+                  <p className="line-clamp-3 text-sm text-fg-muted">{item.content_md}</p>
                   <div className="mt-auto flex items-center justify-between border-t border-line pt-3 text-sm">
-                    <span className="font-semibold text-accent-700">
+                    <span className="font-semibold text-brand-soft-fg">
                       {item.club.university_short_name} · {item.club.name}
                     </span>
-                    <span className="text-ink-500">回覆 {item.reply_count}</span>
+                    <span className="text-fg-subtle">回覆 {item.reply_count}</span>
                   </div>
                 </Link>
               ))}
@@ -483,7 +483,7 @@ export function TogetherClient({
                 className={buttonClasses({ variant: 'primary', size: 'md' })}
               >
                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-                {showJamForm ? '收合徵集表單' : '發起跨校共作企劃 (Jam)'}
+                {showJamForm ? '收合徵集表單' : '發起跨校共作企劃'}
               </button>
             </div>
           )}
@@ -491,11 +491,11 @@ export function TogetherClient({
           {showJamForm && officerClubs.length > 0 && (
             <form
               onSubmit={handleCreateJam}
-              className="space-y-3 rounded-xl border border-ink-300 bg-white p-6"
+              className="space-y-3 rounded-xl border border-border-strong bg-surface p-6"
             >
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="together-jamclubid" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="together-jamclubid" className="block text-sm font-medium text-fg-body">
                     發起社團
                   </label>
                   <select id="together-jamclubid"
@@ -511,7 +511,7 @@ export function TogetherClient({
                   </select>
                 </div>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="together-jamdomainid" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="together-jamdomainid" className="block text-sm font-medium text-fg-body">
                     興趣領域
                   </label>
                   <select id="together-jamdomainid"
@@ -528,7 +528,7 @@ export function TogetherClient({
                 </div>
               </div>
               <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                <label htmlFor="together-jamtitle" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="together-jamtitle" className="block text-sm font-medium text-fg-body">
                   企劃題目
                 </label>
                 <input id="together-jamtitle"
@@ -540,7 +540,7 @@ export function TogetherClient({
                 />
               </div>
               <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                <label htmlFor="together-jamsummary" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="together-jamsummary" className="block text-sm font-medium text-fg-body">
                   合作說明
                 </label>
                 <textarea id="together-jamsummary"
@@ -554,7 +554,7 @@ export function TogetherClient({
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="together-jamroles" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="together-jamroles" className="block text-sm font-medium text-fg-body">
                     招募專長
                   </label>
                   <input id="together-jamroles"
@@ -565,7 +565,7 @@ export function TogetherClient({
                   />
                 </div>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="together-jamformat" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="together-jamformat" className="block text-sm font-medium text-fg-body">
                     合作方式
                   </label>
                   <input id="together-jamformat"
@@ -581,13 +581,13 @@ export function TogetherClient({
                 disabled={busy === 'create-jam'}
                 className="rounded-full bg-ink-900 px-5 py-2 text-sm font-semibold text-white"
               >
-                發布跨校 Jam 徵集
+                發布跨校共作徵集
               </button>
             </form>
           )}
 
           {filteredJams.length === 0 ? (
-            <div className="space-y-3 rounded-xl border border-dashed border-line bg-white p-8 text-center text-sm text-ink-500">
+            <div className="space-y-3 rounded-xl border border-dashed border-line bg-surface p-8 text-center text-sm text-fg-subtle">
               <p>此領域目前沒有開放中的跨校共創徵集。</p>
               {selectedDomain && (
                 <button
@@ -604,23 +604,23 @@ export function TogetherClient({
               {filteredJams.map((jam) => (
                 <div
                   key={jam.id}
-                  className="flex flex-col gap-3 rounded-xl border border-line bg-white p-5"
+                  className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-5"
                 >
                   <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="rounded-full bg-accent-100 px-2.5 py-0.5 font-bold text-accent-900">
+                    <span className="rounded-full bg-brand-soft-hover px-2.5 py-0.5 font-bold text-accent-900">
                       #{jam.domain_name}
                     </span>
-                    <span className="rounded-full bg-success-50 px-2.5 py-0.5 font-bold text-success-800">
+                    <span className="rounded-full bg-success-soft px-2.5 py-0.5 font-bold text-success-fg">
                       目標 ≥{jam.target_schools_count} 校共創
                     </span>
                   </div>
-                  <h2 className="text-base font-bold text-ink-900">{jam.title}</h2>
-                  <p className="text-sm text-ink-600">{jam.summary}</p>
+                  <h2 className="text-base font-bold text-fg">{jam.title}</h2>
+                  <p className="text-sm text-fg-muted">{jam.summary}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {jam.needed_roles.map((r) => (
                       <span
                         key={r}
-                        className="rounded-full bg-ink-100 px-2.5 py-0.5 text-xs font-semibold text-ink-700"
+                        className="rounded-full bg-surface-sunken px-2.5 py-0.5 text-xs font-semibold text-fg-secondary"
                       >
                         徵求：{r}
                       </span>
@@ -629,11 +629,11 @@ export function TogetherClient({
                   <div className="mt-auto flex items-center justify-between border-t border-line pt-3 text-sm">
                     <Link
                       href={`/clubs/${jam.host_club.slug}`}
-                      className="font-semibold text-accent-700 hover:underline"
+                      className="font-semibold text-brand-soft-fg hover:underline"
                     >
                       主辦：{jam.host_club.university_short_name} {jam.host_club.name}
                     </Link>
-                    <span className="text-ink-500">
+                    <span className="text-fg-subtle">
                       截止 {jam.deadline_at.slice(0, 10)}
                     </span>
                   </div>
@@ -648,40 +648,40 @@ export function TogetherClient({
       {subTab === 'mentors' && (
         <div className="space-y-6">
           {/* Alumni Ping Directory */}
-          <section className="space-y-4 rounded-xl border border-line bg-white p-6">
-            <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
-              <HandHeart className="h-4 w-4 text-accent-600" aria-hidden="true" />
+          <section className="space-y-4 rounded-xl border border-line bg-surface p-6">
+            <h2 className="flex items-center gap-2 text-base font-bold text-fg">
+              <HandHeart className="h-4 w-4 text-brand" aria-hidden="true" />
               歷屆前輩請益牆
             </h2>
             {!isCampusVerified ? (
-              <p className="text-sm text-ink-600">
+              <p className="text-sm text-fg-muted">
                 為保護前輩隱私，需{' '}
                 <Link
                   href="/me?returnTo=/together"
-                  className="inline-flex min-h-[44px] items-center font-bold text-accent-600 underline"
+                  className="inline-flex min-h-[44px] items-center font-bold text-brand underline"
                 >
                   完成校園信箱驗證
                 </Link>{' '}
                 才可發起 1 對 1 請益（每人每日上限 3 次）。
               </p>
             ) : alumni.length === 0 ? (
-              <p className="text-sm text-ink-500">目前尚無開啟請益接待的前輩名錄。</p>
+              <p className="text-sm text-fg-subtle">目前尚無開啟請益接待的前輩名錄。</p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {alumni.map((al) => (
                   <div
                     key={al.user_id}
-                    className="flex flex-col justify-between gap-2 rounded-xl bg-ink-50 p-4 text-sm"
+                    className="flex flex-col justify-between gap-2 rounded-xl bg-surface-subtle p-4 text-sm"
                   >
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-semibold text-ink-900">
+                        <span className="text-sm font-semibold text-fg">
                           {al.display_name}
                         </span>
-                        <span className="text-ink-600">{al.university_short_name}</span>
+                        <span className="text-fg-muted">{al.university_short_name}</span>
                       </div>
                       {al.clubs.length > 0 && (
-                        <p className="mt-1 text-ink-600">
+                        <p className="mt-1 text-fg-muted">
                           歷任：{al.clubs.map((c) => `${c.name}${c.title ? `(${c.title})` : ''}`).join('、')}
                         </p>
                       )}
@@ -689,7 +689,7 @@ export function TogetherClient({
                         {al.expertise_tags.map((tag) => (
                           <span
                             key={tag}
-                            className="rounded-full bg-white px-2.5 py-0.5 font-bold text-accent-900"
+                            className="rounded-full bg-surface px-2.5 py-0.5 font-bold text-accent-900"
                           >
                             #{tag}
                           </span>
@@ -700,7 +700,7 @@ export function TogetherClient({
                       {al.handle ? (
                         <Link
                           href={`/u/${al.handle}`}
-                          className="font-bold text-accent-700 hover:underline"
+                          className="font-bold text-brand-soft-fg hover:underline"
                         >
                           查看成長軌跡
                         </Link>
@@ -726,13 +726,13 @@ export function TogetherClient({
             {pingTarget && (
               <form
                 onSubmit={handleSendPing}
-                className="space-y-3 rounded-xl border border-accent-300 bg-accent-50/70 p-4 text-sm"
+                className="space-y-3 rounded-xl border border-accent-300 bg-brand-soft/70 p-4 text-sm"
               >
-                <p className="font-bold text-ink-900">
+                <p className="font-bold text-fg">
                   向 {pingTarget.display_name} 送出簡短請益（對方不會看到你的個人電話，將經站內與 Email 轉達）
                 </p>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="together-pingtag" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="together-pingtag" className="block text-sm font-medium text-fg-body">
                     想請教的領域
                   </label>
                   <input id="together-pingtag"
@@ -743,7 +743,7 @@ export function TogetherClient({
                   />
                 </div>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="together-pingmessage" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="together-pingmessage" className="block text-sm font-medium text-fg-body">
                     問題描述
                   </label>
                   <textarea id="together-pingmessage"
@@ -779,12 +779,12 @@ export function TogetherClient({
           </section>
 
           {/* Practical Resources */}
-          <section className="space-y-4 rounded-xl border border-line bg-white p-6">
-            <h2 className="text-base font-bold text-ink-900">
+          <section className="space-y-4 rounded-xl border border-line bg-surface p-6">
+            <h2 className="text-base font-bold text-fg">
               跨校前輩實務筆記（去識別化共筆與行政備忘）
             </h2>
             {filteredResources.length === 0 ? (
-              <div className="space-y-3 rounded-xl border border-dashed border-line bg-ink-50/70 p-6 text-center text-sm text-ink-600">
+              <div className="space-y-3 rounded-xl border border-dashed border-line bg-surface-subtle/70 p-6 text-center text-sm text-fg-muted">
                 <p>此領域目前還沒有跨校實務筆記。</p>
                 {selectedDomain && (
                   <button
@@ -801,16 +801,16 @@ export function TogetherClient({
                 {filteredResources.map((r) => (
                   <article
                     key={r.id}
-                    className="space-y-2 rounded-xl border border-line bg-ink-50 p-4"
+                    className="space-y-2 rounded-xl border border-line bg-surface-subtle p-4"
                   >
                     <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="rounded-full bg-accent-100 px-2 py-0.5 text-accent-900">
+                      <span className="rounded-full bg-brand-soft-hover px-2 py-0.5 text-accent-900">
                         #{r.domain_name}
                       </span>
-                      <span className="text-ink-500">來源：{r.source_university_short_name}</span>
+                      <span className="text-fg-subtle">來源：{r.source_university_short_name}</span>
                     </div>
-                    <h3 className="text-sm font-semibold text-ink-900">{r.title}</h3>
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-700">
+                    <h3 className="text-sm font-semibold text-fg">{r.title}</h3>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-fg-secondary">
                       {r.content_md}
                     </p>
                   </article>
@@ -821,12 +821,12 @@ export function TogetherClient({
             {isCampusVerified && (
               <form
                 onSubmit={handleCreateResource}
-                className="space-y-3 rounded-xl border border-dashed border-ink-300 p-4 text-sm"
+                className="space-y-3 rounded-xl border border-dashed border-border-strong p-4 text-sm"
               >
-                <p className="font-bold text-ink-800">分享一則去識別化的社團實務秘笈</p>
+                <p className="font-bold text-fg-body">分享一則去識別化的社團實務秘笈</p>
                 <div className="grid gap-2 sm:grid-cols-3">
                   <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                    <label htmlFor="together-resdomainid" className="block text-sm font-medium text-ink-800">
+                    <label htmlFor="together-resdomainid" className="block text-sm font-medium text-fg-body">
                       興趣領域
                     </label>
                     <select id="together-resdomainid"
@@ -842,7 +842,7 @@ export function TogetherClient({
                     </select>
                   </div>
                   <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                    <label htmlFor="together-restitle" className="block text-sm font-medium text-ink-800">
+                    <label htmlFor="together-restitle" className="block text-sm font-medium text-fg-body">
                       筆記標題
                     </label>
                     <input id="together-restitle"
@@ -856,7 +856,7 @@ export function TogetherClient({
                   </div>
                 </div>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                  <label htmlFor="together-rescontent" className="block text-sm font-medium text-ink-800">
+                  <label htmlFor="together-rescontent" className="block text-sm font-medium text-fg-body">
                     筆記內容
                   </label>
                   <textarea id="together-rescontent"

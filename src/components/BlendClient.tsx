@@ -83,7 +83,7 @@ export function BlendClient({
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
           <div className="min-w-0 flex-1 space-y-5">
             <div className="space-y-2">
-              <h2 className="text-base font-semibold text-ink-900">共同的興趣</h2>
+              <h2 className="text-base font-semibold text-fg">共同的興趣</h2>
               {sharedDomains.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {sharedDomains.map((d) => (
@@ -93,7 +93,7 @@ export function BlendClient({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-ink-600">
+                <p className="text-sm text-fg-muted">
                   {partnerName ? '你們目前沒有重疊的興趣領域。' : '加入合拍後，就能看到你們的共同興趣。'}
                 </p>
               )}
@@ -158,10 +158,10 @@ export function BlendClient({
               <Link
                 key={c.id}
                 href={`/clubs/${c.slug}`}
-                className="min-w-0 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-ink-300"
+                className="min-w-0 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-border-strong"
               >
-                <h3 className="break-words text-base font-semibold text-ink-900">{c.name}</h3>
-                <p className="mt-1 line-clamp-2 text-sm text-ink-600">{c.tagline}</p>
+                <h3 className="break-words text-base font-semibold text-fg">{c.name}</h3>
+                <p className="mt-1 line-clamp-2 text-sm text-fg-muted">{c.tagline}</p>
               </Link>
             ))}
           </div>

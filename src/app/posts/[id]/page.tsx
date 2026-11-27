@@ -100,7 +100,7 @@ export default async function PostDetailPage({
           {gallery.map((media, idx) => (
             <div
               key={`${media.url}-${idx}`}
-              className={`overflow-hidden rounded-xl border border-line bg-ink-100 ${
+              className={`overflow-hidden rounded-xl border border-line bg-surface-sunken ${
                 gallery.length === 1 ? 'sm:col-span-2' : ''
               }`}
               style={{ aspectRatio: clampedAspectRatio(media.width, media.height) }}
@@ -132,20 +132,20 @@ export default async function PostDetailPage({
           <Badge tone="accent">{kindMeta.label}</Badge>
           {post.mood_tag && <Badge>{post.mood_tag}</Badge>}
         </div>
-        <h1 className="break-words text-2xl font-bold leading-snug text-ink-900 sm:text-3xl">
+        <h1 className="break-words text-2xl font-bold leading-snug text-fg sm:text-3xl">
           {post.headline}
         </h1>
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-600">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-fg-muted">
           <Link
             href={`/clubs/${post.club.slug}`}
-            className="inline-flex min-h-11 min-w-0 items-center gap-2 font-medium text-ink-800 hover:text-accent-700"
+            className="inline-flex min-h-11 min-w-0 items-center gap-2 font-medium text-fg-body hover:text-brand-soft-fg"
           >
             <ClubMark name={post.club.name} seed={post.club.slug} size="sm" />
             <span className="break-words">
               {post.club.name} · {post.club.university_short_name}
             </span>
             {post.club.verification_status === 'verified' && (
-              <BadgeCheck className="h-4 w-4 shrink-0 text-accent-600" aria-label="官方認證社團" />
+              <BadgeCheck className="h-4 w-4 shrink-0 text-brand" aria-label="官方認證社團" />
             )}
           </Link>
           <span aria-hidden="true">·</span>
@@ -162,7 +162,7 @@ export default async function PostDetailPage({
       {post.contextual_event && (
         <Link
           href={`/e/${post.contextual_event.short_code}`}
-          className="flex min-h-14 items-center justify-between gap-3 rounded-xl bg-accent-50 p-4 text-sm font-semibold text-accent-900 hover:bg-accent-100"
+          className="flex min-h-14 items-center justify-between gap-3 rounded-xl bg-brand-soft p-4 text-sm font-semibold text-accent-900 hover:bg-brand-soft-hover"
         >
           <span className="flex min-w-0 items-center gap-2">
             <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />

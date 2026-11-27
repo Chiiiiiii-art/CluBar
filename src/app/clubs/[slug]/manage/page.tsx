@@ -60,9 +60,9 @@ export default async function ClubManagePage({
 
   if (!myRole || myRole === 'member') {
     return (
-      <div className="mx-auto max-w-lg rounded-xl border border-danger-200 bg-white p-8 text-center">
-        <h1 className="text-lg font-bold text-ink-900">您沒有此社團的管理後台權限</h1>
-        <p className="mt-2 text-sm text-ink-600">
+      <div className="mx-auto max-w-lg rounded-xl border border-danger-200 bg-surface p-8 text-center">
+        <h1 className="text-lg font-bold text-fg">您沒有此社團的管理後台權限</h1>
+        <p className="mt-2 text-sm text-fg-muted">
           僅現任社長、現任幹部或歷屆校友（只讀檢視評鑑檔案）可進入社團管理後台。
         </p>
         <Link

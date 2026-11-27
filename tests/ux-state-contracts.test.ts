@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { sanitizeInternalPath, isAllowedMediaUrl } from '../src/lib/validators';
 import { clampedAspectRatio } from '../src/lib/serializers';
-import { shouldRouteDraftToEvent, type VisionDraftExtractResult } from '../src/lib/ai/draft';
+import { buildFallbackDraft, shouldRouteDraftToEvent, type VisionDraftExtractResult } from '../src/lib/ai/draft';
 
 test('sanitizeInternalPath accepts relative app paths and blocks open redirects', () => {
   assert.equal(sanitizeInternalPath('/e/coffee-1?tab=poll'), '/e/coffee-1?tab=poll');
@@ -34,6 +34,20 @@ test('clampedAspectRatio preserves natural masonry ratios and clamps extremes to
   assert.equal(clampedAspectRatio(1280, 720), '1.778 / 1');
   assert.equal(clampedAspectRatio(100, 500), '0.560 / 1');
   assert.equal(clampedAspectRatio(2000, 400), '1.910 / 1');
+});
+
+test('AI fallback draft still routes event posters and club calendars to Events (D-11)', () => {
+  const calendar = '創遊社下學期社課表\n3/5 19:00 Unity 入門\n3/12 19:00 美術資源';
+  assert.equal(buildFallbackDraft(calendar, '創遊社').extracted_event.starts_at_hint, '3/5 19:00');
+  assert.equal(shouldRouteDraftToEvent(buildFallbackDraft(calendar, '創遊社'), calendar), true);
+
+  const poster = '迎新體驗課 11月29日 19:00 免費報名';
+  const posterDraft = buildFallbackDraft(poster, '熱舞社');
+  assert.equal(posterDraft.extracted_event.fee_ntd, 0);
+  assert.equal(shouldRouteDraftToEvent(posterDraft, poster), true);
+
+  const recap = '昨晚社課試烘淺焙豆，大家輪流手沖，香氣超棒';
+  assert.equal(shouldRouteDraftToEvent(buildFallbackDraft(recap, '咖啡社'), recap), false);
 });
 
 test('shouldRouteDraftToEvent routes recruitment/event posters to Events while keeping club recaps in stream', () => {

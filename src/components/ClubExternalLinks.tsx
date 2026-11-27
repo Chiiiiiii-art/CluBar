@@ -40,10 +40,10 @@ export function ClubOfficialLinks({
               source_surface: 'club_page',
             })
           }
-          className="inline-flex items-center gap-1.5 rounded-xl border border-ink-300 bg-ink-100 px-3.5 py-2 text-sm font-semibold text-ink-800 transition-colors hover:bg-accent-100"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-border-strong bg-surface-sunken px-3.5 py-2 text-sm font-semibold text-fg-body transition-colors hover:bg-brand-soft-hover"
         >
           <span>{link.label}</span>
-          <ExternalLinkIcon className="h-3.5 w-3.5 text-ink-500" aria-hidden="true" />
+          <ExternalLinkIcon className="h-3.5 w-3.5 text-fg-subtle" aria-hidden="true" />
         </a>
       ))}
     </div>

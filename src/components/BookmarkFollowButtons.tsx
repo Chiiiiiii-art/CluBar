@@ -55,8 +55,8 @@ export function BookmarkButton({
       onClick={toggle}
       className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-semibold transition-colors ${
         bookmarked
-          ? 'border-accent-600 bg-accent-50 text-accent-600'
-          : 'border-ink-300 bg-white text-ink-700 hover:bg-accent-50'
+          ? 'border-brand bg-brand-soft text-brand'
+          : 'border-border-strong bg-surface text-fg-secondary hover:bg-brand-soft'
       }`}
     >
       <Bookmark className={`h-3.5 w-3.5 ${bookmarked ? 'fill-current' : ''}`} aria-hidden="true" />
@@ -112,8 +112,8 @@ export function FollowButton({
         onClick={() => toggle()}
         className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
           followed
-            ? 'border border-accent-600 bg-accent-50 text-accent-600'
-            : 'bg-accent-600 text-white hover:bg-accent-700'
+            ? 'border border-brand bg-brand-soft text-brand'
+            : 'bg-brand text-on-brand hover:bg-brand-hover'
         }`}
       >
         <Heart className={`h-4 w-4 ${followed ? 'fill-current' : ''}`} aria-hidden="true" />

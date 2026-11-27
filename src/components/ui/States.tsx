@@ -19,20 +19,20 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        'flex flex-col items-center rounded-xl border border-dashed border-ink-300 px-6 py-12 text-center',
+        'flex flex-col items-center rounded-xl border border-dashed border-border-strong px-6 py-12 text-center',
         className
       )}
     >
-      {icon && <div className="mb-3 text-ink-400 [&_svg]:h-8 [&_svg]:w-8">{icon}</div>}
-      <p className="text-base font-semibold text-ink-900">{title}</p>
-      {description && <p className="mt-1 max-w-sm text-sm text-ink-600">{description}</p>}
+      {icon && <div className="mb-3 text-fg-faint [&_svg]:h-8 [&_svg]:w-8">{icon}</div>}
+      <p className="text-base font-semibold text-fg">{title}</p>
+      {description && <p className="mt-1 max-w-sm text-sm text-fg-muted">{description}</p>}
       {action && <div className="mt-5 flex flex-wrap justify-center gap-2">{action}</div>}
     </div>
   );
 }
 
 export function Skeleton({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return <div aria-hidden="true" className={cn('animate-pulse rounded-lg bg-ink-100', className)} style={style} />;
+  return <div aria-hidden="true" className={cn('animate-pulse rounded-lg bg-surface-sunken', className)} style={style} />;
 }
 
 /** Inline banner for errors, warnings and notices. */
@@ -50,10 +50,10 @@ export function Notice({
   className?: string;
 }) {
   const styles = {
-    info: 'border-accent-200 bg-accent-50 text-accent-900',
-    warning: 'border-warning-200 bg-warning-50 text-warning-900',
-    danger: 'border-danger-200 bg-danger-50 text-danger-800',
-    success: 'border-success-200 bg-success-50 text-success-900',
+    info: 'border-notice-info-border bg-brand-soft text-notice-info-fg',
+    warning: 'border-notice-warning-border bg-warning-soft text-warning-fg',
+    danger: 'border-notice-danger-border bg-danger-soft text-notice-danger-fg',
+    success: 'border-notice-success-border bg-success-soft text-notice-success-fg',
   }[tone];
   const Icon = tone === 'info' || tone === 'success' ? Info : AlertTriangle;
   return (

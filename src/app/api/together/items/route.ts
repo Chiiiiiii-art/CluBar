@@ -93,7 +93,7 @@ export async function POST(req: Request) {
 
     if (parsed.item_type === 'rebound') {
       if (!parsed.parent_item_id) {
-        throw new AppError(400, 'PARENT_ITEM_REQUIRED', 'Rebound 接力必須關聯原作項目。');
+        throw new AppError(400, 'PARENT_ITEM_REQUIRED', '接力回應必須指定要回應的原作。');
       }
       const [parent] = await db
         .select({ id: togetherItems.id })

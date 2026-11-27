@@ -24,7 +24,7 @@ import type { FollowMode, PortfolioVisibility } from '@/db/schema';
 import { formatTaipeiDateTime } from '@/lib/academic-year';
 import { CLUB_CATEGORIES } from '@/lib/constants';
 import type { UserPortfolioDTO } from '@/lib/services/portfolio';
-import { Badge, Button, ClubMark, Tabs, buttonClasses, controlClasses, tabPanelProps } from '@/components/ui';
+import { Badge, Button, ButtonLink, ClubMark, EmptyState, Tabs, buttonClasses, controlClasses, tabPanelProps } from '@/components/ui';
 
 export interface MePageData {
   user: {
@@ -357,10 +357,10 @@ export function MeClient({
         <div className="flex items-start gap-4">
           <ClubMark name={data.user.displayName} seed={data.user.email} size="lg" round />
           <div className="min-w-0 flex-1 space-y-1">
-            <h1 className="text-2xl font-bold text-ink-900">{data.user.displayName}</h1>
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-ink-600">
+            <h1 className="text-2xl font-bold text-fg">{data.user.displayName}</h1>
+            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-fg-muted">
               {data.user.campusVerifiedAt ? (
-                <span className="inline-flex items-center gap-1 text-accent-700">
+                <span className="inline-flex items-center gap-1 text-brand-soft-fg">
                   <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                   {data.user.universityName}
                 </span>
@@ -370,7 +370,7 @@ export function MeClient({
               <span className="truncate">{data.user.campusEmail || data.user.email}</span>
             </p>
             {data.user.platformRole === 'platform_admin' && (
-              <Link href="/admin" className="inline-flex min-h-8 items-center text-sm font-medium text-accent-700 hover:underline">
+              <Link href="/admin" className="inline-flex min-h-8 items-center text-sm font-medium text-brand-soft-fg hover:underline">
                 前往平台治理 →
               </Link>
             )}
@@ -383,7 +383,7 @@ export function MeClient({
         </div>
 
         {returnTo && (data.user.campusVerifiedAt || otpJustVerified) && (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-success-300 bg-success-50 p-4 text-sm text-success-950">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-success-300 bg-success-soft p-4 text-sm text-success-950">
             <p className="font-bold">校園身分已完成驗證，可立即回到原本頁面繼續操作。</p>
             <Link
               href={returnTo}
@@ -395,15 +395,15 @@ export function MeClient({
         )}
 
         {!data.user.campusVerifiedAt && !otpJustVerified && (
-          <div className="mt-6 rounded-xl border border-accent-200 bg-accent-50/70 p-4 sm:p-5">
+          <div className="mt-6 rounded-xl border border-accent-200 bg-brand-soft/70 p-4 sm:p-5">
             <div className="flex items-start gap-2.5">
-              <MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-accent-700" aria-hidden="true" />
+              <MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-soft-fg" aria-hidden="true" />
               <div className="flex-1 space-y-3">
                 <div>
-                  <h2 className="text-sm font-semibold text-ink-900">
+                  <h2 className="text-sm font-semibold text-fg">
                     驗證大專校院校園信箱（.edu.tw），解鎖社員認證、發問與幹部權限
                   </h2>
-                  <p className="mt-0.5 text-sm text-ink-600">
+                  <p className="mt-0.5 text-sm text-fg-muted">
                     支援全台大專校院教育信箱（例如 @cc.ncu.edu.tw、@ntust.edu.tw）；此資料僅用於身分認證，不會對外公開。
                     {returnTo ? ' 驗證完成後會顯示返回原頁按鈕。' : ''}
                   </p>
@@ -460,10 +460,10 @@ export function MeClient({
                 )}
 
                 {verifyMsg && (
-                  <p className="text-sm font-semibold text-success-800">{verifyMsg}</p>
+                  <p className="text-sm font-semibold text-success-fg">{verifyMsg}</p>
                 )}
                 {verifyErr && (
-                  <p className="text-sm font-semibold text-danger-700">{verifyErr}</p>
+                  <p className="text-sm font-semibold text-danger-fg">{verifyErr}</p>
                 )}
               </div>
             </div>
@@ -473,18 +473,18 @@ export function MeClient({
 
       {/* Pending Co-Club Invitations */}
       {coInvites.length > 0 && (
-        <section className="rounded-xl border border-accent-200 bg-accent-50/70 p-5">
-          <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
-            <Sparkles className="h-4 w-4 text-accent-700" aria-hidden="true" />
+        <section className="rounded-xl border border-accent-200 bg-brand-soft/70 p-5">
+          <h2 className="flex items-center gap-2 text-base font-bold text-fg">
+            <Sparkles className="h-4 w-4 text-brand-soft-fg" aria-hidden="true" />
             待回應的 Co-Club 友社共辦邀請 ({coInvites.length})
           </h2>
           <div className="mt-3 space-y-2.5">
             {coInvites.map((inv) => (
               <div
                 key={inv.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white p-4 text-sm"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface p-4 text-sm"
               >
-                <span className="font-bold text-ink-900">
+                <span className="font-bold text-fg">
                   「{inv.hostClubName}」邀請貴社掛名共辦（{inv.targetType === 'event' ? '體驗活動' : '作品貼文'}）
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -500,7 +500,7 @@ export function MeClient({
                     type="button"
                     disabled={coBusy === inv.id}
                     onClick={() => respondCoClub(inv.id, 'reject', false)}
-                    className="rounded-full border border-ink-300 px-3 py-1.5 font-bold text-ink-700"
+                    className="rounded-full border border-border-strong px-3 py-1.5 font-bold text-fg-secondary"
                   >
                     婉拒
                   </button>
@@ -513,14 +513,14 @@ export function MeClient({
 
       {/* Pending Handover Invitations */}
       {(handovers.length > 0 || handoverMsg) && (
-        <section className="rounded-xl border border-accent-300 bg-accent-50 p-5">
+        <section className="rounded-xl border border-accent-300 bg-brand-soft p-5">
           <div className="mb-3 flex items-center gap-2">
-            <UserCheck className="h-5 w-5 text-accent-600" aria-hidden="true" />
-            <h2 className="text-base font-bold text-ink-900">待確認的社長交接邀請</h2>
+            <UserCheck className="h-5 w-5 text-brand" aria-hidden="true" />
+            <h2 className="text-base font-bold text-fg">待確認的社長交接邀請</h2>
           </div>
 
           {handoverMsg && (
-            <p className="mb-3 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-success-800">
+            <p className="mb-3 rounded-xl bg-surface px-4 py-2.5 text-sm font-semibold text-success-fg">
               {handoverMsg}
             </p>
           )}
@@ -529,14 +529,14 @@ export function MeClient({
             {handovers.map((h) => (
               <div
                 key={h.id}
-                className="flex flex-col justify-between gap-3 rounded-xl border border-accent-200 bg-white p-4 sm:flex-row sm:items-center"
+                className="flex flex-col justify-between gap-3 rounded-xl border border-accent-200 bg-surface p-4 sm:flex-row sm:items-center"
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-semibold text-ink-900">
+                  <p className="text-sm font-semibold text-fg">
                     「{h.clubName}」現任社長 {h.fromUserName} 邀請您接任新任社長
                   </p>
-                  {h.note && <p className="text-sm text-ink-600">備註：{h.note}</p>}
-                  <p className="text-xs text-ink-500">
+                  {h.note && <p className="text-sm text-fg-muted">備註：{h.note}</p>}
+                  <p className="text-xs text-fg-subtle">
                     邀請有效期限至：{formatTaipeiDateTime(h.expiresAt)}
                   </p>
                 </div>
@@ -577,7 +577,7 @@ export function MeClient({
             label: '通知',
             badge:
               unreadCount > 0 ? (
-                <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger-600 px-1.5 text-xs font-semibold text-white">
+                <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-xs font-semibold text-on-brand">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               ) : undefined,
@@ -591,14 +591,28 @@ export function MeClient({
       {meTab === 'notifications' && (
         <div {...tabPanelProps('me', 'notifications')} className="space-y-6">
       {/* Notifications */}
-      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+      <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
         <div className="mb-4 flex items-center gap-2">
-          <Bell className="h-4 w-4 text-accent-600" aria-hidden="true" />
-          <h2 className="text-base font-bold text-ink-900">站內通知</h2>
+          <Bell className="h-4 w-4 text-brand" aria-hidden="true" />
+          <h2 className="text-base font-bold text-fg">站內通知</h2>
         </div>
 
         {notifs.length === 0 ? (
-          <p className="text-sm text-ink-500">目前沒有任何通知。</p>
+          <EmptyState
+            icon={<Bell />}
+            title="目前沒有新通知"
+            description="追蹤社團或報名活動後，活動異動、問答回覆和入社審核結果都會出現在這裡。"
+            action={
+              <>
+                <ButtonLink href="/?tab=events" size="md">
+                  看看近期活動
+                </ButtonLink>
+                <ButtonLink href="/" variant="secondary" size="md">
+                  逛逛社團現場
+                </ButtonLink>
+              </>
+            }
+          />
         ) : (
           <div className="space-y-2.5">
             {notifs.map((n) => (
@@ -606,17 +620,17 @@ export function MeClient({
                 key={n.id}
                 className={`flex flex-col justify-between gap-2 rounded-xl border p-3.5 sm:flex-row sm:items-center ${
                   n.readAt
-                    ? 'border-ink-200 bg-white'
-                    : 'border-accent-200 bg-accent-50/70'
+                    ? 'border-line bg-surface'
+                    : 'border-accent-200 bg-brand-soft/70'
                 }`}
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    {!n.readAt && <span className="h-2 w-2 rounded-full bg-accent-600" />}
-                    <p className="text-sm font-semibold text-ink-900">{n.title}</p>
+                    {!n.readAt && <span className="h-2 w-2 rounded-full bg-brand" />}
+                    <p className="text-sm font-semibold text-fg">{n.title}</p>
                   </div>
-                  <p className="text-sm text-ink-700">{n.body}</p>
-                  <p className="text-xs text-ink-500">
+                  <p className="text-sm text-fg-secondary">{n.body}</p>
+                  <p className="text-xs text-fg-subtle">
                     {formatTaipeiDateTime(n.createdAt)}
                   </p>
                 </div>
@@ -634,7 +648,7 @@ export function MeClient({
                     <button
                       type="button"
                       onClick={() => void markRead(n.id)}
-                      className="inline-flex items-center gap-1 rounded-xl bg-ink-100 px-3 py-1.5 text-sm font-semibold text-ink-700 hover:bg-ink-200"
+                      className="inline-flex items-center gap-1 rounded-xl bg-surface-sunken px-3 py-1.5 text-sm font-semibold text-fg-secondary hover:bg-ink-200"
                     >
                       <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                       <span>已讀</span>
@@ -653,13 +667,13 @@ export function MeClient({
         <div {...tabPanelProps('me', 'saved')} className="space-y-6">
       {/* Bookmarks & Follows (with Follow Separation Mode selector) */}
       <div className="grid gap-6 md:grid-cols-2">
-        <section className="rounded-xl border border-line bg-white p-5">
+        <section className="rounded-xl border border-line bg-surface p-5">
           <div className="mb-3 flex items-center gap-2">
-            <Bookmark className="h-4 w-4 text-accent-600" aria-hidden="true" />
-            <h2 className="text-base font-bold text-ink-900">我的收藏</h2>
+            <Bookmark className="h-4 w-4 text-brand" aria-hidden="true" />
+            <h2 className="text-base font-bold text-fg">我的收藏</h2>
           </div>
           {data.bookmarks.length === 0 ? (
-            <div className="space-y-3 rounded-xl bg-ink-100/40 p-4 text-sm text-ink-600">
+            <div className="space-y-3 rounded-xl bg-surface-sunken/40 p-4 text-sm text-fg-muted">
               <p>還沒收藏任何作品或活動。</p>
               <Link
                 href="/"
@@ -673,7 +687,7 @@ export function MeClient({
               {data.bookmarks.map((b) => (
                 <li
                   key={b.postId}
-                  className="rounded-xl border border-line bg-ink-100/40 p-3"
+                  className="rounded-xl border border-line bg-surface-sunken/40 p-3"
                 >
                   <Link
                     href={
@@ -681,11 +695,11 @@ export function MeClient({
                         ? `/e/${b.clubSlug.slice(5)}`
                         : `/posts/${b.postId}`
                     }
-                    className="block text-sm font-semibold text-ink-900 hover:text-accent-600"
+                    className="block text-sm font-semibold text-fg hover:text-brand"
                   >
                     {b.title}
                   </Link>
-                  <span className="mt-1 block text-sm text-ink-600">
+                  <span className="mt-1 block text-sm text-fg-muted">
                     {b.universityShortName} · {b.clubName}
                   </span>
                 </li>
@@ -694,13 +708,13 @@ export function MeClient({
           )}
         </section>
 
-        <section className="rounded-xl border border-line bg-white p-5">
+        <section className="rounded-xl border border-line bg-surface p-5">
           <div className="mb-3 flex items-center gap-2">
-            <Heart className="h-4 w-4 text-accent-600" aria-hidden="true" />
-            <h2 className="text-base font-bold text-ink-900">我追蹤的社團（通知偏好）</h2>
+            <Heart className="h-4 w-4 text-brand" aria-hidden="true" />
+            <h2 className="text-base font-bold text-fg">我追蹤的社團（通知偏好）</h2>
           </div>
           {follows.length === 0 ? (
-            <div className="space-y-3 rounded-xl bg-ink-100/40 p-4 text-sm text-ink-600">
+            <div className="space-y-3 rounded-xl bg-surface-sunken/40 p-4 text-sm text-fg-muted">
               <p>尚未追蹤任何社團，追蹤後可選擇「只收新活動」或「全部動態」。</p>
               <Link
                 href="/"
@@ -714,16 +728,16 @@ export function MeClient({
               {follows.map((f) => (
                 <li
                   key={f.clubId}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-ink-100/40 p-3"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface-sunken/40 p-3"
                 >
                   <div>
                     <Link
                       href={`/clubs/${f.slug}`}
-                      className="text-sm font-semibold text-ink-900 hover:text-accent-600"
+                      className="text-sm font-semibold text-fg hover:text-brand"
                     >
                       {f.name}
                     </Link>
-                    <p className="text-sm text-ink-500">
+                    <p className="text-sm text-fg-subtle">
                       {f.universityShortName} · {CLUB_CATEGORIES[f.category].label}
                     </p>
                   </div>
@@ -750,25 +764,25 @@ export function MeClient({
       {meTab === 'clubs' && (
         <div {...tabPanelProps('me', 'clubs')} className="space-y-6">
       {/* Managed Clubs */}
-      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+      <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-ink-900">我加入的社團</h2>
+          <h2 className="text-lg font-bold text-fg">我加入的社團</h2>
           <Link
             href="/clubs/apply"
-            className="text-sm font-semibold text-accent-600 hover:underline"
+            className="text-sm font-semibold text-brand hover:underline"
           >
             認領或申請新社團 →
           </Link>
         </div>
 
         {data.memberships.length === 0 ? (
-          <p className="text-sm text-ink-600">
+          <p className="text-sm text-fg-muted">
             你目前尚未加入任何認證社團。可至{' '}
-            <Link href="/my-clubs" className="font-bold text-accent-700 underline">
+            <Link href="/my-clubs" className="font-bold text-brand-soft-fg underline">
               我的聚
             </Link>{' '}
             輸入邀請碼，或前往{' '}
-            <Link href="/clubs/apply" className="font-bold text-accent-700 underline">
+            <Link href="/clubs/apply" className="font-bold text-brand-soft-fg underline">
               認領名錄社團
             </Link>
             。
@@ -778,12 +792,12 @@ export function MeClient({
             {data.memberships.map((m) => (
               <div
                 key={`${m.clubId}-${m.role}`}
-                className="flex flex-col justify-between gap-3 rounded-xl border border-line bg-ink-100/50 p-4"
+                className="flex flex-col justify-between gap-3 rounded-xl border border-line bg-surface-sunken/50 p-4"
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="font-bold text-ink-600">{m.universityShortName}</span>
-                    <span className="rounded-full bg-white px-2.5 py-0.5 font-bold text-ink-800">
+                    <span className="font-bold text-fg-muted">{m.universityShortName}</span>
+                    <span className="rounded-full bg-surface px-2.5 py-0.5 font-bold text-fg-body">
                       {m.role === 'owner'
                         ? '現任社長'
                         : m.role === 'editor'
@@ -795,7 +809,7 @@ export function MeClient({
                   </div>
                   <Link
                     href={`/clubs/${m.slug}`}
-                    className="mt-1 block text-base font-bold text-ink-900 hover:text-accent-600"
+                    className="mt-1 block text-base font-bold text-fg hover:text-brand"
                   >
                     {m.name}
                   </Link>
@@ -830,14 +844,14 @@ export function MeClient({
       {meTab === 'settings' && (
         <div {...tabPanelProps('me', 'settings')} className="space-y-6">
       {/* 1D Portfolio, Webcal Subscription & Push Controls */}
-      <section className="rounded-xl border border-ink-300 bg-white p-5 sm:p-6">
+      <section className="rounded-xl border border-border-strong bg-surface p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="flex items-center gap-2 text-lg font-bold text-ink-900">
-              <Award className="h-5 w-5 text-accent-600" aria-hidden="true" />
+            <h2 className="flex items-center gap-2 text-lg font-bold text-fg">
+              <Award className="h-5 w-5 text-brand" aria-hidden="true" />
               個人社團成長軌跡 (1D Portfolio) 與訂閱授權
             </h2>
-            <p className="text-sm text-ink-600">
+            <p className="text-sm text-fg-muted">
               累積認證時數 {data.portfolio?.learning_hours_total ?? 0} 小時・參與場次{' '}
               {data.portfolio?.attended_events.length ?? 0} 場（預設完全私密，無追蹤人數虛榮排行）
             </p>
@@ -845,7 +859,7 @@ export function MeClient({
           {handleInput && (
             <Link
               href={`/u/${handleInput}`}
-              className="rounded-full border border-ink-300 px-3.5 py-1.5 text-sm font-semibold text-accent-700 hover:bg-accent-50"
+              className="rounded-full border border-border-strong px-3.5 py-1.5 text-sm font-semibold text-brand-soft-fg hover:bg-brand-soft"
             >
               檢視我的公開足跡頁 /u/{handleInput}
             </Link>
@@ -855,7 +869,7 @@ export function MeClient({
         <form onSubmit={handleSavePortfolioSettings} className="mt-4 space-y-3 text-sm">
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
-              <label htmlFor="me-handleinput" className="mb-1 block font-bold text-ink-700">個人頁代號 (handle)</label>
+              <label htmlFor="me-handleinput" className="mb-1 block font-bold text-fg-secondary">個人頁代號 (handle)</label>
               <input id="me-handleinput"
                 value={handleInput}
                 onChange={(e) => setHandleInput(e.target.value)}
@@ -864,7 +878,7 @@ export function MeClient({
               />
             </div>
             <div>
-              <label htmlFor="me-visibility" className="mb-1 block font-bold text-ink-700">誰能看見我的成長軌跡</label>
+              <label htmlFor="me-visibility" className="mb-1 block font-bold text-fg-secondary">誰能看見我的成長軌跡</label>
               <select id="me-visibility"
                 value={visibility}
                 onChange={(e) => setVisibility(e.target.value as PortfolioVisibility)}
@@ -876,7 +890,7 @@ export function MeClient({
               </select>
             </div>
             <div>
-              <label htmlFor="me-alumnitagsstr" className="mb-1 block font-bold text-ink-700">
+              <label htmlFor="me-alumnitagsstr" className="mb-1 block font-bold text-fg-secondary">
                 前輩經驗專長標籤（逗號分隔，最多 3 個）
               </label>
               <input id="me-alumnitagsstr"
@@ -889,15 +903,15 @@ export function MeClient({
           </div>
 
           <div className="flex flex-wrap gap-4 pt-1">
-            <label className="flex cursor-pointer items-center gap-2 font-semibold text-ink-700">
+            <label className="flex cursor-pointer items-center gap-2 font-semibold text-fg-secondary">
               <input
                 type="checkbox"
                 checked={alumniPing}
                 onChange={(e) => setAlumniPing(e.target.checked)}
               />
-              開放「一起聚 → 前輩請益牆 (Alumni Ping)」接受學弟妹禮貌發問
+              開放「一起聚 → 前輩請益牆」接受學弟妹禮貌發問
             </label>
-            <label className="flex cursor-pointer items-center gap-2 text-ink-700">
+            <label className="flex cursor-pointer items-center gap-2 text-fg-secondary">
               <input
                 type="checkbox"
                 checked={talentOptIn}
@@ -908,7 +922,7 @@ export function MeClient({
           </div>
 
           {portMsg && <p className="font-bold text-success-700">{portMsg}</p>}
-          {portErr && <p className="font-bold text-danger-700">{portErr}</p>}
+          {portErr && <p className="font-bold text-danger-fg">{portErr}</p>}
 
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
@@ -921,15 +935,15 @@ export function MeClient({
             <button
               type="button"
               onClick={() => handleLoadWebcal(false)}
-              className="inline-flex items-center gap-1 rounded-full border border-ink-300 px-3.5 py-2 font-bold text-ink-800"
+              className="inline-flex items-center gap-1 rounded-full border border-border-strong px-3.5 py-2 font-bold text-fg-body"
             >
-              <CalendarSync className="h-3.5 w-3.5 text-accent-600" />
+              <CalendarSync className="h-3.5 w-3.5 text-brand" />
               複製個人 webcal:// 行事曆
             </button>
             <button
               type="button"
               onClick={() => handleLoadWebcal(true)}
-              className="inline-flex items-center gap-1 rounded-full border border-ink-200 px-3 py-2 text-ink-600"
+              className="inline-flex items-center gap-1 rounded-full border border-line px-3 py-2 text-fg-muted"
             >
               <RefreshCw className="h-3 w-3" />
               重設行事曆密鑰
@@ -937,7 +951,7 @@ export function MeClient({
             <button
               type="button"
               onClick={handleEnableWebPush}
-              className="inline-flex items-center gap-1 rounded-full border border-ink-200 px-3.5 py-2 font-bold text-ink-700"
+              className="inline-flex items-center gap-1 rounded-full border border-line px-3.5 py-2 font-bold text-fg-secondary"
             >
               <Bell className="h-3.5 w-3.5" />
               啟用瀏覽器 Push 推播
@@ -945,19 +959,19 @@ export function MeClient({
           </div>
 
           {calUrl && (
-            <div className="mt-2 flex items-center gap-2 rounded-xl bg-ink-50 p-2.5 font-mono text-xs text-ink-700">
+            <div className="mt-2 flex items-center gap-2 rounded-xl bg-surface-subtle p-2.5 font-mono text-xs text-fg-secondary">
               <span className="truncate">{calUrl}</span>
               <button
                 type="button"
                 onClick={() => navigator.clipboard.writeText(calUrl)}
-                className="shrink-0 font-bold text-accent-600"
+                className="shrink-0 font-bold text-brand"
               >
                 <Copy className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
           {calMsg && <p className="font-semibold text-success-700">{calMsg}</p>}
-          {pushMsg && <p className="font-semibold text-accent-700">{pushMsg}</p>}
+          {pushMsg && <p className="font-semibold text-brand-soft-fg">{pushMsg}</p>}
         </form>
       </section>
         </div>

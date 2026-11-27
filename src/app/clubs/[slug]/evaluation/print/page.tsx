@@ -33,9 +33,9 @@ export default async function ClubEvaluationPrintPage({
     await requireClubArchiveAccess(club.id);
   } catch {
     return (
-      <div className="mx-auto max-w-lg rounded-xl border border-danger-200 bg-white p-8 text-center">
-        <h1 className="text-lg font-bold text-ink-900">無權檢視評鑑報告</h1>
-        <p className="mt-2 text-sm text-ink-600">
+      <div className="mx-auto max-w-lg rounded-xl border border-danger-200 bg-surface p-8 text-center">
+        <h1 className="text-lg font-bold text-fg">無權檢視評鑑報告</h1>
+        <p className="mt-2 text-sm text-fg-muted">
           僅社團現任幹部、歷屆校友、所屬校方授權管理人可檢視與列印評鑑檔案。
         </p>
       </div>
@@ -50,18 +50,18 @@ export default async function ClubEvaluationPrintPage({
   });
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6 bg-white p-6 sm:p-10 print:p-0">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-ink-200 pb-4 print:hidden">
+    <div className="mx-auto max-w-4xl space-y-6 bg-surface p-6 sm:p-10 print:p-0">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4 print:hidden">
         <Link
           href={`/clubs/${slug}/manage`}
-          className="rounded-full border border-ink-300 px-4 py-1.5 text-sm font-semibold text-ink-700"
+          className="rounded-full border border-border-strong px-4 py-1.5 text-sm font-semibold text-fg-secondary"
         >
           ← 返回管理後台
         </Link>
         <div className="flex gap-2">
           <a
             href={`/api/clubs/${slug}/evaluation/export?format=markdown&from=${pack.period.from_date}&to=${pack.period.to_date}`}
-            className="rounded-full border border-ink-300 px-4 py-1.5 text-sm font-semibold text-ink-800"
+            className="rounded-full border border-border-strong px-4 py-1.5 text-sm font-semibold text-fg-body"
           >
             下載 Markdown (.md)
           </a>
@@ -69,14 +69,14 @@ export default async function ClubEvaluationPrintPage({
         </div>
       </div>
 
-      <header className="space-y-2 border-b-2 border-ink-900 pb-4">
-        <p className="text-sm font-semibold text-ink-600">
+      <header className="space-y-2 border-b-2 border-fg pb-4">
+        <p className="text-sm font-semibold text-fg-muted">
           CluBar 社團評鑑暨學務歸檔彙整報告（正式列印版）
         </p>
-        <h1 className="text-2xl font-bold text-ink-900">
+        <h1 className="text-2xl font-bold text-fg">
           {pack.club.university_name} {pack.club.name}
         </h1>
-        <p className="text-sm text-ink-700">
+        <p className="text-sm text-fg-secondary">
           統計期間：{pack.period.from_date} ～ {pack.period.to_date}｜現任核心團隊：
           {pack.active_officers
             .map((o) => `${o.display_name}${o.title ? `（${o.title}）` : ''}`)
@@ -85,15 +85,15 @@ export default async function ClubEvaluationPrintPage({
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-bold text-ink-900">
+        <h2 className="text-lg font-bold text-fg">
           一、年度活動辦理與簽到實績（共 {pack.events.length} 場）
         </h2>
         {pack.events.length === 0 ? (
-          <p className="text-sm text-ink-500">此時段內尚無勾選納入評鑑之活動。</p>
+          <p className="text-sm text-fg-subtle">此時段內尚無勾選納入評鑑之活動。</p>
         ) : (
           <table className="w-full border-collapse text-left text-sm">
             <thead>
-              <tr className="border-b border-ink-300 bg-ink-50">
+              <tr className="border-b border-border-strong bg-surface-subtle">
                 <th className="p-2">活動名稱</th>
                 <th className="p-2">時間／地點</th>
                 <th className="p-2">共辦社團</th>
@@ -101,20 +101,20 @@ export default async function ClubEvaluationPrintPage({
                 <th className="p-2">學習時數</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-ink-200">
+            <tbody className="divide-y divide-line">
               {pack.events.map((ev) => (
                 <tr key={ev.id}>
-                  <td className="p-2 font-bold text-ink-900">{ev.title}</td>
-                  <td className="p-2 text-ink-700">
+                  <td className="p-2 font-bold text-fg">{ev.title}</td>
+                  <td className="p-2 text-fg-secondary">
                     {ev.starts_at ? ev.starts_at.slice(0, 10) : '未排定'} · {ev.location_text}
                   </td>
-                  <td className="p-2 text-ink-700">
+                  <td className="p-2 text-fg-secondary">
                     {ev.is_co_hosted ? ev.partner_or_host_club : '獨立主辦'}
                   </td>
-                  <td className="p-2 text-ink-700">
+                  <td className="p-2 text-fg-secondary">
                     {ev.going_count} / {ev.attended_count} 人
                   </td>
-                  <td className="p-2 text-ink-700">
+                  <td className="p-2 text-fg-secondary">
                     {ev.learning_hours_category !== 'none' && ev.learning_hours_count > 0
                       ? `${
                           LEARNING_HOURS_LABELS[
@@ -131,10 +131,10 @@ export default async function ClubEvaluationPrintPage({
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-lg font-bold text-ink-900">
+        <h2 className="text-lg font-bold text-fg">
           二、成果紀錄與日常瞬間精選（共 {pack.posts.length} 篇、相片 {pack.album_photos.length} 張）
         </h2>
-        <ul className="list-disc space-y-1 pl-5 text-sm text-ink-700">
+        <ul className="list-disc space-y-1 pl-5 text-sm text-fg-secondary">
           {pack.posts.map((p) => (
             <li key={p.id}>
               [{POST_KIND_LABELS[p.post_kind as keyof typeof POST_KIND_LABELS]?.label ?? p.post_kind}]
@@ -145,10 +145,10 @@ export default async function ClubEvaluationPrintPage({
       </section>
 
       <section className="space-y-2">
-        <h2 className="text-lg font-bold text-ink-900">
+        <h2 className="text-lg font-bold text-fg">
           三、內部會議記錄與財產清冊（共 {pack.archive_files.length} 份）
         </h2>
-        <ul className="list-disc space-y-1 pl-5 text-sm text-ink-700">
+        <ul className="list-disc space-y-1 pl-5 text-sm text-fg-secondary">
           {pack.archive_files.map((f) => (
             <li key={f.id}>
               [{f.category}] {f.title}（{f.occurred_on}，{Math.round(f.size_bytes / 1024)} KB）
@@ -158,8 +158,8 @@ export default async function ClubEvaluationPrintPage({
       </section>
 
       {pack.latest_pitfall_note && (
-        <section className="space-y-2 rounded-xl border border-ink-200 bg-ink-50 p-4 text-sm">
-          <h2 className="font-bold text-ink-900">四、社團交接重要備忘錄</h2>
+        <section className="space-y-2 rounded-xl border border-line bg-surface-subtle p-4 text-sm">
+          <h2 className="font-bold text-fg">四、社團交接重要備忘錄</h2>
           <p>場地申請提示：{pack.latest_pitfall_note.venue_tips || '無'}</p>
           <p>時數／核銷死線：{pack.latest_pitfall_note.hours_and_deadlines || '無'}</p>
           <p>關鍵聯絡窗口：{pack.latest_pitfall_note.contacts_and_vendors || '無'}</p>

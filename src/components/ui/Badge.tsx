@@ -4,11 +4,11 @@ import { cn } from './cn';
 export type BadgeTone = 'neutral' | 'accent' | 'success' | 'warning' | 'danger';
 
 const TONE: Record<BadgeTone, string> = {
-  neutral: 'bg-ink-100 text-ink-700',
-  accent: 'bg-accent-50 text-accent-700',
-  success: 'bg-success-50 text-success-800',
-  warning: 'bg-warning-50 text-warning-900',
-  danger: 'bg-danger-50 text-danger-700',
+  neutral: 'bg-surface-sunken text-fg-secondary',
+  accent: 'bg-brand-soft text-brand-soft-fg',
+  success: 'bg-success-soft text-success-fg',
+  warning: 'bg-warning-soft text-warning-fg',
+  danger: 'bg-danger-soft text-danger-fg',
 };
 
 /**

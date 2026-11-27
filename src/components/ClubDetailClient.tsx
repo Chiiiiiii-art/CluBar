@@ -88,27 +88,27 @@ export function ClubDetailClient({
     <div className="space-y-6">
       {/* Ask Box */}
       {isVerifiedClub && (
-        <section className="rounded-xl border border-ink-300 bg-white p-5 sm:p-6">
-          <h3 className="flex items-center gap-2 text-base font-bold text-ink-900">
-            <HelpCircle className="h-4 w-4 text-accent-600" aria-hidden="true" />
+        <section className="rounded-xl border border-border-strong bg-surface p-5 sm:p-6">
+          <h3 className="flex items-center gap-2 text-base font-bold text-fg">
+            <HelpCircle className="h-4 w-4 text-brand" aria-hidden="true" />
             匿名問答箱｜想先問社團幹部什麼都可以
           </h3>
           {!isLoggedIn ? (
-            <p className="mt-2 text-sm text-ink-600">
+            <p className="mt-2 text-sm text-fg-muted">
               <Link
                 href={`/login?callbackUrl=${encodeURIComponent(`/clubs/${clubSlug}`)}`}
-                className="font-bold text-accent-600 underline"
+                className="font-bold text-brand underline"
               >
                 登入並完成 .edu.tw 驗證
               </Link>{' '}
               即可匿名送出提問，社團答覆後只會以匿名或暱稱公開。
             </p>
           ) : !isCampusVerified ? (
-            <p className="mt-2 text-sm text-ink-600">
+            <p className="mt-2 text-sm text-fg-muted">
               為防範廣告騷擾，提問須先{' '}
               <Link
                 href={`/me?returnTo=${encodeURIComponent(`/clubs/${clubSlug}`)}`}
-                className="inline-flex min-h-[44px] items-center font-bold text-accent-600 underline"
+                className="inline-flex min-h-[44px] items-center font-bold text-brand underline"
               >
                 完成 .edu.tw 校園信箱驗證
               </Link>
@@ -117,7 +117,7 @@ export function ClubDetailClient({
           ) : (
             <form onSubmit={handleAsk} className="mt-3 space-y-3">
               <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                <label htmlFor="club-detail-questiontext" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="club-detail-questiontext" className="block text-sm font-medium text-fg-body">
                   你的問題
                 </label>
                 <textarea id="club-detail-questiontext"
@@ -130,7 +130,7 @@ export function ClubDetailClient({
                 />
               </div>
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-3 text-sm text-ink-700">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-fg-secondary">
                   <label className="flex cursor-pointer items-center gap-1.5 font-semibold">
                     <input
                       type="checkbox"
@@ -141,7 +141,7 @@ export function ClubDetailClient({
                   </label>
                   {!isAnonymous && (
                     <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                      <label htmlFor="club-detail-displayalias" className="block text-sm font-medium text-ink-800">
+                      <label htmlFor="club-detail-displayalias" className="block text-sm font-medium text-fg-body">
                         顯示暱稱（選填）
                       </label>
                       <input id="club-detail-displayalias"
@@ -165,7 +165,7 @@ export function ClubDetailClient({
                 </button>
               </div>
               {qMsg && <p className="text-sm font-semibold text-success-700">{qMsg}</p>}
-              {qErr && <p className="text-sm font-semibold text-danger-700">{qErr}</p>}
+              {qErr && <p className="text-sm font-semibold text-danger-fg">{qErr}</p>}
             </form>
           )}
         </section>
@@ -173,29 +173,29 @@ export function ClubDetailClient({
 
       {/* Dual-track Member Request */}
       {isVerifiedClub && !membershipRole && (
-        <section className="rounded-xl border border-line bg-ink-50 p-5 sm:p-6">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-900">
-            <UserPlus className="h-4 w-4 text-accent-600" aria-hidden="true" />
+        <section className="rounded-xl border border-line bg-surface-subtle p-5 sm:p-6">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-fg">
+            <UserPlus className="h-4 w-4 text-brand" aria-hidden="true" />
             已經是「{clubName}」的社員嗎？申請加入認證社員牆
           </h3>
           {!isLoggedIn ? (
-            <p className="mt-2 text-sm text-ink-600">
+            <p className="mt-2 text-sm text-fg-muted">
               <Link
                 href={`/login?callbackUrl=${encodeURIComponent(`/clubs/${clubSlug}`)}`}
-                className="inline-flex min-h-[44px] items-center font-bold text-accent-600 underline"
+                className="inline-flex min-h-[44px] items-center font-bold text-brand underline"
               >
                 登入帳號
               </Link>{' '}
               後可申請同校認證社員，或至「我的聚」輸入幹部邀請碼。
             </p>
           ) : !isSameUniversity ? (
-            <p className="mt-2 text-sm text-ink-600">
+            <p className="mt-2 text-sm text-fg-muted">
               認證社員僅限 {universityShortName} 在校 .edu.tw 學生申請（外校同學可透過活動頁直接報名體驗活動！）。
             </p>
           ) : (
             <form onSubmit={handleJoinRequest} className="mt-3 flex flex-wrap gap-2">
               <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                <label htmlFor="club-detail-joinnote" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="club-detail-joinnote" className="block text-sm font-medium text-fg-body">
                   自我介紹（選填）
                 </label>
                 <input id="club-detail-joinnote"
@@ -215,7 +215,7 @@ export function ClubDetailClient({
                 {joinBusy ? '送出中...' : '申請認證社員'}
               </button>
               {joinMsg && <p className="w-full text-sm font-semibold text-success-700">{joinMsg}</p>}
-              {joinErr && <p className="w-full text-sm font-semibold text-danger-700">{joinErr}</p>}
+              {joinErr && <p className="w-full text-sm font-semibold text-danger-fg">{joinErr}</p>}
             </form>
           )}
         </section>

@@ -55,7 +55,7 @@ export function Navbar({
 
   return (
     <>
-      <header className="no-print sticky top-0 z-40 border-b border-line bg-white/90 backdrop-blur">
+      <header className="no-print sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex min-h-11 items-center gap-2.5" aria-label="社團聚 CluBar 首頁">
@@ -67,7 +67,7 @@ export function Navbar({
                 height={32}
                 className="h-8 w-8 rounded-lg"
               />
-              <span className="text-lg font-bold tracking-tight text-ink-900">社團聚</span>
+              <span className="text-lg font-bold tracking-tight text-fg">社團聚</span>
             </Link>
 
             <nav className="hidden items-center gap-1 md:flex" aria-label="主導覽列">
@@ -78,7 +78,7 @@ export function Navbar({
                   aria-current={it.active ? 'page' : undefined}
                   className={cn(
                     'inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors',
-                    it.active ? 'bg-ink-100 text-ink-900' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900'
+                    it.active ? 'bg-surface-sunken text-fg' : 'text-fg-muted hover:bg-surface-subtle hover:text-fg'
                   )}
                 >
                   {it.label}
@@ -90,7 +90,7 @@ export function Navbar({
                   aria-current={isAdmin ? 'page' : undefined}
                   className={cn(
                     'inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors',
-                    isAdmin ? 'bg-ink-100 text-ink-900' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900'
+                    isAdmin ? 'bg-surface-sunken text-fg' : 'text-fg-muted hover:bg-surface-subtle hover:text-fg'
                   )}
                 >
                   平台治理
@@ -107,15 +107,15 @@ export function Navbar({
                 aria-label={unreadCount > 0 ? `${user.displayName}，${unreadCount} 則未讀通知` : undefined}
                 className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'relative pr-3 pl-1' })}
               >
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink-100 text-ink-700">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-sunken text-fg-secondary">
                   <User className="h-4 w-4" aria-hidden="true" />
                 </span>
                 <span className="hidden max-w-[120px] truncate sm:inline">{user.displayName}</span>
                 {user.campusVerified && (
-                  <ShieldCheck className="h-4 w-4 text-accent-600" aria-label="已完成校園驗證" />
+                  <ShieldCheck className="h-4 w-4 text-brand" aria-label="已完成校園驗證" />
                 )}
                 {unreadCount > 0 && (
-                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger-600 px-1.5 text-xs font-semibold text-white">
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-xs font-semibold text-on-brand">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -138,7 +138,7 @@ export function Navbar({
       {/* Mobile bottom navigation (PRD v2 §3.2) */}
       {!hasOwnBottomBar(pathname) && (
         <nav
-          className="no-print fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+          className="no-print fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
           aria-label="行動版底部導覽"
         >
           {[
@@ -153,13 +153,13 @@ export function Navbar({
                 aria-current={it.active ? 'page' : undefined}
                 className={cn(
                   'relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium',
-                  it.active ? 'text-ink-900' : 'text-ink-500'
+                  it.active ? 'text-fg' : 'text-fg-subtle'
                 )}
               >
                 <Icon className="h-5 w-5" strokeWidth={it.active ? 2.4 : 1.8} aria-hidden="true" />
                 <span>{it.label}</span>
                 {it.label === '我' && unreadCount > 0 && (
-                  <span className="absolute top-2 right-[calc(50%-14px)] h-2 w-2 rounded-full bg-danger-600" />
+                  <span className="absolute top-2 right-[calc(50%-14px)] h-2 w-2 rounded-full bg-danger" />
                 )}
               </Link>
             );

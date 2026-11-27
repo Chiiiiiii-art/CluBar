@@ -49,8 +49,8 @@ export default async function LoginPage({
 
   return (
     <div className="mx-auto max-w-sm py-8 sm:py-12">
-      <h1 className="text-2xl font-bold text-ink-900">登入社團聚</h1>
-      <p className="mt-2 text-base text-ink-600">
+      <h1 className="text-2xl font-bold text-fg">登入社團聚</h1>
+      <p className="mt-2 text-base text-fg-muted">
         登入後可收藏作品、追蹤社團，並驗證 .edu.tw 校園身分。
       </p>
 
@@ -82,7 +82,7 @@ export default async function LoginPage({
               <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
               <span>使用 Microsoft 帳號登入</span>
             </button>
-            <p className="mt-1.5 text-center text-sm text-ink-600">支援校園信箱自動驗證</p>
+            <p className="mt-1.5 text-center text-sm text-fg-muted">支援校園信箱自動驗證</p>
           </form>
         )}
 
@@ -120,23 +120,23 @@ export default async function LoginPage({
         )}
       </div>
 
-      <p className="mt-6 text-sm leading-relaxed text-ink-600">
+      <p className="mt-6 text-sm leading-relaxed text-fg-muted">
         你的信箱與校園驗證資訊僅用於資格判定，不會顯示在公開的作品卡片或社團頁面。
       </p>
 
       {enableDevLogin && (
         <details className="group mt-8 border-t border-line pt-2">
-          <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 text-sm font-medium text-ink-700 hover:text-ink-900">
+          <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 text-sm font-medium text-fg-secondary hover:text-fg">
             <span>開發測試帳號（僅非正式環境）</span>
             <span
               aria-hidden="true"
-              className="text-ink-500 transition-transform group-open:rotate-90"
+              className="text-fg-subtle transition-transform group-open:rotate-90"
             >
               ›
             </span>
           </summary>
           {devAccounts.length === 0 ? (
-            <p className="mt-2 text-sm text-ink-600">目前尚無可用測試帳號，請先完成資料初始化。</p>
+            <p className="mt-2 text-sm text-fg-muted">目前尚無可用測試帳號，請先完成資料初始化。</p>
           ) : (
             <ul className="mt-2 divide-y divide-line overflow-hidden rounded-xl border border-line">
               {devAccounts.map((acc) => (
@@ -161,17 +161,17 @@ export default async function LoginPage({
                   >
                     <button
                       type="submit"
-                      className="flex min-h-14 w-full items-center justify-between gap-3 px-3 py-2 text-left transition-colors hover:bg-ink-50"
+                      className="flex min-h-14 w-full items-center justify-between gap-3 px-3 py-2 text-left transition-colors hover:bg-surface-subtle"
                     >
                       <span className="min-w-0">
-                        <span className="block truncate font-medium text-ink-900">
+                        <span className="block truncate font-medium text-fg">
                           {acc.displayName}
                         </span>
-                        <span className="block truncate text-sm font-normal text-ink-600">
+                        <span className="block truncate text-sm font-normal text-fg-muted">
                           {acc.email}
                         </span>
                       </span>
-                      <span className="shrink-0 text-sm font-normal text-ink-600">
+                      <span className="shrink-0 text-sm font-normal text-fg-muted">
                         {acc.platformRole === 'platform_admin'
                           ? '平台管理員'
                           : acc.campusEmail

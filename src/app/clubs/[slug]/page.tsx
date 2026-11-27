@@ -149,12 +149,12 @@ export default async function ClubPublicPage({
       <ClubPageViewTracker clubId={publicClub.id} />
 
       {publicClub.verification_status === 'unclaimed_directory' && (
-        <div className="flex flex-col justify-between gap-3 rounded-xl border border-warning-300 bg-warning-50 p-4 sm:flex-row sm:items-center">
+        <div className="flex flex-col justify-between gap-3 rounded-xl border border-warning-300 bg-warning-soft p-4 sm:flex-row sm:items-center">
           <div className="flex items-start gap-2.5 text-sm text-warning-950">
             <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-warning-700" aria-hidden="true" />
             <div>
               <p className="font-bold">這個社團還沒在社團聚開通主頁</p>
-              <p className="text-sm text-warning-900">
+              <p className="text-sm text-warning-fg">
                 目前僅列出校方公開名錄資料。如果你是幹部，認領後就能放上活動與日常紀錄。
               </p>
             </div>
@@ -169,8 +169,8 @@ export default async function ClubPublicPage({
       )}
 
       {publicClub.verification_status === 'suspended' && (
-        <div className="flex items-start gap-2.5 rounded-xl border border-danger-300 bg-danger-50 p-4 text-sm text-danger-950">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-danger-700" aria-hidden="true" />
+        <div className="flex items-start gap-2.5 rounded-xl border border-danger-300 bg-danger-soft p-4 text-sm text-danger-950">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-danger-fg" aria-hidden="true" />
           <div>
             <p className="font-bold">此社團目前暫停發布與更新權限</p>
           </div>
@@ -179,7 +179,7 @@ export default async function ClubPublicPage({
 
       <section className="space-y-6">
         {realMediaUrl(publicClub.cover_url) && (
-          <div className="h-40 w-full overflow-hidden rounded-xl bg-ink-100 sm:h-56">
+          <div className="h-40 w-full overflow-hidden rounded-xl bg-surface-sunken sm:h-56">
             <img
               src={publicClub.cover_url!}
               alt={`${publicClub.name} 封面`}
@@ -200,20 +200,20 @@ export default async function ClubPublicPage({
               <ClubMark name={publicClub.name} seed={publicClub.slug} size="lg" className="sm:h-20 sm:w-20 sm:text-3xl" />
             )}
             <div className="min-w-0 space-y-1.5">
-              <h1 className="text-2xl font-bold text-ink-900 sm:text-3xl">{publicClub.name}</h1>
-              <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-ink-600">
+              <h1 className="text-2xl font-bold text-fg sm:text-3xl">{publicClub.name}</h1>
+              <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-fg-muted">
                 <span>{publicClub.university.name}</span>
                 <span aria-hidden="true">·</span>
                 <span>{categoryMeta.label}</span>
                 {publicClub.verification_status === 'verified' ? (
                   <>
                     <span aria-hidden="true">·</span>
-                    <span className="inline-flex items-center gap-1 text-accent-700">
+                    <span className="inline-flex items-center gap-1 text-brand-soft-fg">
                       <BadgeCheck className="h-4 w-4" aria-hidden="true" />
                       官方認證
                     </span>
                     {publicClub.pulse_label && (
-                      <span className="inline-flex items-center gap-1 text-ink-500">
+                      <span className="inline-flex items-center gap-1 text-fg-subtle">
                         <span className="h-1.5 w-1.5 rounded-full bg-success-500" aria-hidden="true" />
                         {publicClub.pulse_label}
                       </span>
@@ -240,9 +240,9 @@ export default async function ClubPublicPage({
 
         {(publicClub.tagline || publicClub.description) && (
           <div className="max-w-3xl space-y-2">
-            {publicClub.tagline && <p className="text-lg font-medium text-ink-900">{publicClub.tagline}</p>}
+            {publicClub.tagline && <p className="text-lg font-medium text-fg">{publicClub.tagline}</p>}
             {publicClub.description && (
-              <p className="whitespace-pre-line text-base text-ink-700">{publicClub.description}</p>
+              <p className="whitespace-pre-line text-base text-fg-secondary">{publicClub.description}</p>
             )}
           </div>
         )}
@@ -287,8 +287,8 @@ export default async function ClubPublicPage({
       {eventRows.length > 0 && (
         <section>
           <div className="mb-3 flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-accent-700" aria-hidden="true" />
-            <h2 className="text-lg font-semibold text-ink-900">近期活動</h2>
+            <Calendar className="h-5 w-5 text-brand-soft-fg" aria-hidden="true" />
+            <h2 className="text-lg font-semibold text-fg">近期活動</h2>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {eventRows.map((ev) => (
@@ -297,8 +297,8 @@ export default async function ClubPublicPage({
                 href={`/e/${ev.shortCode}`}
                 className={buttonClasses({ variant: 'secondary', size: 'md', className: 'flex-col justify-between' })}
               >
-                <h3 className="text-sm font-semibold text-ink-900">{ev.title}</h3>
-                <div className="flex flex-wrap gap-2 text-sm text-ink-600">
+                <h3 className="text-sm font-semibold text-fg">{ev.title}</h3>
+                <div className="flex flex-wrap gap-2 text-sm text-fg-muted">
                   <span>
                     {ev.scheduleMode === 'voting'
                       ? 'TBD 投票喬時間中'
@@ -310,16 +310,16 @@ export default async function ClubPublicPage({
                 </div>
                 <div className="flex flex-wrap gap-1.5 pt-1 text-xs font-semibold">
                   {ev.beginnerFriendly && (
-                    <span className="rounded-full bg-success-50 px-2.5 py-0.5 text-success-800">
+                    <span className="rounded-full bg-success-soft px-2.5 py-0.5 text-success-fg">
                       零基礎可
                     </span>
                   )}
                   {ev.nonMembersWelcome && (
-                    <span className="rounded-full bg-accent-50 px-2.5 py-0.5 text-accent-800">
+                    <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-accent-800">
                       非社員可
                     </span>
                   )}
-                  <span className="rounded-full bg-ink-100 px-2.5 py-0.5 text-ink-700">
+                  <span className="rounded-full bg-surface-sunken px-2.5 py-0.5 text-fg-secondary">
                     {ev.feeNtd === 0 ? '免費' : `NT$${ev.feeNtd}`}
                   </span>
                 </div>
@@ -331,18 +331,18 @@ export default async function ClubPublicPage({
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-xl font-bold text-ink-900">社團日常與代表作品牆</h2>
+          <h2 className="text-xl font-bold text-fg">社團日常與代表作品牆</h2>
           {publicClub.verification_status === 'verified' && (
-            <span className="rounded-full bg-accent-100 px-3 py-1 text-sm font-semibold text-accent-900">
+            <span className="rounded-full bg-brand-soft-hover px-3 py-1 text-sm font-semibold text-accent-900">
               本學期共同累積 {nrcCount} 則社員日常足跡
             </span>
           )}
         </div>
 
         {publicPosts.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-ink-300 bg-white p-8 text-center">
-            <p className="text-sm font-semibold text-ink-900">這個社團目前還沒有公開作品或日常紀錄</p>
-            <p className="mt-1 text-sm text-ink-600">
+          <div className="rounded-xl border border-dashed border-border-strong bg-surface p-8 text-center">
+            <p className="text-sm font-semibold text-fg">這個社團目前還沒有公開作品或日常紀錄</p>
+            <p className="mt-1 text-sm text-fg-muted">
               {publicClub.verification_status === 'unclaimed_directory'
                 ? '等現任幹部完成認領後，就會陸續放上社團簡介、體驗活動與日常照片。'
                 : '社團剛開通主頁，歡迎先從下方問答箱提問或稍後再回來看看。'}
@@ -358,7 +358,7 @@ export default async function ClubPublicPage({
               )}
               <Link
                 href="/"
-                className="inline-flex min-h-[44px] items-center rounded-xl border border-ink-300 bg-ink-100 px-4 text-sm font-semibold text-ink-800 hover:bg-accent-100"
+                className="inline-flex min-h-[44px] items-center rounded-xl border border-border-strong bg-surface-sunken px-4 text-sm font-semibold text-fg-body hover:bg-brand-soft-hover"
               >
                 回別的聚看其他社團
               </Link>
@@ -376,7 +376,7 @@ export default async function ClubPublicPage({
                   className={buttonClasses({ variant: 'secondary', size: 'md', className: 'group flex-col overflow-hidden' })}
                 >
                   <div
-                    className="relative bg-ink-100"
+                    className="relative bg-surface-sunken"
                     style={{ aspectRatio: clampedAspectRatio(firstMedia?.width, firstMedia?.height) }}
                   >
                     <img
@@ -392,10 +392,10 @@ export default async function ClubPublicPage({
                     </span>
                   </div>
                   <div className="flex flex-1 flex-col gap-2 p-4">
-                    <h3 className="line-clamp-2 text-sm font-semibold text-ink-900 group-hover:text-accent-600">
+                    <h3 className="line-clamp-2 text-sm font-semibold text-fg group-hover:text-brand">
                       {post.headline}
                     </h3>
-                    <span className="mt-auto text-sm text-ink-500">
+                    <span className="mt-auto text-sm text-fg-subtle">
                       {formatTaipeiDate(post.published_at)}
                     </span>
                   </div>
@@ -407,16 +407,16 @@ export default async function ClubPublicPage({
       </section>
 
       {questions.length > 0 && (
-        <section className="rounded-xl border border-ink-300 bg-white p-5 sm:p-6">
-          <h2 className="text-lg font-bold text-ink-900">置頂新手 FAQ ＆ 公開問答箱</h2>
+        <section className="rounded-xl border border-border-strong bg-surface p-5 sm:p-6">
+          <h2 className="text-lg font-bold text-fg">置頂新手 FAQ ＆ 公開問答箱</h2>
           <div className="mt-4 space-y-3">
             {questions.map((q) => (
-              <div key={q.id} className="rounded-xl bg-ink-100 p-4">
-                <p className="text-sm font-semibold text-ink-900">
+              <div key={q.id} className="rounded-xl bg-surface-sunken p-4">
+                <p className="text-sm font-semibold text-fg">
                   Q（{q.display_asker}）：{q.question_text}
                 </p>
                 {q.answer_text && (
-                  <p className="mt-1.5 text-sm text-ink-700">A：{q.answer_text}</p>
+                  <p className="mt-1.5 text-sm text-fg-secondary">A：{q.answer_text}</p>
                 )}
               </div>
             ))}

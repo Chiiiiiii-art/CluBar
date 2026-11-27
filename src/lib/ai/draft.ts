@@ -151,8 +151,18 @@ export async function generatePostDraftFromRaw(params: {
   }
 }
 
-function buildFallbackDraft(rawText: string, clubName: string): VisionDraftExtractResult {
+// Date/time shapes common on club posters: 11/29 19:00, 2026/11/29, 11月29日, 週三 19:00.
+const FALLBACK_WHEN_RE =
+  /((?:\d{4}[/.-])?\d{1,2}[/.-]\d{1,2}(?:\s*[（(]?[一二三四五六日][)）]?)?(?:\s*\d{1,2}:\d{2})?|\d{1,2}\s*月\s*\d{1,2}\s*[日號](?:\s*\d{1,2}:\d{2})?|(?:週|星期)[一二三四五六日]\s*\d{1,2}:\d{2})/;
+
+/**
+ * Skeleton draft used when the AI call fails. Pulls the obvious date/time and
+ * "免費" out of the raw text so shouldRouteDraftToEvent can still spot an event
+ * poster or club calendar instead of silently filing it as a daily moment.
+ */
+export function buildFallbackDraft(rawText: string, clubName: string): VisionDraftExtractResult {
   const clean = rawText.trim();
+  const when = clean.match(FALLBACK_WHEN_RE)?.[0]?.trim() ?? null;
   const firstLine = clean.split(/\r?\n/).find((line) => line.trim().length > 0)?.trim();
   const title = firstLine ? firstLine.slice(0, 60) : `${clubName} 活動紀錄草稿`;
   const summary = clean ? clean.replace(/\s+/g, ' ').slice(0, 140) : `${clubName} 活動或海報草稿，請補充時間地點與新手說明。`;
@@ -163,9 +173,9 @@ function buildFallbackDraft(rawText: string, clubName: string): VisionDraftExtra
     content_md: clean || '（AI 視覺解析暫時逾時，請直接補充海報上的時間、地點與參加方式）',
     post_kind: 'nrc_moment',
     extracted_event: {
-      starts_at_hint: null,
+      starts_at_hint: when,
       location_text: null,
-      fee_ntd: null,
+      fee_ntd: /免費/.test(clean) ? 0 : null,
       beginner_friendly: null,
       non_members_welcome: null,
       learning_hours_hint: null,

@@ -14,11 +14,11 @@ export function PrintToolbar({
   clubName: string;
 }) {
   return (
-    <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-ink-300 bg-white p-4">
+    <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-strong bg-surface p-4">
       <div className="flex items-center gap-3">
         <Link
           href={`/clubs/${slug}/manage`}
-          className="inline-flex items-center gap-1 text-sm font-semibold text-ink-700 hover:text-accent-600"
+          className="inline-flex items-center gap-1 text-sm font-semibold text-fg-secondary hover:text-brand"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           <span>回到 {clubName} 管理後台</span>

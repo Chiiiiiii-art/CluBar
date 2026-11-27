@@ -129,10 +129,10 @@ export function TogetherDetailClient({
         }),
       });
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error?.message || '發起 Rebound 失敗');
+      if (!res.ok) throw new Error(json?.error?.message || '發起接力回應失敗');
       setShowRebound(false);
       setRebContent('');
-      setMsg(`Rebound 接力已發布！`);
+      setMsg('接力回應已發布！');
       window.location.href = `/together/${json.item.id}`;
     } catch (e2) {
       setErr(e2 instanceof Error ? e2.message : '發起失敗');
@@ -170,25 +170,25 @@ export function TogetherDetailClient({
             <Badge tone="accent">#{item.domain_name}</Badge>
             <Badge>{TOGETHER_ITEM_TYPE_LABELS[item.item_type]}</Badge>
           </div>
-          <h1 className="break-words text-2xl font-bold leading-snug text-ink-900 sm:text-3xl">
+          <h1 className="break-words text-2xl font-bold leading-snug text-fg sm:text-3xl">
             {item.title}
           </h1>
-          <p className="text-sm text-ink-600">
+          <p className="text-sm text-fg-muted">
             <Link
               href={`/clubs/${item.club.slug}`}
-              className="inline-flex min-h-11 items-center break-words font-medium text-ink-800 hover:text-accent-700 hover:underline"
+              className="inline-flex min-h-11 items-center break-words font-medium text-fg-body hover:text-brand-soft-fg hover:underline"
             >
               {clubLine}
             </Link>
           </p>
         </header>
 
-        <p className="whitespace-pre-wrap break-words text-base leading-relaxed text-ink-800">
+        <p className="whitespace-pre-wrap break-words text-base leading-relaxed text-fg-body">
           {item.content_md}
         </p>
 
         {iframeSrc && (
-          <div className="overflow-hidden rounded-xl border border-line bg-ink-100">
+          <div className="overflow-hidden rounded-xl border border-line bg-surface-sunken">
             <iframe
               src={iframeSrc}
               title={item.title}
@@ -232,9 +232,9 @@ export function TogetherDetailClient({
       {showRebound && myClubs.length > 0 && (
         <Card>
           <form onSubmit={handleCreateRebound} className="space-y-4">
-            <h2 className="text-lg font-semibold text-ink-900">代表社團發布接力回應</h2>
+            <h2 className="text-lg font-semibold text-fg">代表社團發布接力回應</h2>
             <div className="min-w-0 space-y-1.5">
-              <label htmlFor="together-detail-replyclubid" className="block text-sm font-medium text-ink-800">
+              <label htmlFor="together-detail-replyclubid" className="block text-sm font-medium text-fg-body">
                 代表社團
               </label>
               <Select
@@ -250,7 +250,7 @@ export function TogetherDetailClient({
               </Select>
             </div>
             <div className="min-w-0 space-y-1.5">
-              <label htmlFor="together-detail-rebtitle" className="block text-sm font-medium text-ink-800">
+              <label htmlFor="together-detail-rebtitle" className="block text-sm font-medium text-fg-body">
                 標題
               </label>
               <Input
@@ -261,7 +261,7 @@ export function TogetherDetailClient({
               />
             </div>
             <div className="min-w-0 space-y-1.5">
-              <label htmlFor="together-detail-rebcontent" className="block text-sm font-medium text-ink-800">
+              <label htmlFor="together-detail-rebcontent" className="block text-sm font-medium text-fg-body">
                 延伸內容
               </label>
               <Textarea
@@ -275,7 +275,7 @@ export function TogetherDetailClient({
               />
             </div>
             <div className="min-w-0 space-y-1.5">
-              <label htmlFor="together-detail-rebembed" className="block text-sm font-medium text-ink-800">
+              <label htmlFor="together-detail-rebembed" className="block text-sm font-medium text-fg-body">
                 預覽連結（選填）
               </label>
               <Input
@@ -300,9 +300,9 @@ export function TogetherDetailClient({
               <li key={rb.id}>
                 <Link
                   href={`/together/${rb.id}`}
-                  className="flex min-h-11 items-center break-words py-3 text-sm hover:bg-ink-50"
+                  className="flex min-h-11 items-center break-words py-3 text-sm hover:bg-surface-subtle"
                 >
-                  <span className="font-semibold text-ink-900">
+                  <span className="font-semibold text-fg">
                     {rb.club_name}：{rb.title}
                   </span>
                 </Link>
@@ -315,7 +315,7 @@ export function TogetherDetailClient({
       <Section
         title={
           <span className="inline-flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-accent-600" aria-hidden="true" />
+            <MessageSquare className="h-5 w-5 text-brand" aria-hidden="true" />
             跨校交流討論串 ({replies.length})
           </span>
         }
@@ -324,7 +324,7 @@ export function TogetherDetailClient({
           <Card>
             <form onSubmit={handleReply} className="space-y-4">
               <div className="min-w-0 space-y-1.5">
-                <label htmlFor="together-detail-replyclubid-2" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="together-detail-replyclubid-2" className="block text-sm font-medium text-fg-body">
                   代表社團
                 </label>
                 <Select
@@ -340,7 +340,7 @@ export function TogetherDetailClient({
                 </Select>
               </div>
               <div className="min-w-0 space-y-1.5">
-                <label htmlFor="together-detail-replytext" className="block text-sm font-medium text-ink-800">
+                <label htmlFor="together-detail-replytext" className="block text-sm font-medium text-fg-body">
                   回覆
                 </label>
                 <Input
@@ -374,11 +374,11 @@ export function TogetherDetailClient({
               <li key={r.id} className="min-w-0 space-y-1 py-4">
                 <Link
                   href={`/clubs/${r.club.slug}`}
-                  className="inline-flex min-h-8 items-center break-words text-sm font-semibold text-accent-700 hover:underline"
+                  className="inline-flex min-h-8 items-center break-words text-sm font-semibold text-brand-soft-fg hover:underline"
                 >
                   {r.club.university_short_name} · {r.club.name}
                 </Link>
-                <p className="whitespace-pre-wrap break-words text-base text-ink-800">{r.content_md}</p>
+                <p className="whitespace-pre-wrap break-words text-base text-fg-body">{r.content_md}</p>
               </li>
             ))}
           </ul>

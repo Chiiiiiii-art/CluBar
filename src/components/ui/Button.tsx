@@ -7,11 +7,11 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'soft
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 const VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-accent-600 text-white hover:bg-accent-700 active:bg-accent-800',
-  secondary: 'border border-line bg-white text-ink-800 hover:border-ink-300 hover:bg-ink-50',
-  ghost: 'text-ink-700 hover:bg-ink-100',
-  soft: 'bg-accent-50 text-accent-700 hover:bg-accent-100',
-  danger: 'bg-danger-600 text-white hover:bg-danger-700',
+  primary: 'bg-brand text-on-brand hover:bg-brand-hover active:bg-brand-active',
+  secondary: 'border border-line bg-surface text-fg-body hover:border-border-strong hover:bg-surface-subtle',
+  ghost: 'text-fg-secondary hover:bg-surface-sunken',
+  soft: 'bg-brand-soft text-brand-soft-fg hover:bg-brand-soft-hover',
+  danger: 'bg-danger text-on-brand hover:bg-danger-hover',
 };
 
 // sm keeps a 44px hit area through padding on a 36px visual box.

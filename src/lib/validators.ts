@@ -247,7 +247,7 @@ export function isBootstrapAdminAccount(params: {
 }
 
 const EVENT_INTENT_RE =
-  /(報名|招生|迎新|說明會|體驗課|工作坊|講座|擺攤|表單|名額|截止|早鳥|免費體驗|繳費|歡迎參加|歡迎蒞臨|rsvp|register|workshop|open house)/i;
+  /(報名|招生|招新|招募|迎新|說明會|體驗課|工作坊|講座|擺攤|表單|名額|截止|早鳥|免費體驗|繳費|歡迎參加|歡迎蒞臨|行事曆|社課表|課表|時間表|開課|rsvp|register|workshop|open house)/i;
 const RETROSPECTIVE_RE = /(回顧|昨晚|上週|昨日|試作心得|練習紀錄|成品紀錄)/;
 
 export interface DraftRouteInput {

@@ -35,7 +35,7 @@ export function PostCard({
     <article className="group">
       <Link href={`/posts/${card.id}`} onClick={handleCardClick} className="block rounded-xl">
         {media ? (
-          <div className="relative w-full overflow-hidden rounded-xl bg-ink-100" style={{ aspectRatio: aspect }}>
+          <div className="relative w-full overflow-hidden rounded-xl bg-surface-sunken" style={{ aspectRatio: aspect }}>
             {media.kind === 'video' ? (
               <video
                 src={media.url}
@@ -56,16 +56,16 @@ export function PostCard({
             )}
           </div>
         ) : (
-          <div className="flex min-h-44 flex-col justify-between gap-6 rounded-xl bg-ink-100 p-5 transition-colors group-hover:bg-ink-200/70">
+          <div className="flex min-h-44 flex-col justify-between gap-6 rounded-xl bg-surface-sunken p-5 transition-colors group-hover:bg-ink-200/70">
             <ClubMark name={card.club.name} seed={card.club.slug} size="md" />
-            <p className="line-clamp-5 text-lg font-semibold leading-snug text-ink-900">{card.headline}</p>
+            <p className="line-clamp-5 text-lg font-semibold leading-snug text-fg">{card.headline}</p>
           </div>
         )}
       </Link>
 
       <div className="mt-3 space-y-1">
         {card.reason && (
-          <p className="flex items-start gap-1.5 text-sm text-accent-700">
+          <p className="flex items-start gap-1.5 text-sm text-brand-soft-fg">
             <Sparkles className="mt-1 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span>{card.reason}</span>
           </p>
@@ -73,27 +73,27 @@ export function PostCard({
 
         {media && (
           <Link href={`/posts/${card.id}`} onClick={handleCardClick} className="block py-1">
-            <h3 className="line-clamp-2 text-base font-semibold leading-snug text-ink-900 group-hover:underline group-hover:decoration-ink-300 group-hover:underline-offset-4">
+            <h3 className="line-clamp-2 text-base font-semibold leading-snug text-fg group-hover:underline group-hover:decoration-border-strong group-hover:underline-offset-4">
               {card.headline}
             </h3>
           </Link>
         )}
 
-        <div className="flex items-center gap-2 text-sm text-ink-600">
+        <div className="flex items-center gap-2 text-sm text-fg-muted">
           <Link
             href={`/clubs/${card.club.slug}`}
-            className="inline-flex min-h-8 min-w-0 items-center gap-1 hover:text-ink-900"
+            className="inline-flex min-h-8 min-w-0 items-center gap-1 hover:text-fg"
           >
             <span className="truncate">
               {card.club.name}
-              <span className="text-ink-500"> · {card.club.university_short_name}</span>
+              <span className="text-fg-subtle"> · {card.club.university_short_name}</span>
             </span>
             {card.club.verification_status === 'verified' && (
-              <BadgeCheck className="h-4 w-4 shrink-0 text-accent-600" aria-label="官方認證" />
+              <BadgeCheck className="h-4 w-4 shrink-0 text-brand" aria-label="官方認證" />
             )}
           </Link>
           {card.pulse_label && (
-            <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-xs text-ink-500">
+            <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-xs text-fg-subtle">
               <span className="h-1.5 w-1.5 rounded-full bg-success-500" aria-hidden="true" />
               {card.pulse_label}
             </span>
@@ -103,7 +103,7 @@ export function PostCard({
         {card.contextual_event && (
           <Link
             href={`/e/${card.contextual_event.short_code}`}
-            className={buttonClasses({ variant: 'soft', size: 'md' })}
+            className={buttonClasses({ variant: 'soft', size: 'md', className: 'w-full min-w-0 justify-start' })}
           >
             <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
             <span className="truncate">{card.contextual_event.label}</span>

@@ -137,7 +137,7 @@ export async function DELETE(
     const isOwnNrc = existing.postKind === 'nrc_moment' && existing.authorUserId === user.id;
     const isOwnDraft = existing.status === 'draft' && existing.authorUserId === user.id;
     if (!isOwner && !isOwnNrc && !isOwnDraft) {
-      throw new AppError(403, 'CLUB_OWNER_REQUIRED', '僅現任社長或該篇 NRC 作者本人可下架此動態。');
+      throw new AppError(403, 'CLUB_OWNER_REQUIRED', '僅現任社長或這篇日常的作者本人可以下架。');
     }
 
     const rawBody = await req.json().catch(() => ({}));

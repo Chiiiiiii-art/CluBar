@@ -55,8 +55,8 @@ export default async function PublicPortfolioPage({
       <header className="flex items-start gap-4">
         <ClubMark name={portfolio.display_name} seed={portfolio.handle ?? undefined} size="lg" round />
         <div className="min-w-0 flex-1 space-y-1">
-          <h1 className="break-words text-2xl font-bold text-ink-900">{portfolio.display_name}</h1>
-          <p className="break-words text-sm text-ink-600">{metaLine}</p>
+          <h1 className="break-words text-2xl font-bold text-fg">{portfolio.display_name}</h1>
+          <p className="break-words text-sm text-fg-muted">{metaLine}</p>
           {portfolio.alumni_expertise_tags.length > 0 && (
             <div className="flex flex-wrap gap-2 pt-1">
               {portfolio.alumni_expertise_tags.map((tag) => (
@@ -70,7 +70,7 @@ export default async function PublicPortfolioPage({
       <Section
         title={
           <span className="inline-flex items-center gap-2">
-            <Award className="h-5 w-5 text-accent-600" aria-hidden="true" />
+            <Award className="h-5 w-5 text-brand" aria-hidden="true" />
             已驗證學習時數
           </span>
         }
@@ -79,8 +79,8 @@ export default async function PublicPortfolioPage({
         <dl className="grid grid-cols-3 gap-3">
           {(['art', 'life', 'service'] as const).map((cat) => (
             <div key={cat} className="min-w-0 rounded-xl border border-line bg-surface px-3 py-3">
-              <dt className="text-sm text-ink-600">{LEARNING_HOURS_LABELS[cat]}</dt>
-              <dd className="mt-0.5 text-lg font-semibold text-ink-900">
+              <dt className="text-sm text-fg-muted">{LEARNING_HOURS_LABELS[cat]}</dt>
+              <dd className="mt-0.5 text-lg font-semibold text-fg">
                 {portfolio.learning_hours_by_category[cat]} h
               </dd>
             </div>
@@ -91,7 +91,7 @@ export default async function PublicPortfolioPage({
       <Section
         title={
           <span className="inline-flex items-center gap-2">
-            <Layers className="h-5 w-5 text-accent-600" aria-hidden="true" />
+            <Layers className="h-5 w-5 text-brand" aria-hidden="true" />
             社團參與與幹部經歷
           </span>
         }
@@ -107,12 +107,12 @@ export default async function PublicPortfolioPage({
               <li key={`${c.club_id}-${idx}`}>
                 <Link
                   href={`/clubs/${c.slug}`}
-                  className="flex min-h-14 items-center gap-3 py-3 hover:bg-ink-50"
+                  className="flex min-h-14 items-center gap-3 py-3 hover:bg-surface-subtle"
                 >
                   <ClubMark name={c.name} seed={c.slug} size="md" />
                   <span className="min-w-0 flex-1">
-                    <span className="block break-words font-semibold text-ink-900">{c.name}</span>
-                    <span className="block break-words text-sm text-ink-600">
+                    <span className="block break-words font-semibold text-fg">{c.name}</span>
+                    <span className="block break-words text-sm text-fg-muted">
                       {c.university_short_name} · {c.role.toUpperCase()}
                       {c.title ? `（${c.title}）` : ''} · {c.is_active ? '現任' : '歷屆'}
                     </span>
@@ -127,7 +127,7 @@ export default async function PublicPortfolioPage({
       <Section
         title={
           <span className="inline-flex items-center gap-2">
-            <CalendarCheck className="h-5 w-5 text-accent-600" aria-hidden="true" />
+            <CalendarCheck className="h-5 w-5 text-brand" aria-hidden="true" />
             參與活動與公開成果
           </span>
         }
@@ -148,10 +148,10 @@ export default async function PublicPortfolioPage({
               <li key={`${w.source}-${w.id}`}>
                 <Link
                   href={w.url}
-                  className="flex min-h-14 flex-col justify-center gap-0.5 py-3 hover:bg-ink-50"
+                  className="flex min-h-14 flex-col justify-center gap-0.5 py-3 hover:bg-surface-subtle"
                 >
-                  <span className="break-words font-semibold text-ink-900">{w.title}</span>
-                  <span className="break-words text-sm text-ink-600">
+                  <span className="break-words font-semibold text-fg">{w.title}</span>
+                  <span className="break-words text-sm text-fg-muted">
                     {w.kind_label} · {w.club_name}
                   </span>
                 </Link>

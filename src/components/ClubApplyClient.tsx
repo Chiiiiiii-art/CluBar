@@ -172,7 +172,7 @@ export function ClubApplyClient({
         <form onSubmit={handleSubmit} {...tabPanelProps('club-apply', tab)} className="mt-6">
           <fieldset disabled={!campusVerified} className="min-w-0 space-y-8 disabled:opacity-60">
             <section className="space-y-4" aria-labelledby="club-apply-info-heading">
-              <h2 id="club-apply-info-heading" className="text-base font-semibold text-ink-900">
+              <h2 id="club-apply-info-heading" className="text-base font-semibold text-fg">
                 社團資料
               </h2>
               {tab === 'new_club' ? (
@@ -255,7 +255,7 @@ export function ClubApplyClient({
                     {(p) => (
                       <div className="relative">
                         <Search
-                          className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-ink-500"
+                          className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-fg-subtle"
                           aria-hidden="true"
                         />
                         <Input
@@ -271,7 +271,7 @@ export function ClubApplyClient({
                   </Field>
 
                   {filteredDirectory.length === 0 ? (
-                    <p className="text-sm text-ink-600">
+                    <p className="text-sm text-fg-muted">
                       找不到符合的社團。若你的社團不在名錄中，請改選「申請新社團」。
                     </p>
                   ) : (
@@ -284,7 +284,7 @@ export function ClubApplyClient({
                         <label
                           key={c.id}
                           className={`flex min-h-14 cursor-pointer items-center gap-3 px-3 py-2.5 text-sm transition-colors ${
-                            selectedClubId === c.id ? 'bg-ink-50' : 'hover:bg-ink-50'
+                            selectedClubId === c.id ? 'bg-surface-subtle' : 'hover:bg-surface-subtle'
                           }`}
                         >
                           <input
@@ -294,13 +294,13 @@ export function ClubApplyClient({
                             checked={selectedClubId === c.id}
                             onChange={() => setSelectedClubId(c.id)}
                             required
-                            className="h-4 w-4 shrink-0 accent-accent-600"
+                            className="h-4 w-4 shrink-0 accent-brand"
                           />
                           <span className="min-w-0">
-                            <span className="block break-words font-medium text-ink-900">
+                            <span className="block break-words font-medium text-fg">
                               {c.university_short_name} · {c.name}
                             </span>
-                            <span className="block break-all text-sm text-ink-600">
+                            <span className="block break-all text-sm text-fg-muted">
                               {CLUB_CATEGORIES[c.category].label} ｜ <code>/clubs/{c.slug}</code>
                             </span>
                           </span>
@@ -313,7 +313,7 @@ export function ClubApplyClient({
             </section>
 
             <section className="space-y-4" aria-labelledby="club-apply-evidence-heading">
-              <h2 id="club-apply-evidence-heading" className="text-base font-semibold text-ink-900">
+              <h2 id="club-apply-evidence-heading" className="text-base font-semibold text-fg">
                 幹部身分佐證
               </h2>
               <Field

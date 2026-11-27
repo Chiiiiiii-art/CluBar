@@ -57,7 +57,7 @@ export default async function RootLayout({
 
   return (
     <html lang="zh-Hant" className={notoSansTC.variable}>
-      <body className="min-h-screen bg-canvas text-ink-900">
+      <body className="min-h-screen bg-canvas text-fg">
         <ConfirmProvider>
         <Navbar user={navUser} unreadCount={unreadCount} />
         <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-6xl px-4 pt-6 pb-24 sm:px-6 md:pb-12">

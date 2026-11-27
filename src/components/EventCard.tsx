@@ -59,7 +59,7 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
               <ClubMark name={event.club.name} seed={event.club.id} size="md" />
             </div>
           )}
-          <span className="absolute top-3 left-3 rounded-md bg-white/95 px-2 py-0.5 text-xs font-semibold text-ink-900 shadow-sm">
+          <span className="absolute top-3 left-3 rounded-md bg-surface/95 px-2 py-0.5 text-xs font-semibold text-fg shadow-sm">
             {event.fee_ntd === 0 ? '免費' : `NT$${event.fee_ntd}`}
           </span>
         </div>
@@ -67,31 +67,31 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
 
       <div className="mt-3 space-y-1.5">
         {event.reason && (
-          <p className="flex items-start gap-1.5 text-sm text-accent-700">
+          <p className="flex items-start gap-1.5 text-sm text-brand-soft-fg">
             <Sparkles className="mt-1 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span>{event.reason}</span>
           </p>
         )}
 
-        <p className="flex items-center gap-1.5 text-sm font-medium text-accent-700">
+        <p className="flex items-center gap-1.5 text-sm font-medium text-brand-soft-fg">
           <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
           {timeLabel}
         </p>
 
         <Link href={href} onClick={track} className="block py-1">
-          <h3 className="line-clamp-2 text-base font-semibold leading-snug text-ink-900 group-hover:underline group-hover:decoration-ink-300 group-hover:underline-offset-4">
+          <h3 className="line-clamp-2 text-base font-semibold leading-snug text-fg group-hover:underline group-hover:decoration-border-strong group-hover:underline-offset-4">
             {event.title}
           </h3>
         </Link>
 
-        <p className="truncate text-sm text-ink-600">
+        <p className="truncate text-sm text-fg-muted">
           {event.club.name}
           {event.co_host_clubs && event.co_host_clubs.length > 0
             ? ` × ${event.co_host_clubs.map((c) => c.name).join(' × ')}`
             : ''}
         </p>
 
-        <p className="flex items-center gap-1.5 text-sm text-ink-600">
+        <p className="flex items-center gap-1.5 text-sm text-fg-muted">
           <MapPin className="h-4 w-4 shrink-0 text-ink-400" aria-hidden="true" />
           <span className="truncate">
             {event.club.university_short_name} · {event.location_text}
@@ -104,7 +104,7 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
               <Badge key={tag}>{tag}</Badge>
             ))}
             {event.going_count > 0 && (
-              <span className="text-xs text-ink-500">· {event.going_count} 人想參加</span>
+              <span className="text-xs text-fg-subtle">· {event.going_count} 人想參加</span>
             )}
           </div>
         )}

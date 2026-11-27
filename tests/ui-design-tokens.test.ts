@@ -6,8 +6,8 @@ import { isPlaceholderMedia, realMediaUrl } from '../src/lib/media/placeholder';
 
 /**
  * Guards the design system: UI code must use the semantic tokens defined in
- * src/app/globals.css (ink / accent / success / warning / danger, line,
- * canvas) and the shared components in src/components/ui.
+ * src/app/globals.css and the shared components in src/components/ui (which
+ * themselves may not use primitive scale utilities).
  */
 
 const ROOT = join(__dirname, '..', 'src');
@@ -19,6 +19,14 @@ function tsxFiles(dir: string): string[] {
     const full = join(dir, name);
     if (statSync(full).isDirectory()) return tsxFiles(full);
     return full.endsWith('.tsx') ? [full] : [];
+  });
+}
+
+function uiKitFiles(dir: string): string[] {
+  return readdirSync(dir).flatMap((name) => {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) return uiKitFiles(full);
+    return full.endsWith('.tsx') || full.endsWith('.ts') ? [full] : [];
   });
 }
 
@@ -75,6 +83,21 @@ test('class constants use design tokens (event theme gradients excepted)', () =>
       });
   }
   assert.deepEqual(hits, [], `raw palette in class constants:\n${hits.join('\n')}`);
+});
+
+test('src/components/ui uses semantic tokens only (no primitive scale utilities)', () => {
+  const primitive =
+    /(?<![\w-])(?:bg|text|border(?:-[trblxy])?|ring|from|via|to|divide|outline|fill|stroke|decoration|placeholder|accent|caret|shadow)-(?:ink|accent|success|warning|danger)-\d{2,3}\b/;
+  const hits: string[] = [];
+  for (const f of uiKitFiles(join(ROOT, 'components', 'ui'))) {
+    readFileSync(f, 'utf8')
+      .split('\n')
+      .forEach((line, i) => {
+        const m = line.match(primitive);
+        if (m) hits.push(`${relative(ROOT, f)}:${i + 1}  ${m[0]}`);
+      });
+  }
+  assert.deepEqual(hits, [], `primitive scale utility found in src/components/ui:\n${hits.join('\n')}`);
 });
 
 test('legacy CSS variable aliases are gone', () => {

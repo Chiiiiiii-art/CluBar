@@ -31,22 +31,22 @@ export function Field({
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
   return (
     <div className={cn('space-y-1.5', className)}>
-      <label htmlFor={id} className="block text-sm font-medium text-ink-800">
+      <label htmlFor={id} className="block text-sm font-medium text-fg-body">
         {label}
         {required && (
-          <span className="ml-0.5 text-danger-600" aria-hidden="true">
+          <span className="ml-0.5 text-danger" aria-hidden="true">
             *
           </span>
         )}
       </label>
       {children({ id, 'aria-describedby': describedBy, 'aria-invalid': error ? true : undefined, required })}
       {hint && (
-        <p id={hintId} className="text-sm text-ink-600">
+        <p id={hintId} className="text-sm text-fg-muted">
           {hint}
         </p>
       )}
       {error && (
-        <p id={errorId} className="text-sm font-medium text-danger-700">
+        <p id={errorId} className="text-sm font-medium text-danger-fg">
           {error}
         </p>
       )}

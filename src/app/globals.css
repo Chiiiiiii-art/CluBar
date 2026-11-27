@@ -74,17 +74,103 @@
   --color-danger-900: #7f1d1d;
   --color-danger-950: #450a0a;
 
-  /* Semantic singles */
+  /* Semantic singles (existing) */
   --color-canvas: #fafafa;
   --color-surface: #ffffff;
   --color-line: #e4e4e7;
   --color-line-input: #a1a1aa;
+
+  /*
+   * Semantic token layer (Phase 0.4 — zero visual change).
+   * Components reference these tokens so re-skinning or dark mode only
+   * swaps values here. Mapping to current primitives:
+   *   fg             -> ink-900 (#18181b)   primary text / active dark chip
+   *   fg-body        -> ink-800 (#27272a)   body copy / form labels
+   *   fg-secondary   -> ink-700 (#3f3f46)   chips / neutral badges / ghost btns
+   *   fg-muted       -> ink-600 (#52525b)   descriptions / inactive tabs
+   *   fg-subtle      -> ink-500 (#71717a)   placeholders / disabled / captions
+   *   surface-subtle -> ink-50  (#fafafa)   subtle inset & secondary hover
+   *   surface-sunken -> ink-100 (#f4f4f5)   tracks / skeletons / disabled bg
+   *   border-strong  -> ink-300 (#d4d4d8)   hover borders / dashed frames
+   *   brand          -> accent-600 (#4f46e5)
+   *   brand-hover    -> accent-700 (#4338ca)
+   *   brand-active   -> accent-800 (#3730a3)
+   *   on-brand       -> #ffffff
+   *   brand-soft     -> accent-50  (#eef2ff)
+   *   brand-soft-hover -> accent-100 (#e0e7ff)
+   *   brand-soft-fg  -> accent-700 (#4338ca)
+   *   focus-ring     -> accent-600 (#4f46e5)
+   *   success        -> success-600 (#059669)
+   *   success-soft   -> success-50  (#ecfdf5)
+   *   success-fg     -> success-800 (#065f46)
+   *   warning-soft   -> warning-50  (#fffbeb)
+   *   warning-fg     -> warning-900 (#78350f)
+   *   danger         -> danger-600  (#dc2626)
+   *   danger-hover   -> danger-700  (#b91c1c)
+   *   danger-soft    -> danger-50   (#fef2f2)
+   *   danger-fg      -> danger-700  (#b91c1c)
+   */
+  --color-fg: var(--color-ink-900);
+  --color-fg-body: var(--color-ink-800);
+  --color-fg-secondary: var(--color-ink-700);
+  --color-fg-muted: var(--color-ink-600);
+  --color-fg-subtle: var(--color-ink-500);
+
+  --color-surface-subtle: var(--color-ink-50);
+  --color-surface-sunken: var(--color-ink-100);
+  --color-border-strong: var(--color-ink-300);
+
+  --color-brand: var(--color-accent-600);
+  --color-brand-hover: var(--color-accent-700);
+  --color-brand-active: var(--color-accent-800);
+  --color-on-brand: #ffffff;
+  --color-brand-soft: var(--color-accent-50);
+  --color-brand-soft-hover: var(--color-accent-100);
+  --color-brand-soft-fg: var(--color-accent-700);
+  --color-focus-ring: var(--color-accent-600);
+
+  --color-success: var(--color-success-600);
+  --color-success-soft: var(--color-success-50);
+  --color-success-fg: var(--color-success-800);
+
+  --color-warning-soft: var(--color-warning-50);
+  --color-warning-fg: var(--color-warning-900);
+
+  --color-danger: var(--color-danger-600);
+  --color-danger-hover: var(--color-danger-700);
+  --color-danger-soft: var(--color-danger-50);
+  --color-danger-fg: var(--color-danger-700);
+
+  /* Decorative icon tint (not for text: ink-400 is below 4.5:1 on white). */
+  --color-fg-faint: var(--color-ink-400);
+
+  /* Notice banners (States.tsx) keep their original, slightly deeper text. */
+  --color-notice-info-border: var(--color-accent-200);
+  --color-notice-info-fg: var(--color-accent-900);
+  --color-notice-warning-border: var(--color-warning-200);
+  --color-notice-danger-border: var(--color-danger-200);
+  --color-notice-danger-fg: var(--color-danger-800);
+  --color-notice-success-border: var(--color-success-200);
+  --color-notice-success-fg: var(--color-success-900);
+}
+
+/* ClubMark avatar swatches (all >= 4.5:1 with white text). Kept in :root so
+   inline style={{ backgroundColor: 'var(--color-mark-N)' }} always resolves. */
+:root {
+  --color-mark-1: #4338ca;
+  --color-mark-2: #0f766e;
+  --color-mark-3: #b45309;
+  --color-mark-4: #be123c;
+  --color-mark-5: #6d28d9;
+  --color-mark-6: #1d4ed8;
+  --color-mark-7: #047857;
+  --color-mark-8: #52525b;
 }
 
 @layer base {
   html {
     background-color: var(--color-canvas);
-    color: var(--color-ink-900);
+    color: var(--color-fg);
     scroll-behavior: smooth;
     scroll-padding-top: 5rem;
     scroll-padding-bottom: 5.5rem;
@@ -92,7 +178,7 @@
 
   body {
     background-color: var(--color-canvas);
-    color: var(--color-ink-900);
+    color: var(--color-fg);
     font-family: var(--font-sans);
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
@@ -124,7 +210,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent-600);
+    outline: 2px solid var(--color-focus-ring);
     outline-offset: 2px;
   }
 
