@@ -65,18 +65,18 @@ export function BlendClient({
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <section className="rounded-3xl border border-[var(--border-strong)] bg-gradient-to-br from-orange-50 via-white to-blue-50 p-6 shadow-xs sm:p-8">
+      <section className="rounded-xl border border-ink-300 bg-gradient-to-br from-accent-50 via-white to-accent-50 p-6 shadow-xs sm:p-8">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-900">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-100 px-3 py-1 text-sm font-semibold text-accent-900">
                 <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
                 校園興趣合拍結果
               </span>
-              <span className="text-xs font-semibold text-slate-600">{universityName}</span>
+              <span className="text-sm font-semibold text-ink-600">{universityName}</span>
             </div>
 
-            <h1 className="mt-4 text-2xl font-extrabold text-slate-900 sm:text-3xl">
+            <h1 className="mt-4 text-2xl font-bold text-ink-900 sm:text-3xl">
               {partnerName
                 ? `${creatorName} × ${partnerName}：合拍指數 ${matchScore ?? 75}%`
                 : `${creatorName} 邀請你做一場校園興趣合拍！`}
@@ -87,7 +87,7 @@ export function BlendClient({
                 {sharedDomains.map((d) => (
                   <span
                     key={d}
-                    className="rounded-full border border-[var(--border-strong)] bg-white px-3.5 py-1 text-xs font-bold text-orange-900"
+                    className="rounded-full border border-ink-300 bg-white px-3.5 py-1 text-sm font-semibold text-accent-900"
                   >
                     #{d}
                   </span>
@@ -96,7 +96,7 @@ export function BlendClient({
             )}
 
             {error && (
-              <p className="mt-4 rounded-xl bg-red-50 px-4 py-2 text-xs font-semibold text-red-700">
+              <p className="mt-4 rounded-xl bg-danger-50 px-4 py-2 text-sm font-semibold text-danger-700">
                 {error}
               </p>
             )}
@@ -107,7 +107,7 @@ export function BlendClient({
                   type="button"
                   disabled={joining}
                   onClick={handleJoin}
-                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[var(--primary)] px-5 text-sm font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-accent-600 px-5 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
                 >
                   <Users className="h-4 w-4" aria-hidden="true" />
                   <span>{joining ? '合拍計算中...' : isLoggedIn ? '加入雙人合拍（看共同推薦）' : '登入加入合拍'}</span>
@@ -117,16 +117,16 @@ export function BlendClient({
               <button
                 type="button"
                 onClick={copyLink}
-                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-[var(--border-strong)] bg-white px-4 text-xs font-bold text-slate-800"
+                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-ink-300 bg-white px-4 text-sm font-semibold text-ink-800"
               >
-                {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
+                {copied ? <Check className="h-4 w-4 text-success-700" /> : <Copy className="h-4 w-4" />}
                 <span>{copied ? '已複製邀請連結' : '複製邀請連結給朋友'}</span>
               </button>
 
               <a
                 href={`/api/og/blend/${shortCode}?format=story`}
                 download={`clubar-blend-${shortCode}.png`}
-                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 px-4 text-xs font-bold text-blue-800 hover:bg-blue-100"
+                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-accent-200 bg-accent-50 px-4 text-sm font-semibold text-accent-800 hover:bg-accent-100"
               >
                 <Download className="h-4 w-4" aria-hidden="true" />
                 <span>下載 IG 限動分享卡</span>
@@ -134,14 +134,14 @@ export function BlendClient({
 
               <Link
                 href="/"
-                className="inline-flex min-h-[44px] items-center rounded-xl border border-[var(--border)] bg-white px-4 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                className="inline-flex min-h-[44px] items-center rounded-xl border border-line bg-white px-4 text-sm font-semibold text-ink-700 hover:bg-ink-50"
               >
                 回別的聚逛活動 →
               </Link>
             </div>
           </div>
 
-          <div className="mx-auto w-36 shrink-0 overflow-hidden rounded-2xl border border-[var(--border-strong)] bg-white shadow-sm sm:mx-0 sm:w-40">
+          <div className="mx-auto w-36 shrink-0 overflow-hidden rounded-xl border border-ink-300 bg-white shadow-sm sm:mx-0 sm:w-40">
             <img
               src={`/api/og/blend/${shortCode}?format=story`}
               alt="IG 限動 9:16 合拍分享卡預覽"
@@ -153,17 +153,17 @@ export function BlendClient({
       </section>
 
       {recommendedClubs.length > 0 && (
-        <section className="space-y-3 rounded-3xl border border-[var(--border)] bg-white p-6">
-          <h2 className="text-lg font-extrabold text-slate-900">你們都可能會喜歡的寶藏社團</h2>
+        <section className="space-y-3 rounded-xl border border-line bg-white p-6">
+          <h2 className="text-lg font-bold text-ink-900">你們都可能會喜歡的寶藏社團</h2>
           <div className="grid gap-3 sm:grid-cols-3">
             {recommendedClubs.map((c) => (
               <Link
                 key={c.id}
                 href={`/clubs/${c.slug}`}
-                className="rounded-2xl bg-[var(--muted)] p-4 hover:bg-orange-100/70"
+                className="rounded-xl bg-ink-100 p-4 hover:bg-accent-100/70"
               >
-                <h3 className="text-sm font-extrabold text-slate-900">{c.name}</h3>
-                <p className="mt-1 line-clamp-2 text-xs text-slate-600">{c.tagline}</p>
+                <h3 className="text-sm font-semibold text-ink-900">{c.name}</h3>
+                <p className="mt-1 line-clamp-2 text-sm text-ink-600">{c.tagline}</p>
               </Link>
             ))}
           </div>
@@ -172,7 +172,7 @@ export function BlendClient({
 
       {recommendedEvents.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-extrabold text-slate-900">一起相約參加的體驗活動</h2>
+          <h2 className="text-lg font-bold text-ink-900">一起相約參加的體驗活動</h2>
           <div className="grid gap-4 sm:grid-cols-2">
             {recommendedEvents.map((ev) => (
               <EventCard key={ev.id} event={ev} />

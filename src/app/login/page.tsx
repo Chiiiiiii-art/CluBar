@@ -48,21 +48,21 @@ export default async function LoginPage({
 
   return (
     <div className="mx-auto max-w-lg py-6">
-      <div className="rounded-3xl border border-[var(--border-strong)] bg-white p-6 shadow-sm sm:p-8">
+      <div className="rounded-xl border border-ink-300 bg-white p-6 shadow-sm sm:p-8">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--brand)] text-white">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-600 text-white">
             <Sparkles className="h-6 w-6" aria-hidden="true" />
           </span>
           <div>
-            <h1 className="text-xl font-extrabold text-slate-900">登入社團聚 CluBar</h1>
-            <p className="text-xs text-slate-600">
+            <h1 className="text-xl font-bold text-ink-900">登入社團聚 CluBar</h1>
+            <p className="text-sm text-ink-600">
               登入後可私密收藏作品、追蹤社團，並驗證 .edu.tw 校園身分。
             </p>
           </div>
         </div>
 
         {params.error && (
-          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-medium text-red-800">
+          <div className="mt-4 rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 text-sm font-medium text-danger-800">
             登入失敗或帳號未通過驗證，請重新選擇登入方式。
           </div>
         )}
@@ -84,7 +84,7 @@ export default async function LoginPage({
             >
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#2563EB] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-accent-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-700"
               >
                 <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                 <span>使用 Microsoft 帳號登入（支援校園信箱自動驗證）</span>
@@ -108,7 +108,7 @@ export default async function LoginPage({
             >
               <button
                 type="submit"
-                className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-900 transition-colors hover:bg-slate-50"
+                className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-ink-300 bg-white px-4 py-3 text-sm font-semibold text-ink-900 transition-colors hover:bg-ink-50"
               >
                 <span>使用 Google 帳號登入</span>
               </button>
@@ -116,27 +116,27 @@ export default async function LoginPage({
           )}
 
           {!hasEntra && !hasGoogle && !enableDevLogin && (
-            <p className="rounded-xl bg-amber-50 p-4 text-xs leading-relaxed text-amber-900">
+            <p className="rounded-xl bg-warning-50 p-4 text-sm leading-relaxed text-warning-900">
               尚未設定 Microsoft Entra ID 或 Google OAuth 環境變數，請依 `.env.example` 設定後再進行登入。
             </p>
           )}
         </div>
 
-        <div className="mt-6 rounded-2xl bg-[var(--muted)] p-4 text-xs leading-relaxed text-slate-700">
-          <p className="font-semibold text-slate-900">隱私與最小揭露承諾</p>
+        <div className="mt-6 rounded-xl bg-ink-100 p-4 text-sm leading-relaxed text-ink-700">
+          <p className="font-semibold text-ink-900">隱私與最小揭露承諾</p>
           <p className="mt-1">
             您的信箱與校園驗證資訊僅用於資格判定，絕不會在公開作品卡片或社團頁面顯示。
           </p>
         </div>
 
         {enableDevLogin && (
-          <div className="mt-6 border-t border-[var(--border)] pt-6">
-            <div className="mb-3 flex items-center gap-2 text-xs font-bold text-slate-700">
-              <Terminal className="h-4 w-4 text-[var(--primary)]" aria-hidden="true" />
+          <div className="mt-6 border-t border-line pt-6">
+            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-700">
+              <Terminal className="h-4 w-4 text-accent-600" aria-hidden="true" />
               <span>開發測試帳號快速登入（僅非正式環境啟用）</span>
             </div>
             {devAccounts.length === 0 ? (
-              <p className="text-xs text-slate-500">
+              <p className="text-sm text-ink-500">
                 目前尚無可用測試帳號，請先完成資料初始化。
               </p>
             ) : (
@@ -163,13 +163,13 @@ export default async function LoginPage({
                   >
                     <button
                       type="submit"
-                      className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl border border-[var(--border-strong)] bg-white px-3.5 py-2 text-left text-xs transition-colors hover:bg-orange-50"
+                      className="flex min-h-[44px] w-full items-center justify-between gap-2 rounded-xl border border-ink-300 bg-white px-3.5 py-2 text-left text-sm transition-colors hover:bg-accent-50"
                     >
                       <div className="min-w-0">
-                        <p className="truncate font-bold text-slate-900">{acc.displayName}</p>
-                        <p className="truncate text-[11px] text-slate-500">{acc.email}</p>
+                        <p className="truncate font-bold text-ink-900">{acc.displayName}</p>
+                        <p className="truncate text-xs text-ink-500">{acc.email}</p>
                       </div>
-                      <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
+                      <span className="shrink-0 rounded-full bg-ink-100 px-2.5 py-0.5 text-xs font-semibold text-ink-700">
                         {acc.platformRole === 'platform_admin'
                           ? '平台管理員'
                           : acc.campusEmail

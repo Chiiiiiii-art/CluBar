@@ -45,19 +45,19 @@ export function Navbar({
 
   return (
     <>
-      <header className="no-print sticky top-0 z-40 border-b border-[var(--border)] bg-[#FFF7ED]/95 backdrop-blur">
+      <header className="no-print sticky top-0 z-40 border-b border-line bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-6">
             <Link
               href="/"
-              className="flex min-h-[44px] items-center gap-2.5 font-bold tracking-tight text-slate-900"
+              className="flex min-h-[44px] items-center gap-2.5 font-bold tracking-tight text-ink-900"
             >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--brand)] text-white shadow-sm">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-600 text-white shadow-sm">
                 <Sparkles className="h-5 w-5" aria-hidden="true" />
               </span>
               <span className="flex flex-col leading-none">
-                <span className="text-base font-extrabold">社團聚</span>
-                <span className="text-[11px] font-medium text-slate-500">CluBar</span>
+                <span className="text-base font-bold">社團聚</span>
+                <span className="text-xs font-medium text-ink-500">CluBar</span>
               </span>
             </Link>
 
@@ -67,8 +67,8 @@ export function Navbar({
                 aria-current={isDiscover ? 'page' : undefined}
                 className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                   isDiscover
-                    ? 'bg-orange-100 text-orange-900'
-                    : 'text-slate-700 hover:bg-orange-50'
+                    ? 'bg-accent-100 text-accent-900'
+                    : 'text-ink-700 hover:bg-accent-50'
                 }`}
               >
                 別的聚
@@ -78,8 +78,8 @@ export function Navbar({
                 aria-current={isTogether ? 'page' : undefined}
                 className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                   isTogether
-                    ? 'bg-orange-100 text-orange-900'
-                    : 'text-slate-700 hover:bg-orange-50'
+                    ? 'bg-accent-100 text-accent-900'
+                    : 'text-ink-700 hover:bg-accent-50'
                 }`}
               >
                 一起聚
@@ -89,8 +89,8 @@ export function Navbar({
                 aria-current={isMyClubs ? 'page' : undefined}
                 className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                   isMyClubs
-                    ? 'bg-orange-100 text-orange-900'
-                    : 'text-slate-700 hover:bg-orange-50'
+                    ? 'bg-accent-100 text-accent-900'
+                    : 'text-ink-700 hover:bg-accent-50'
                 }`}
               >
                 我的聚
@@ -101,8 +101,8 @@ export function Navbar({
                   aria-current={isAdmin ? 'page' : undefined}
                   className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
                     isAdmin
-                      ? 'bg-blue-100 text-blue-900'
-                      : 'text-blue-700 hover:bg-blue-50'
+                      ? 'bg-accent-100 text-accent-900'
+                      : 'text-accent-700 hover:bg-accent-50'
                   }`}
                 >
                   平台治理
@@ -116,18 +116,18 @@ export function Navbar({
               <Link
                 href="/me"
                 aria-current={isMe ? 'page' : undefined}
-                className="relative inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-[var(--border-strong)] bg-white px-3.5 py-2 text-sm font-semibold text-slate-900 shadow-xs transition-colors hover:bg-orange-50"
+                className="relative inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-ink-300 bg-white px-3.5 py-2 text-sm font-semibold text-ink-900 shadow-xs transition-colors hover:bg-accent-50"
               >
-                <User className="h-4 w-4 text-[var(--primary)]" aria-hidden="true" />
+                <User className="h-4 w-4 text-accent-600" aria-hidden="true" />
                 <span className="max-w-[120px] truncate">{user.displayName}</span>
                 {user.campusVerified && (
                   <ShieldCheck
-                    className="h-4 w-4 text-blue-600"
+                    className="h-4 w-4 text-accent-600"
                     aria-label="已完成校園驗證"
                   />
                 )}
                 {unreadCount > 0 && (
-                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--primary)] px-1.5 text-[11px] font-bold text-white">
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-600 px-1.5 text-xs font-bold text-white">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -136,7 +136,7 @@ export function Navbar({
               <Link
                 href={loginHref}
                 aria-current={isMe ? 'page' : undefined}
-                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[var(--primary)] px-4 py-2 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-[var(--primary-hover)]"
+                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-accent-700"
               >
                 <LogIn className="h-4 w-4" aria-hidden="true" />
                 登入
@@ -148,14 +148,14 @@ export function Navbar({
 
       {/* Mobile bottom 4-tab navigation (PRD v2 §3.2) */}
       <nav
-        className="no-print fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-[var(--border-strong)] bg-white/95 backdrop-blur md:hidden"
+        className="no-print fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-ink-300 bg-white/95 backdrop-blur md:hidden"
         aria-label="行動版底部導覽"
       >
         <Link
           href="/"
           aria-current={isDiscover ? 'page' : undefined}
-          className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold ${
-            isDiscover ? 'text-[var(--primary)]' : 'text-slate-600'
+          className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-xs font-semibold ${
+            isDiscover ? 'text-accent-600' : 'text-ink-600'
           }`}
         >
           <Compass className="h-5 w-5" aria-hidden="true" />
@@ -164,8 +164,8 @@ export function Navbar({
         <Link
           href="/together"
           aria-current={isTogether ? 'page' : undefined}
-          className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold ${
-            isTogether ? 'text-[var(--primary)]' : 'text-slate-600'
+          className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-xs font-semibold ${
+            isTogether ? 'text-accent-600' : 'text-ink-600'
           }`}
         >
           <Users className="h-5 w-5" aria-hidden="true" />
@@ -174,8 +174,8 @@ export function Navbar({
         <Link
           href="/my-clubs"
           aria-current={isMyClubs ? 'page' : undefined}
-          className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold ${
-            isMyClubs ? 'text-[var(--primary)]' : 'text-slate-600'
+          className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-xs font-semibold ${
+            isMyClubs ? 'text-accent-600' : 'text-ink-600'
           }`}
         >
           <FolderHeart className="h-5 w-5" aria-hidden="true" />
@@ -184,14 +184,14 @@ export function Navbar({
         <Link
           href={user ? '/me' : loginHref}
           aria-current={isMe ? 'page' : undefined}
-          className={`relative flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-[11px] font-semibold ${
-            isMe ? 'text-[var(--primary)]' : 'text-slate-600'
+          className={`relative flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-xs font-semibold ${
+            isMe ? 'text-accent-600' : 'text-ink-600'
           }`}
         >
           <User className="h-5 w-5" aria-hidden="true" />
           <span>{user ? '足跡與個人' : '登入'}</span>
           {user && unreadCount > 0 && (
-            <span className="absolute top-2 right-6 h-2 w-2 rounded-full bg-[var(--primary)]" />
+            <span className="absolute top-2 right-6 h-2 w-2 rounded-full bg-accent-600" />
           )}
         </Link>
       </nav>

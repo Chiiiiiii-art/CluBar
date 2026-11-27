@@ -87,27 +87,27 @@ export function ClubDetailClient({
     <div className="space-y-6">
       {/* Ask Box */}
       {isVerifiedClub && (
-        <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-5 sm:p-6">
-          <h3 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-            <HelpCircle className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
+        <section className="rounded-xl border border-ink-300 bg-white p-5 sm:p-6">
+          <h3 className="flex items-center gap-2 text-base font-bold text-ink-900">
+            <HelpCircle className="h-4 w-4 text-accent-600" aria-hidden="true" />
             匿名問答箱｜想先問社團幹部什麼都可以
           </h3>
           {!isLoggedIn ? (
-            <p className="mt-2 text-xs text-slate-600">
+            <p className="mt-2 text-sm text-ink-600">
               <Link
                 href={`/login?callbackUrl=${encodeURIComponent(`/clubs/${clubSlug}`)}`}
-                className="font-bold text-[var(--brand)] underline"
+                className="font-bold text-accent-600 underline"
               >
                 登入並完成 .edu.tw 驗證
               </Link>{' '}
               即可匿名送出提問，社團答覆後只會以匿名或暱稱公開。
             </p>
           ) : !isCampusVerified ? (
-            <p className="mt-2 text-xs text-slate-600">
+            <p className="mt-2 text-sm text-ink-600">
               為防範廣告騷擾，提問須先{' '}
               <Link
                 href={`/me?returnTo=${encodeURIComponent(`/clubs/${clubSlug}`)}`}
-                className="inline-flex min-h-[44px] items-center font-bold text-[var(--brand)] underline"
+                className="inline-flex min-h-[44px] items-center font-bold text-accent-600 underline"
               >
                 完成 .edu.tw 校園信箱驗證
               </Link>
@@ -121,10 +121,10 @@ export function ClubDetailClient({
                 value={questionText}
                 onChange={(e) => setQuestionText(e.target.value)}
                 placeholder={`例如：沒有自己帶器材也能去「${clubName}」體驗課嗎？大概幾點結束？`}
-                className="w-full rounded-2xl border border-[var(--border)] bg-slate-50 p-3 text-sm"
+                className="w-full rounded-xl border border-line-input bg-ink-50 p-3 text-sm"
               />
               <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-700">
+                <div className="flex flex-wrap items-center gap-3 text-sm text-ink-700">
                   <label className="flex cursor-pointer items-center gap-1.5 font-semibold">
                     <input
                       type="checkbox"
@@ -140,21 +140,21 @@ export function ClubDetailClient({
                       value={displayAlias}
                       onChange={(e) => setDisplayAlias(e.target.value)}
                       placeholder="公開顯示暱稱（選填）"
-                      className="rounded-xl border border-[var(--border)] px-2.5 py-1 text-xs"
+                      className="rounded-xl border border-line-input px-2.5 py-1 text-sm"
                     />
                   )}
                 </div>
                 <button
                   type="submit"
                   disabled={qBusy || questionText.trim().length < 5}
-                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-[var(--brand)] px-5 text-xs font-bold text-white disabled:opacity-50"
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-accent-600 px-5 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   <Send className="h-3.5 w-3.5" aria-hidden="true" />
                   送出問題
                 </button>
               </div>
-              {qMsg && <p className="text-xs font-semibold text-emerald-700">{qMsg}</p>}
-              {qErr && <p className="text-xs font-semibold text-red-700">{qErr}</p>}
+              {qMsg && <p className="text-sm font-semibold text-success-700">{qMsg}</p>}
+              {qErr && <p className="text-sm font-semibold text-danger-700">{qErr}</p>}
             </form>
           )}
         </section>
@@ -162,23 +162,23 @@ export function ClubDetailClient({
 
       {/* Dual-track Member Request */}
       {isVerifiedClub && !membershipRole && (
-        <section className="rounded-3xl border border-[var(--border)] bg-[var(--surface-warm)] p-5 sm:p-6">
-          <h3 className="flex items-center gap-2 text-sm font-extrabold text-slate-900">
-            <UserPlus className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
+        <section className="rounded-xl border border-line bg-ink-50 p-5 sm:p-6">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-900">
+            <UserPlus className="h-4 w-4 text-accent-600" aria-hidden="true" />
             已經是「{clubName}」的社員嗎？申請加入認證社員牆
           </h3>
           {!isLoggedIn ? (
-            <p className="mt-2 text-xs text-slate-600">
+            <p className="mt-2 text-sm text-ink-600">
               <Link
                 href={`/login?callbackUrl=${encodeURIComponent(`/clubs/${clubSlug}`)}`}
-                className="inline-flex min-h-[44px] items-center font-bold text-[var(--brand)] underline"
+                className="inline-flex min-h-[44px] items-center font-bold text-accent-600 underline"
               >
                 登入帳號
               </Link>{' '}
               後可申請同校認證社員，或至「我的聚」輸入幹部邀請碼。
             </p>
           ) : !isSameUniversity ? (
-            <p className="mt-2 text-xs text-slate-600">
+            <p className="mt-2 text-sm text-ink-600">
               認證社員僅限 {universityShortName} 在校 .edu.tw 學生申請（外校同學可透過活動頁直接報名體驗活動！）。
             </p>
           ) : (
@@ -189,17 +189,17 @@ export function ClubDetailClient({
                 value={joinNote}
                 onChange={(e) => setJoinNote(e.target.value)}
                 placeholder="簡短自我介紹或班級／暱稱讓幹部辨識（選填）"
-                className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-white px-3 text-xs"
+                className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-line-input bg-white px-3 text-sm"
               />
               <button
                 type="submit"
                 disabled={joinBusy}
-                className="min-h-[44px] rounded-full bg-slate-900 px-4 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50"
+                className="min-h-[44px] rounded-full bg-ink-900 px-4 text-sm font-semibold text-white hover:bg-ink-800 disabled:opacity-50"
               >
                 {joinBusy ? '送出中...' : '申請認證社員'}
               </button>
-              {joinMsg && <p className="w-full text-xs font-semibold text-emerald-700">{joinMsg}</p>}
-              {joinErr && <p className="w-full text-xs font-semibold text-red-700">{joinErr}</p>}
+              {joinMsg && <p className="w-full text-sm font-semibold text-success-700">{joinMsg}</p>}
+              {joinErr && <p className="w-full text-sm font-semibold text-danger-700">{joinErr}</p>}
             </form>
           )}
         </section>

@@ -167,17 +167,17 @@ export function AdminClient({ data }: { data: AdminPageData }) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-6 shadow-xs">
+      <section className="rounded-xl border border-ink-300 bg-white p-6 shadow-xs">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-xs font-bold text-blue-700">社團認證與平台審核</p>
-            <h1 className="mt-1 text-2xl font-extrabold text-slate-900">平台治理與數據匯出後台</h1>
+            <p className="text-sm font-semibold text-accent-700">社團認證與平台審核</p>
+            <h1 className="mt-1 text-2xl font-bold text-ink-900">平台治理與數據匯出後台</h1>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs font-bold">
-            <span className="rounded-full bg-orange-100 px-3 py-1 text-orange-900">
+          <div className="flex flex-wrap gap-2 text-sm font-semibold">
+            <span className="rounded-full bg-accent-100 px-3 py-1 text-accent-900">
               待審社團：{data.applications.length}
             </span>
-            <span className="rounded-full bg-red-100 px-3 py-1 text-red-900">
+            <span className="rounded-full bg-danger-100 px-3 py-1 text-danger-900">
               待處理檢舉：{data.reports.length}
             </span>
           </div>
@@ -185,7 +185,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
       </section>
 
       {msg && (
-        <div className="rounded-2xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-900">
+        <div className="rounded-xl border border-success-300 bg-success-50 px-4 py-3 text-sm font-semibold text-success-900">
           {msg}
         </div>
       )}
@@ -194,10 +194,10 @@ export function AdminClient({ data }: { data: AdminPageData }) {
         <button
           type="button"
           onClick={() => setTab('applications')}
-          className={`min-h-[44px] rounded-xl px-4 py-2 text-xs font-bold ${
+          className={`min-h-[44px] rounded-xl px-4 py-2 text-sm font-bold ${
             tab === 'applications'
-              ? 'bg-[var(--primary)] text-white'
-              : 'border border-[var(--border-strong)] bg-white text-slate-700'
+              ? 'bg-accent-600 text-white'
+              : 'border border-ink-300 bg-white text-ink-700'
           }`}
         >
           社團申請審核 ({data.applications.length})
@@ -205,10 +205,10 @@ export function AdminClient({ data }: { data: AdminPageData }) {
         <button
           type="button"
           onClick={() => setTab('reports')}
-          className={`min-h-[44px] rounded-xl px-4 py-2 text-xs font-bold ${
+          className={`min-h-[44px] rounded-xl px-4 py-2 text-sm font-bold ${
             tab === 'reports'
-              ? 'bg-[var(--primary)] text-white'
-              : 'border border-[var(--border-strong)] bg-white text-slate-700'
+              ? 'bg-accent-600 text-white'
+              : 'border border-ink-300 bg-white text-ink-700'
           }`}
         >
           檢舉處置佇列 ({data.reports.length})
@@ -216,10 +216,10 @@ export function AdminClient({ data }: { data: AdminPageData }) {
         <button
           type="button"
           onClick={() => setTab('restore')}
-          className={`min-h-[44px] rounded-xl px-4 py-2 text-xs font-bold ${
+          className={`min-h-[44px] rounded-xl px-4 py-2 text-sm font-bold ${
             tab === 'restore'
-              ? 'bg-[var(--primary)] text-white'
-              : 'border border-[var(--border-strong)] bg-white text-slate-700'
+              ? 'bg-accent-600 text-white'
+              : 'border border-ink-300 bg-white text-ink-700'
           }`}
         >
           停權解除與貼文復原
@@ -227,10 +227,10 @@ export function AdminClient({ data }: { data: AdminPageData }) {
         <button
           type="button"
           onClick={() => setTab('analytics')}
-          className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold ${
+          className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-bold ${
             tab === 'analytics'
-              ? 'bg-[#2563EB] text-white'
-              : 'border border-[var(--border-strong)] bg-white text-slate-700'
+              ? 'bg-accent-600 text-white'
+              : 'border border-ink-300 bg-white text-ink-700'
           }`}
         >
           <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -241,42 +241,42 @@ export function AdminClient({ data }: { data: AdminPageData }) {
       {tab === 'applications' && (
         <div className="space-y-4">
           {data.applications.length === 0 ? (
-            <div className="rounded-3xl bg-white p-8 text-center text-sm text-slate-500">
+            <div className="rounded-xl bg-white p-8 text-center text-sm text-ink-500">
               目前沒有待審核的社團申請。
             </div>
           ) : (
             data.applications.map((app) => (
               <div
                 key={app.id}
-                className="space-y-3 rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs"
+                className="space-y-3 rounded-xl border border-line bg-white p-5 shadow-xs"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="rounded-full bg-blue-50 px-3 py-0.5 text-xs font-bold text-blue-800">
+                  <span className="rounded-full bg-accent-50 px-3 py-0.5 text-sm font-semibold text-accent-800">
                     {app.type === 'directory_claim'
                       ? '名錄認領'
                       : app.type === 'new_club'
                         ? '新設／他校社團'
                         : '社長失聯接管申訴'}
                   </span>
-                  <span className="text-xs text-slate-500">
+                  <span className="text-sm text-ink-500">
                     申請時間：{formatTaipeiDateTime(app.createdAt)}
                   </span>
                 </div>
 
                 <div className="text-sm">
-                  <p className="font-bold text-slate-900">
+                  <p className="font-bold text-ink-900">
                     申請社團：
                     {app.targetClubName ||
                       `${app.proposedUniversityName ?? ''} ${app.proposedName ?? ''} (${app.proposedSlug ?? ''})`}
                   </p>
-                  <p className="mt-1 text-xs text-slate-600">
+                  <p className="mt-1 text-sm text-ink-600">
                     申請人：{app.applicantName}（{app.applicantCampusEmail || '未記錄校園信箱'}）
                   </p>
-                  <p className="mt-2 rounded-xl bg-[var(--muted)] p-3 text-xs text-slate-800">
+                  <p className="mt-2 rounded-xl bg-ink-100 p-3 text-sm text-ink-800">
                     佐證說明：{app.evidenceText}
                   </p>
                   {app.evidenceUrls.length > 0 && (
-                    <p className="mt-1 text-xs text-blue-700">
+                    <p className="mt-1 text-sm text-accent-700">
                       佐證連結：{app.evidenceUrls.join(' ｜ ')}
                     </p>
                   )}
@@ -287,7 +287,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                   placeholder="審核意見／駁回原因（選填）"
                   value={notes[app.id] || ''}
                   onChange={(e) => setNotes((prev) => ({ ...prev, [app.id]: e.target.value }))}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs"
+                  className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
                 />
 
                 <div className="flex gap-2">
@@ -295,7 +295,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     type="button"
                     disabled={busyId === app.id}
                     onClick={() => void reviewApp(app.id, 'approve')}
-                    className="inline-flex min-h-[44px] items-center gap-1 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+                    className="inline-flex min-h-[44px] items-center gap-1 rounded-xl bg-success-600 px-4 py-2 text-sm font-semibold text-white hover:bg-success-700"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>核准開通</span>
@@ -304,7 +304,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     type="button"
                     disabled={busyId === app.id}
                     onClick={() => void reviewApp(app.id, 'reject')}
-                    className="inline-flex min-h-[44px] items-center gap-1 rounded-xl border border-red-300 bg-white px-4 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
+                    className="inline-flex min-h-[44px] items-center gap-1 rounded-xl border border-danger-300 bg-white px-4 py-2 text-sm font-semibold text-danger-700 hover:bg-danger-50"
                   >
                     <XCircle className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>駁回</span>
@@ -319,26 +319,26 @@ export function AdminClient({ data }: { data: AdminPageData }) {
       {tab === 'reports' && (
         <div className="space-y-4">
           {data.reports.length === 0 ? (
-            <div className="rounded-3xl bg-white p-8 text-center text-sm text-slate-500">
+            <div className="rounded-xl bg-white p-8 text-center text-sm text-ink-500">
               目前沒有待處理的檢舉案件。
             </div>
           ) : (
             data.reports.map((rep) => (
               <div
                 key={rep.id}
-                className="space-y-3 rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs"
+                className="space-y-3 rounded-xl border border-line bg-white p-5 shadow-xs"
               >
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <span className="inline-flex items-center gap-1 rounded-full bg-red-50 px-3 py-0.5 font-bold text-red-800">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-danger-50 px-3 py-0.5 font-bold text-danger-800">
                     <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
                     {REPORT_REASONS[rep.reason].label}
                   </span>
-                  <span className="text-slate-500">
+                  <span className="text-ink-500">
                     對象：{REPORT_TARGET_LABELS[rep.targetType] ?? rep.targetType} · 編號 {rep.targetId.slice(0, 8)}
                   </span>
                 </div>
                 {rep.detail && (
-                  <p className="rounded-xl bg-[var(--muted)] p-3 text-xs text-slate-800">
+                  <p className="rounded-xl bg-ink-100 p-3 text-sm text-ink-800">
                     檢舉說明：{rep.detail}
                   </p>
                 )}
@@ -347,14 +347,14 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                   placeholder="處置說明（若下架或停權將通知該社團社長）"
                   value={notes[rep.id] || ''}
                   onChange={(e) => setNotes((prev) => ({ ...prev, [rep.id]: e.target.value }))}
-                  className="min-h-[44px] w-full rounded-xl border border-slate-300 px-3 py-2 text-xs"
+                  className="min-h-[44px] w-full rounded-xl border border-line-input px-3 py-2 text-sm"
                 />
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
                     disabled={busyId === rep.id}
                     onClick={() => void resolveReport(rep.id, 'keep')}
-                    className="min-h-[44px] rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700"
+                    className="min-h-[44px] rounded-xl border border-ink-300 bg-white px-3.5 py-2 text-sm font-semibold text-ink-700"
                   >
                     判定保留
                   </button>
@@ -362,7 +362,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     type="button"
                     disabled={busyId === rep.id}
                     onClick={() => void resolveReport(rep.id, 'takedown')}
-                    className="min-h-[44px] rounded-xl bg-amber-600 px-3.5 py-2 text-xs font-bold text-white"
+                    className="min-h-[44px] rounded-xl bg-warning-600 px-3.5 py-2 text-sm font-semibold text-white"
                   >
                     下架此項目內容
                   </button>
@@ -370,7 +370,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                     type="button"
                     disabled={busyId === rep.id}
                     onClick={() => void resolveReport(rep.id, 'suspend_club')}
-                    className="min-h-[44px] rounded-xl bg-red-600 px-3.5 py-2 text-xs font-bold text-white"
+                    className="min-h-[44px] rounded-xl bg-danger-600 px-3.5 py-2 text-sm font-semibold text-white"
                   >
                     暫停社團發文權限
                   </button>
@@ -383,27 +383,27 @@ export function AdminClient({ data }: { data: AdminPageData }) {
 
       {tab === 'restore' && (
         <div className="grid gap-6 md:grid-cols-2">
-          <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs">
-            <h2 className="mb-3 text-base font-extrabold text-slate-900">
+          <section className="rounded-xl border border-line bg-white p-5 shadow-xs">
+            <h2 className="mb-3 text-base font-bold text-ink-900">
               停權中社團（{data.suspendedClubs.length}）
             </h2>
             {data.suspendedClubs.length === 0 ? (
-              <p className="text-xs text-slate-500">目前沒有停權中社團。</p>
+              <p className="text-sm text-ink-500">目前沒有停權中社團。</p>
             ) : (
               <div className="space-y-2.5">
                 {data.suspendedClubs.map((c) => (
                   <div
                     key={c.id}
-                    className="flex items-center justify-between rounded-xl border border-slate-200 p-3 text-xs"
+                    className="flex items-center justify-between rounded-xl border border-ink-200 p-3 text-sm"
                   >
-                    <span className="font-bold text-slate-900">
+                    <span className="font-bold text-ink-900">
                       {c.universityShortName} · {c.name}
                     </span>
                     <button
                       type="button"
                       disabled={busyId === c.id}
                       onClick={() => void unsuspendClub(c.id)}
-                      className="rounded-xl bg-emerald-600 px-3 py-1.5 font-bold text-white"
+                      className="rounded-xl bg-success-600 px-3 py-1.5 font-bold text-white"
                     >
                       解除停權
                     </button>
@@ -413,22 +413,22 @@ export function AdminClient({ data }: { data: AdminPageData }) {
             )}
           </section>
 
-          <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs">
-            <h2 className="mb-3 text-base font-extrabold text-slate-900">
+          <section className="rounded-xl border border-line bg-white p-5 shadow-xs">
+            <h2 className="mb-3 text-base font-bold text-ink-900">
               已下架／隱藏貼文復原（{data.removedPosts.length}）
             </h2>
             {data.removedPosts.length === 0 ? (
-              <p className="text-xs text-slate-500">目前沒有可復原的已下架貼文。</p>
+              <p className="text-sm text-ink-500">目前沒有可復原的已下架貼文。</p>
             ) : (
               <div className="space-y-2.5">
                 {data.removedPosts.map((p) => (
                   <div
                     key={p.id}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 p-3 text-xs"
+                    className="flex items-center justify-between gap-2 rounded-xl border border-ink-200 p-3 text-sm"
                   >
                     <div>
-                      <p className="font-bold text-slate-900">{p.title}</p>
-                      <p className="text-slate-500">
+                      <p className="font-bold text-ink-900">{p.title}</p>
+                      <p className="text-ink-500">
                         {p.clubName} ｜ {p.status}
                       </p>
                     </div>
@@ -436,7 +436,7 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                       type="button"
                       disabled={busyId === p.id}
                       onClick={() => void restorePost(p.id)}
-                      className="shrink-0 rounded-xl bg-blue-600 px-3 py-1.5 font-bold text-white"
+                      className="shrink-0 rounded-xl bg-accent-600 px-3 py-1.5 font-bold text-white"
                     >
                       復原公開
                     </button>
@@ -449,13 +449,13 @@ export function AdminClient({ data }: { data: AdminPageData }) {
       )}
 
       {tab === 'analytics' && (
-        <section className="space-y-5 rounded-3xl border border-[var(--border-strong)] bg-white p-6 shadow-xs">
+        <section className="space-y-5 rounded-xl border border-ink-300 bg-white p-6 shadow-xs">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h2 className="text-lg font-extrabold text-slate-900">
+              <h2 className="text-lg font-bold text-ink-900">
                 匿名轉換事件彙總（Power BI 匯出就緒）
               </h2>
-              <p className="mt-1 text-xs text-slate-600">
+              <p className="mt-1 text-sm text-ink-600">
                 完全不含 PII（無學號、無信箱、無使用者 ID），欄位對齊 Power BI 報表匯入規格。
               </p>
             </div>
@@ -465,19 +465,19 @@ export function AdminClient({ data }: { data: AdminPageData }) {
                 aria-label="起始日期"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
-                className="rounded-xl border border-slate-300 px-2.5 py-1.5 text-xs"
+                className="rounded-xl border border-line-input px-2.5 py-1.5 text-sm"
               />
-              <span className="text-xs text-slate-500">至</span>
+              <span className="text-sm text-ink-500">至</span>
               <input
                 type="date"
                 aria-label="結束日期"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
-                className="rounded-xl border border-slate-300 px-2.5 py-1.5 text-xs"
+                className="rounded-xl border border-line-input px-2.5 py-1.5 text-sm"
               />
               <a
                 href={`/api/admin/analytics/export?${csvQs.toString()}`}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-[#2563EB] px-4 py-2 text-xs font-bold text-white hover:bg-blue-700"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700"
               >
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>匯出 Power BI CSV</span>
@@ -489,10 +489,10 @@ export function AdminClient({ data }: { data: AdminPageData }) {
             {data.analyticsSummary.map((row) => (
               <div
                 key={row.eventType}
-                className="rounded-2xl border border-[var(--border)] bg-[var(--muted)]/50 p-4"
+                className="rounded-xl border border-line bg-ink-100/50 p-4"
               >
-                <p className="font-mono text-xs text-slate-600">{row.eventType}</p>
-                <p className="mt-1 text-2xl font-extrabold text-slate-900">{row.count}</p>
+                <p className="font-mono text-sm text-ink-600">{row.eventType}</p>
+                <p className="mt-1 text-2xl font-bold text-ink-900">{row.count}</p>
               </div>
             ))}
           </div>

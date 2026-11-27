@@ -303,19 +303,19 @@ export function DiscoverClient({
     <div className="space-y-4">
       {/* First-visit zero-friction onboarding invitation */}
       {showOnboardingPrompt && (
-        <section className="flex flex-col justify-between gap-2.5 rounded-2xl border border-orange-300 bg-gradient-to-r from-orange-50 via-amber-50 to-blue-50 px-4 py-3 shadow-xs sm:flex-row sm:items-center">
+        <section className="flex flex-col justify-between gap-2.5 rounded-xl border border-accent-300 bg-gradient-to-r from-accent-50 via-warning-50 to-accent-50 px-4 py-3 shadow-xs sm:flex-row sm:items-center">
           <div className="min-w-0">
-            <p className="text-sm font-extrabold text-slate-900">
+            <p className="text-sm font-semibold text-ink-900">
               30 秒挑出適合你的社團
             </p>
-            <p className="text-xs text-slate-600">
+            <p className="text-sm text-ink-600">
               選學校與偏好，免註冊看對應作品與體驗課。
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
             <Link
               href="/onboarding"
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700"
             >
               <span>開始挑選</span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -323,7 +323,7 @@ export function DiscoverClient({
             <button
               type="button"
               onClick={() => setShowOnboardingPrompt(false)}
-              className="min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-orange-50"
+              className="min-h-[44px] rounded-xl border border-ink-300 bg-white px-3.5 text-sm font-semibold text-ink-700 hover:bg-accent-50"
             >
               先逛逛
             </button>
@@ -332,12 +332,12 @@ export function DiscoverClient({
       )}
 
       {/* Compact discovery bar + sibling tabs */}
-      <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-3.5 shadow-xs sm:p-4">
+      <section className="rounded-xl border border-ink-300 bg-white p-3.5 shadow-xs sm:p-4">
         <div className="flex flex-col gap-2.5">
           {/* Sibling Dual Tabs + School Picker */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div
-              className="inline-flex rounded-2xl bg-[var(--muted)] p-1"
+              className="inline-flex rounded-xl bg-ink-100 p-1"
               role="tablist"
               aria-label="別的聚分頁切換"
             >
@@ -346,10 +346,10 @@ export function DiscoverClient({
                 role="tab"
                 aria-selected={activeTab === 'stream'}
                 onClick={() => handleTabSwitch('stream')}
-                className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-colors sm:px-4 sm:text-sm ${
+                className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3.5 text-sm font-bold transition-colors sm:px-4 sm:text-sm ${
                   activeTab === 'stream'
-                    ? 'bg-white text-[var(--primary)] shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-accent-600 shadow-xs'
+                    : 'text-ink-600 hover:text-ink-900'
                 }`}
               >
                 <Flame className="h-4 w-4" aria-hidden="true" />
@@ -360,10 +360,10 @@ export function DiscoverClient({
                 role="tab"
                 aria-selected={activeTab === 'events'}
                 onClick={() => handleTabSwitch('events')}
-                className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3.5 text-xs font-bold transition-colors sm:px-4 sm:text-sm ${
+                className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-3.5 text-sm font-bold transition-colors sm:px-4 sm:text-sm ${
                   activeTab === 'events'
-                    ? 'bg-white text-blue-700 shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-accent-700 shadow-xs'
+                    : 'text-ink-600 hover:text-ink-900'
                 }`}
               >
                 <Calendar className="h-4 w-4" aria-hidden="true" />
@@ -376,7 +376,7 @@ export function DiscoverClient({
                 aria-label="選擇學校"
                 value={selectedUniId}
                 onChange={(e) => handleUniChange(e.target.value)}
-                className="h-11 rounded-xl border border-slate-200 bg-[var(--muted)] px-3 py-0 text-xs font-semibold leading-none text-slate-800"
+                className="h-11 rounded-xl border border-line-input bg-ink-100 px-3 py-0 text-sm font-semibold leading-none text-ink-800"
               >
                 <option value="">全部大專校院</option>
                 {universities.map((u) => (
@@ -387,7 +387,7 @@ export function DiscoverClient({
               </select>
               <Link
                 href="/onboarding"
-                className="hidden min-h-[44px] items-center gap-1 rounded-xl border border-orange-200 bg-orange-50 px-3.5 text-xs font-bold text-orange-900 hover:bg-orange-100 sm:inline-flex"
+                className="hidden min-h-[44px] items-center gap-1 rounded-xl border border-accent-200 bg-accent-50 px-3.5 text-sm font-semibold text-accent-900 hover:bg-accent-100 sm:inline-flex"
               >
                 <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>興趣測驗</span>
@@ -401,22 +401,22 @@ export function DiscoverClient({
               e.preventDefault();
               void submitQuery(undefined, activeTab);
             }}
-            className="flex items-center gap-2 rounded-2xl border border-[var(--border-strong)] bg-[var(--muted)] px-3 py-1"
+            className="flex items-center gap-2 rounded-xl border border-ink-300 bg-ink-100 px-3 py-1"
           >
-            <Search className="h-4 w-4 shrink-0 text-slate-500" aria-hidden="true" />
+            <Search className="h-4 w-4 shrink-0 text-ink-500" aria-hidden="true" />
             <input
               type="text"
               aria-label="白話搜尋社團或活動"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="搜尋主題、時間或新手問題..."
-              className="min-h-[44px] w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+              className="min-h-[44px] w-full bg-transparent text-sm text-ink-900 outline-none placeholder:text-ink-500"
             />
             {activeNlQuery && (
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="inline-flex min-h-[44px] shrink-0 items-center gap-1 rounded-xl bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                className="inline-flex min-h-[44px] shrink-0 items-center gap-1 rounded-xl bg-white px-3 text-sm font-semibold text-ink-700 hover:bg-ink-50"
               >
                 <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                 重置
@@ -425,7 +425,7 @@ export function DiscoverClient({
             <button
               type="submit"
               disabled={loading}
-              className="min-h-[44px] shrink-0 rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
+              className="min-h-[44px] shrink-0 rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
             >
               {loading ? '搜尋中' : '探索'}
             </button>
@@ -438,10 +438,10 @@ export function DiscoverClient({
                 key={d.id}
                 type="button"
                 onClick={() => handleDomainSelect(d.id)}
-                className={`min-h-[44px] shrink-0 rounded-full px-3.5 text-xs font-semibold transition-colors ${
+                className={`min-h-[44px] shrink-0 rounded-full px-3.5 text-sm font-semibold transition-colors ${
                   selectedDomainId === d.id
-                    ? 'bg-[var(--primary)] text-white'
-                    : 'bg-[var(--muted)] text-slate-700 hover:bg-orange-100'
+                    ? 'bg-accent-600 text-white'
+                    : 'bg-ink-100 text-ink-700 hover:bg-accent-100'
                 }`}
               >
                 #{d.name_zh}
@@ -451,7 +451,7 @@ export function DiscoverClient({
 
           {/* Action Event filters or Progressive Prompt Helper */}
           {activeTab === 'events' ? (
-            <div className="space-y-2 border-t border-[var(--border)] pt-2">
+            <div className="space-y-2 border-t border-line pt-2">
               <div className="no-scrollbar flex items-center gap-1.5 overflow-x-auto sm:flex-wrap">
                 {[
                   { label: '本週活動', active: dateRange === 'this_week', onClick: () => { const n = dateRange === 'this_week' ? 'all' : 'this_week'; setDateRange(n); void loadEvents({ uniId: selectedUniId, domainId: selectedDomainId, dateRange: n, beginnerOnly, nonMemberOnly, freeOnly, hoursOnly, votingOnly }); } },
@@ -465,10 +465,10 @@ export function DiscoverClient({
                     key={chip.label}
                     type="button"
                     onClick={chip.onClick}
-                    className={`min-h-[44px] shrink-0 rounded-full border px-3.5 text-xs font-semibold transition-colors ${
+                    className={`min-h-[44px] shrink-0 rounded-full border px-3.5 text-sm font-semibold transition-colors ${
                       chip.active
-                        ? 'border-blue-600 bg-blue-600 text-white'
-                        : 'border-slate-200 bg-white text-slate-700 hover:bg-blue-50'
+                        ? 'border-accent-600 bg-accent-600 text-white'
+                        : 'border-ink-200 bg-white text-ink-700 hover:bg-accent-50'
                     }`}
                   >
                     {chip.label}
@@ -478,7 +478,7 @@ export function DiscoverClient({
                   <button
                     type="button"
                     onClick={resetAllFilters}
-                    className="inline-flex min-h-[44px] shrink-0 items-center gap-1 rounded-full border border-slate-300 bg-slate-50 px-3.5 text-xs font-bold text-slate-700 hover:bg-slate-100"
+                    className="inline-flex min-h-[44px] shrink-0 items-center gap-1 rounded-full border border-ink-300 bg-ink-50 px-3.5 text-sm font-semibold text-ink-700 hover:bg-ink-100"
                   >
                     <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                     清除條件
@@ -493,16 +493,16 @@ export function DiscoverClient({
                   type="button"
                   onClick={() => setShowExamples((v) => !v)}
                   aria-expanded={showExamples}
-                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50/70 px-3.5 text-xs font-semibold text-orange-900 hover:bg-orange-100"
+                  className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-accent-200 bg-accent-50/70 px-3.5 text-sm font-semibold text-accent-900 hover:bg-accent-100"
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-[var(--brand)]" aria-hidden="true" />
+                  <Sparkles className="h-3.5 w-3.5 text-accent-600" aria-hidden="true" />
                   <span>{showExamples ? '收合範例問法' : '不知道怎麼搜？看範例問法'}</span>
                 </button>
                 {(selectedDomainId || activeNlQuery) && (
                   <button
                     type="button"
                     onClick={resetAllFilters}
-                    className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-slate-200 bg-white px-3.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-ink-200 bg-white px-3.5 text-sm font-semibold text-ink-700 hover:bg-ink-50"
                   >
                     <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
                     清除篩選
@@ -516,9 +516,9 @@ export function DiscoverClient({
                       key={ex}
                       type="button"
                       onClick={() => void submitQuery(ex, 'stream')}
-                      className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50/70 px-3.5 py-1.5 text-left text-xs font-medium text-orange-900 hover:bg-orange-100"
+                      className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-accent-200 bg-accent-50/70 px-3.5 py-1.5 text-left text-sm font-medium text-accent-900 hover:bg-accent-100"
                     >
-                      <Sparkles className="h-3.5 w-3.5 shrink-0 text-[var(--brand)]" aria-hidden="true" />
+                      <Sparkles className="h-3.5 w-3.5 shrink-0 text-accent-600" aria-hidden="true" />
                       <span>{ex}</span>
                     </button>
                   ))}
@@ -530,20 +530,20 @@ export function DiscoverClient({
       </section>
 
       {!dbConfigured && (
-        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="rounded-xl border border-warning-300 bg-warning-50 p-4 text-sm text-warning-900">
           資料庫尚未設定完成，目前顯示空狀態。
         </div>
       )}
 
       {degradedWarning && (
-        <div className="flex items-center gap-2 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-xs font-semibold text-amber-950">
-          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-700" aria-hidden="true" />
+        <div className="flex items-center gap-2 rounded-xl border border-warning-300 bg-warning-50 p-4 text-sm font-semibold text-warning-950">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-warning-700" aria-hidden="true" />
           <span>{degradedWarning}</span>
         </div>
       )}
 
       {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-xs font-semibold text-red-800">
+        <div className="rounded-xl border border-danger-200 bg-danger-50 p-4 text-sm font-semibold text-danger-800">
           {error}
         </div>
       )}
@@ -558,27 +558,27 @@ export function DiscoverClient({
           {[0, 1, 2, 3, 4, 5].map((idx) => (
             <div
               key={idx}
-              className="overflow-hidden rounded-2xl border border-[var(--border)] bg-white p-4 shadow-xs"
+              className="overflow-hidden rounded-xl border border-line bg-white p-4 shadow-xs"
             >
               <div
-                className="w-full animate-pulse rounded-xl bg-[var(--muted)]"
+                className="w-full animate-pulse rounded-xl bg-ink-100"
                 style={{ aspectRatio: idx % 2 === 0 ? '4 / 5' : '16 / 10' }}
               />
-              <div className="mt-3 h-4 w-4/5 animate-pulse rounded bg-slate-100" />
-              <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-slate-100" />
+              <div className="mt-3 h-4 w-4/5 animate-pulse rounded bg-ink-100" />
+              <div className="mt-2 h-3 w-1/2 animate-pulse rounded bg-ink-100" />
             </div>
           ))}
         </div>
       ) : activeTab === 'stream' ? (
         streamItems.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-[var(--border-strong)] bg-white p-10 text-center">
-            <Compass className="mx-auto h-8 w-8 text-slate-400" aria-hidden="true" />
-            <p className="mt-2 text-sm font-bold text-slate-900">沒有符合目前條件的現場內容</p>
-            <p className="mt-1 text-xs text-slate-600">清除搜尋或切換其他興趣領域看看。</p>
+          <div className="rounded-xl border border-dashed border-ink-300 bg-white p-10 text-center">
+            <Compass className="mx-auto h-8 w-8 text-ink-500" aria-hidden="true" />
+            <p className="mt-2 text-sm font-semibold text-ink-900">沒有符合目前條件的現場內容</p>
+            <p className="mt-1 text-sm text-ink-600">清除搜尋或切換其他興趣領域看看。</p>
             <button
               type="button"
               onClick={resetAllFilters}
-              className="mt-4 inline-flex min-h-[44px] items-center rounded-xl bg-[var(--primary)] px-5 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
+              className="mt-4 inline-flex min-h-[44px] items-center rounded-xl bg-accent-600 px-5 text-sm font-semibold text-white hover:bg-accent-700"
             >
               回到全部現場流
             </button>
@@ -596,14 +596,14 @@ export function DiscoverClient({
           </div>
         )
       ) : eventItems.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-[var(--border-strong)] bg-white p-10 text-center">
-          <Calendar className="mx-auto h-8 w-8 text-slate-400" aria-hidden="true" />
-          <p className="mt-2 text-sm font-bold text-slate-900">目前條件下沒有近期體驗活動</p>
-          <p className="mt-1 text-xs text-slate-600">放寬篩選條件就能看到更多活動。</p>
+        <div className="rounded-xl border border-dashed border-ink-300 bg-white p-10 text-center">
+          <Calendar className="mx-auto h-8 w-8 text-ink-500" aria-hidden="true" />
+          <p className="mt-2 text-sm font-semibold text-ink-900">目前條件下沒有近期體驗活動</p>
+          <p className="mt-1 text-sm text-ink-600">放寬篩選條件就能看到更多活動。</p>
           <button
             type="button"
             onClick={resetAllFilters}
-            className="mt-4 inline-flex min-h-[44px] items-center rounded-xl bg-blue-600 px-5 text-xs font-bold text-white hover:bg-blue-700"
+            className="mt-4 inline-flex min-h-[44px] items-center rounded-xl bg-accent-600 px-5 text-sm font-semibold text-white hover:bg-accent-700"
           >
             清除活動篩選條件
           </button>
@@ -617,9 +617,9 @@ export function DiscoverClient({
       )}
 
       {/* Controlled Batch Pagination Card */}
-      <div className="flex flex-col items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 text-center sm:flex-row sm:text-left">
-        <div className="text-xs text-slate-600">
-          <p className="font-bold text-slate-800">
+      <div className="flex flex-col items-center justify-between gap-3 rounded-xl border border-line bg-white p-5 text-center sm:flex-row sm:text-left">
+        <div className="text-sm text-ink-600">
+          <p className="font-bold text-ink-800">
             已看 {activeTab === 'stream' ? streamMeta.count : eventMeta.count} 則，每個社團最多顯示 2 則、不依讚數排序
           </p>
           <p className="mt-0.5">換下一批，或切換分頁看體驗活動與社團日常。</p>
@@ -650,7 +650,7 @@ export function DiscoverClient({
                   });
                 }
               }}
-              className="min-h-[44px] rounded-xl bg-[var(--primary)] px-4 text-xs font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
+              className="min-h-[44px] rounded-xl bg-accent-600 px-4 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
             >
               換下一批（12 則）
             </button>
@@ -658,7 +658,7 @@ export function DiscoverClient({
           <button
             type="button"
             onClick={() => handleTabSwitch(activeTab === 'stream' ? 'events' : 'stream')}
-            className="min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-[var(--muted)] px-4 text-xs font-bold text-slate-800 hover:bg-orange-100"
+            className="min-h-[44px] rounded-xl border border-ink-300 bg-ink-100 px-4 text-sm font-semibold text-ink-800 hover:bg-accent-100"
           >
             {activeTab === 'stream' ? '逛逛近期可參加活動 →' : '看社團日常現場流 →'}
           </button>

@@ -350,31 +350,31 @@ export function MeClient({
   return (
     <div className="space-y-6">
       {/* Account Profile + Campus Verification */}
-      <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs sm:p-7">
+      <section className="rounded-xl border border-ink-300 bg-white p-5 shadow-xs sm:p-7">
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-extrabold text-slate-900">{data.user.displayName}</h1>
+              <h1 className="text-2xl font-bold text-ink-900">{data.user.displayName}</h1>
               {data.user.campusVerifiedAt ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-3 py-0.5 text-xs font-bold text-blue-700">
+                <span className="inline-flex items-center gap-1 rounded-full bg-accent-50 px-3 py-0.5 text-sm font-semibold text-accent-700">
                   <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
                   已驗證：{data.user.universityName}
                 </span>
               ) : (
-                <span className="rounded-full bg-amber-100 px-3 py-0.5 text-xs font-bold text-amber-900">
+                <span className="rounded-full bg-warning-100 px-3 py-0.5 text-sm font-semibold text-warning-900">
                   一般會員（尚未驗證校園信箱）
                 </span>
               )}
               {data.user.platformRole === 'platform_admin' && (
                 <Link
                   href="/admin"
-                  className="rounded-full bg-slate-900 px-3 py-0.5 text-xs font-bold text-white"
+                  className="rounded-full bg-ink-900 px-3 py-0.5 text-sm font-semibold text-white"
                 >
                   平台管理員 →
                 </Link>
               )}
             </div>
-            <p className="text-xs text-slate-500">
+            <p className="text-sm text-ink-500">
               登入信箱：{data.user.email}
               {data.user.campusEmail ? ` ｜ 校園信箱：${data.user.campusEmail}` : ''}
             </p>
@@ -383,7 +383,7 @@ export function MeClient({
           <form action={signOutAction}>
             <button
               type="submit"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-ink-300 bg-white px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
             >
               <LogOut className="h-3.5 w-3.5" aria-hidden="true" />
               <span>登出帳號</span>
@@ -392,11 +392,11 @@ export function MeClient({
         </div>
 
         {returnTo && (data.user.campusVerifiedAt || otpJustVerified) && (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-300 bg-emerald-50 p-4 text-xs text-emerald-950">
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-success-300 bg-success-50 p-4 text-sm text-success-950">
             <p className="font-bold">校園身分已完成驗證，可立即回到原本頁面繼續操作。</p>
             <Link
               href={returnTo}
-              className="inline-flex min-h-[44px] items-center rounded-xl bg-emerald-700 px-4 font-bold text-white hover:bg-emerald-800"
+              className="inline-flex min-h-[44px] items-center rounded-xl bg-success-700 px-4 font-bold text-white hover:bg-success-800"
             >
               返回原本頁面 →
             </Link>
@@ -404,15 +404,15 @@ export function MeClient({
         )}
 
         {!data.user.campusVerifiedAt && !otpJustVerified && (
-          <div className="mt-6 rounded-2xl border border-blue-200 bg-blue-50/70 p-4 sm:p-5">
+          <div className="mt-6 rounded-xl border border-accent-200 bg-accent-50/70 p-4 sm:p-5">
             <div className="flex items-start gap-2.5">
-              <MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" aria-hidden="true" />
+              <MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-accent-700" aria-hidden="true" />
               <div className="flex-1 space-y-3">
                 <div>
-                  <h2 className="text-sm font-bold text-slate-900">
+                  <h2 className="text-sm font-semibold text-ink-900">
                     驗證大專校院校園信箱（.edu.tw），解鎖社員認證、發問與幹部權限
                   </h2>
-                  <p className="mt-0.5 text-xs text-slate-600">
+                  <p className="mt-0.5 text-sm text-ink-600">
                     支援全台大專校院教育信箱（例如 @cc.ncu.edu.tw、@ntust.edu.tw）；此資料僅用於身分認證，不會對外公開。
                     {returnTo ? ' 驗證完成後會顯示返回原頁按鈕。' : ''}
                   </p>
@@ -426,12 +426,12 @@ export function MeClient({
                       value={campusEmail}
                       onChange={(e) => setCampusEmail(e.target.value)}
                       placeholder="輸入你的 .edu.tw 校園信箱"
-                      className="min-h-[44px] flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm"
+                      className="min-h-[44px] flex-1 rounded-xl border border-line-input bg-white px-3.5 py-2 text-sm"
                     />
                     <button
                       type="submit"
                       disabled={verifyBusy}
-                      className="min-h-[44px] rounded-xl bg-[#2563EB] px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+                      className="min-h-[44px] rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
                     >
                       {verifyBusy ? '寄送中...' : '寄送 6 位數驗證碼'}
                     </button>
@@ -446,12 +446,12 @@ export function MeClient({
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value)}
                       placeholder={`輸入寄往 ${otpUni || campusEmail} 的 6 位數驗證碼`}
-                      className="min-h-[44px] flex-1 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm"
+                      className="min-h-[44px] flex-1 rounded-xl border border-line-input bg-white px-3.5 py-2 text-sm"
                     />
                     <button
                       type="submit"
                       disabled={verifyBusy}
-                      className="min-h-[44px] rounded-xl bg-[#2563EB] px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+                      className="min-h-[44px] rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
                     >
                       {verifyBusy ? '驗證中...' : '確認驗證'}
                     </button>
@@ -461,7 +461,7 @@ export function MeClient({
                         setOtpSent(false);
                         setOtpCode('');
                       }}
-                      className="min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                      className="min-h-[44px] rounded-xl border border-ink-300 bg-white px-3 py-2 text-sm font-semibold text-ink-700"
                     >
                       更換信箱
                     </button>
@@ -469,10 +469,10 @@ export function MeClient({
                 )}
 
                 {verifyMsg && (
-                  <p className="text-xs font-semibold text-emerald-800">{verifyMsg}</p>
+                  <p className="text-sm font-semibold text-success-800">{verifyMsg}</p>
                 )}
                 {verifyErr && (
-                  <p className="text-xs font-semibold text-red-700">{verifyErr}</p>
+                  <p className="text-sm font-semibold text-danger-700">{verifyErr}</p>
                 )}
               </div>
             </div>
@@ -482,18 +482,18 @@ export function MeClient({
 
       {/* Pending Co-Club Invitations */}
       {coInvites.length > 0 && (
-        <section className="rounded-3xl border border-blue-200 bg-blue-50/70 p-5 shadow-xs">
-          <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-            <Sparkles className="h-4 w-4 text-blue-700" aria-hidden="true" />
+        <section className="rounded-xl border border-accent-200 bg-accent-50/70 p-5 shadow-xs">
+          <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
+            <Sparkles className="h-4 w-4 text-accent-700" aria-hidden="true" />
             待回應的 Co-Club 友社共辦邀請 ({coInvites.length})
           </h2>
           <div className="mt-3 space-y-2.5">
             {coInvites.map((inv) => (
               <div
                 key={inv.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-white p-4 text-xs"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white p-4 text-sm"
               >
-                <span className="font-bold text-slate-900">
+                <span className="font-bold text-ink-900">
                   「{inv.hostClubName}」邀請貴社掛名共辦（{inv.targetType === 'event' ? '體驗活動' : '作品貼文'}）
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -501,7 +501,7 @@ export function MeClient({
                     type="button"
                     disabled={coBusy === inv.id}
                     onClick={() => respondCoClub(inv.id, 'accept', true)}
-                    className="rounded-full bg-[var(--brand)] px-3.5 py-1.5 font-bold text-white"
+                    className="rounded-full bg-accent-600 px-3.5 py-1.5 font-bold text-white"
                   >
                     同意共辦並納入本社評鑑
                   </button>
@@ -509,7 +509,7 @@ export function MeClient({
                     type="button"
                     disabled={coBusy === inv.id}
                     onClick={() => respondCoClub(inv.id, 'reject', false)}
-                    className="rounded-full border border-slate-300 px-3 py-1.5 font-bold text-slate-700"
+                    className="rounded-full border border-ink-300 px-3 py-1.5 font-bold text-ink-700"
                   >
                     婉拒
                   </button>
@@ -522,14 +522,14 @@ export function MeClient({
 
       {/* Pending Handover Invitations */}
       {(handovers.length > 0 || handoverMsg) && (
-        <section className="rounded-3xl border border-orange-300 bg-orange-50 p-5 shadow-xs">
+        <section className="rounded-xl border border-accent-300 bg-accent-50 p-5 shadow-xs">
           <div className="mb-3 flex items-center gap-2">
-            <UserCheck className="h-5 w-5 text-[var(--primary)]" aria-hidden="true" />
-            <h2 className="text-base font-extrabold text-slate-900">待確認的社長交接邀請</h2>
+            <UserCheck className="h-5 w-5 text-accent-600" aria-hidden="true" />
+            <h2 className="text-base font-bold text-ink-900">待確認的社長交接邀請</h2>
           </div>
 
           {handoverMsg && (
-            <p className="mb-3 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-emerald-800">
+            <p className="mb-3 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-success-800">
               {handoverMsg}
             </p>
           )}
@@ -538,14 +538,14 @@ export function MeClient({
             {handovers.map((h) => (
               <div
                 key={h.id}
-                className="flex flex-col justify-between gap-3 rounded-2xl border border-orange-200 bg-white p-4 sm:flex-row sm:items-center"
+                className="flex flex-col justify-between gap-3 rounded-xl border border-accent-200 bg-white p-4 sm:flex-row sm:items-center"
               >
                 <div className="space-y-1">
-                  <p className="text-sm font-bold text-slate-900">
+                  <p className="text-sm font-semibold text-ink-900">
                     「{h.clubName}」現任社長 {h.fromUserName} 邀請您接任新任社長
                   </p>
-                  {h.note && <p className="text-xs text-slate-600">備註：{h.note}</p>}
-                  <p className="text-[11px] text-slate-500">
+                  {h.note && <p className="text-sm text-ink-600">備註：{h.note}</p>}
+                  <p className="text-xs text-ink-500">
                     邀請有效期限至：{formatTaipeiDateTime(h.expiresAt)}
                   </p>
                 </div>
@@ -555,7 +555,7 @@ export function MeClient({
                     type="button"
                     disabled={handoverBusy === h.id}
                     onClick={() => void respondHandover(h.id, 'accept')}
-                    className="rounded-xl bg-[var(--primary)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--primary-hover)] disabled:opacity-50"
+                    className="rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
                   >
                     接受交接
                   </button>
@@ -563,7 +563,7 @@ export function MeClient({
                     type="button"
                     disabled={handoverBusy === h.id}
                     onClick={() => void respondHandover(h.id, 'reject')}
-                    className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                    className="rounded-xl border border-ink-300 bg-white px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50 disabled:opacity-50"
                   >
                     婉拒
                   </button>
@@ -575,14 +575,14 @@ export function MeClient({
       )}
 
       {/* 1D Portfolio, Webcal Subscription & Push Controls */}
-      <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs sm:p-6">
+      <section className="rounded-xl border border-ink-300 bg-white p-5 shadow-xs sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="flex items-center gap-2 text-lg font-extrabold text-slate-900">
-              <Award className="h-5 w-5 text-[var(--brand)]" aria-hidden="true" />
+            <h2 className="flex items-center gap-2 text-lg font-bold text-ink-900">
+              <Award className="h-5 w-5 text-accent-600" aria-hidden="true" />
               個人社團成長軌跡 (1D Portfolio) 與訂閱授權
             </h2>
-            <p className="text-xs text-slate-600">
+            <p className="text-sm text-ink-600">
               累積認證時數 {data.portfolio?.learning_hours_total ?? 0} 小時・參與場次{' '}
               {data.portfolio?.attended_events.length ?? 0} 場（預設完全私密，無追蹤人數虛榮排行）
             </p>
@@ -590,30 +590,30 @@ export function MeClient({
           {handleInput && (
             <Link
               href={`/u/${handleInput}`}
-              className="rounded-full border border-[var(--border-strong)] px-3.5 py-1.5 text-xs font-bold text-blue-700 hover:bg-blue-50"
+              className="rounded-full border border-ink-300 px-3.5 py-1.5 text-sm font-semibold text-accent-700 hover:bg-accent-50"
             >
               檢視我的公開足跡頁 /u/{handleInput}
             </Link>
           )}
         </div>
 
-        <form onSubmit={handleSavePortfolioSettings} className="mt-4 space-y-3 text-xs">
+        <form onSubmit={handleSavePortfolioSettings} className="mt-4 space-y-3 text-sm">
           <div className="grid gap-3 sm:grid-cols-3">
             <div>
-              <label className="mb-1 block font-bold text-slate-700">個人頁代號 (handle)</label>
+              <label className="mb-1 block font-bold text-ink-700">個人頁代號 (handle)</label>
               <input
                 value={handleInput}
                 onChange={(e) => setHandleInput(e.target.value)}
                 placeholder="如 alex-ncu (4-30字小寫)"
-                className="w-full rounded-xl border border-[var(--border)] px-3 py-2"
+                className="w-full rounded-xl border border-line-input px-3 py-2"
               />
             </div>
             <div>
-              <label className="mb-1 block font-bold text-slate-700">誰能看見我的成長軌跡</label>
+              <label className="mb-1 block font-bold text-ink-700">誰能看見我的成長軌跡</label>
               <select
                 value={visibility}
                 onChange={(e) => setVisibility(e.target.value as PortfolioVisibility)}
-                className="w-full rounded-xl border border-[var(--border)] px-3 py-2"
+                className="w-full rounded-xl border border-line-input px-3 py-2"
               >
                 <option value="campus_only">僅限同校已驗證同學 (預設)</option>
                 <option value="public">公開網際網路分享網址</option>
@@ -621,20 +621,20 @@ export function MeClient({
               </select>
             </div>
             <div>
-              <label className="mb-1 block font-bold text-slate-700">
+              <label className="mb-1 block font-bold text-ink-700">
                 前輩經驗專長標籤（逗號分隔，最多 3 個）
               </label>
               <input
                 value={alumniTagsStr}
                 onChange={(e) => setAlumniTagsStr(e.target.value)}
                 placeholder="如 評鑑核銷, 攝影暗房, 場控"
-                className="w-full rounded-xl border border-[var(--border)] px-3 py-2"
+                className="w-full rounded-xl border border-line-input px-3 py-2"
               />
             </div>
           </div>
 
           <div className="flex flex-wrap gap-4 pt-1">
-            <label className="flex cursor-pointer items-center gap-2 font-semibold text-slate-700">
+            <label className="flex cursor-pointer items-center gap-2 font-semibold text-ink-700">
               <input
                 type="checkbox"
                 checked={alumniPing}
@@ -642,7 +642,7 @@ export function MeClient({
               />
               開放「一起聚 → 前輩請益牆 (Alumni Ping)」接受學弟妹禮貌發問
             </label>
-            <label className="flex cursor-pointer items-center gap-2 text-slate-700">
+            <label className="flex cursor-pointer items-center gap-2 text-ink-700">
               <input
                 type="checkbox"
                 checked={talentOptIn}
@@ -652,29 +652,29 @@ export function MeClient({
             </label>
           </div>
 
-          {portMsg && <p className="font-bold text-emerald-700">{portMsg}</p>}
-          {portErr && <p className="font-bold text-red-700">{portErr}</p>}
+          {portMsg && <p className="font-bold text-success-700">{portMsg}</p>}
+          {portErr && <p className="font-bold text-danger-700">{portErr}</p>}
 
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
               type="submit"
               disabled={portBusy}
-              className="rounded-full bg-[var(--brand)] px-4 py-2 font-bold text-white"
+              className="rounded-full bg-accent-600 px-4 py-2 font-bold text-white"
             >
               儲存軌跡與授權設定
             </button>
             <button
               type="button"
               onClick={() => handleLoadWebcal(false)}
-              className="inline-flex items-center gap-1 rounded-full border border-[var(--border-strong)] px-3.5 py-2 font-bold text-slate-800"
+              className="inline-flex items-center gap-1 rounded-full border border-ink-300 px-3.5 py-2 font-bold text-ink-800"
             >
-              <CalendarSync className="h-3.5 w-3.5 text-[var(--brand)]" />
+              <CalendarSync className="h-3.5 w-3.5 text-accent-600" />
               複製個人 webcal:// 行事曆
             </button>
             <button
               type="button"
               onClick={() => handleLoadWebcal(true)}
-              className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3 py-2 text-slate-600"
+              className="inline-flex items-center gap-1 rounded-full border border-ink-200 px-3 py-2 text-ink-600"
             >
               <RefreshCw className="h-3 w-3" />
               重設行事曆密鑰
@@ -682,7 +682,7 @@ export function MeClient({
             <button
               type="button"
               onClick={handleEnableWebPush}
-              className="inline-flex items-center gap-1 rounded-full border border-slate-200 px-3.5 py-2 font-bold text-slate-700"
+              className="inline-flex items-center gap-1 rounded-full border border-ink-200 px-3.5 py-2 font-bold text-ink-700"
             >
               <Bell className="h-3.5 w-3.5" />
               啟用瀏覽器 Push 推播
@@ -690,42 +690,42 @@ export function MeClient({
           </div>
 
           {calUrl && (
-            <div className="mt-2 flex items-center gap-2 rounded-xl bg-slate-50 p-2.5 font-mono text-[11px] text-slate-700">
+            <div className="mt-2 flex items-center gap-2 rounded-xl bg-ink-50 p-2.5 font-mono text-xs text-ink-700">
               <span className="truncate">{calUrl}</span>
               <button
                 type="button"
                 onClick={() => navigator.clipboard.writeText(calUrl)}
-                className="shrink-0 font-bold text-[var(--brand)]"
+                className="shrink-0 font-bold text-accent-600"
               >
                 <Copy className="h-3.5 w-3.5" />
               </button>
             </div>
           )}
-          {calMsg && <p className="font-semibold text-emerald-700">{calMsg}</p>}
-          {pushMsg && <p className="font-semibold text-blue-700">{pushMsg}</p>}
+          {calMsg && <p className="font-semibold text-success-700">{calMsg}</p>}
+          {pushMsg && <p className="font-semibold text-accent-700">{pushMsg}</p>}
         </form>
       </section>
 
       {/* Managed Clubs */}
-      <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs sm:p-6">
+      <section className="rounded-xl border border-line bg-white p-5 shadow-xs sm:p-6">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-extrabold text-slate-900">我加入的社團</h2>
+          <h2 className="text-lg font-bold text-ink-900">我加入的社團</h2>
           <Link
             href="/clubs/apply"
-            className="text-xs font-bold text-[var(--primary)] hover:underline"
+            className="text-sm font-semibold text-accent-600 hover:underline"
           >
             認領或申請新社團 →
           </Link>
         </div>
 
         {data.memberships.length === 0 ? (
-          <p className="text-sm text-slate-600">
+          <p className="text-sm text-ink-600">
             你目前尚未加入任何認證社團。可至{' '}
-            <Link href="/my-clubs" className="font-bold text-blue-700 underline">
+            <Link href="/my-clubs" className="font-bold text-accent-700 underline">
               我的聚
             </Link>{' '}
             輸入邀請碼，或前往{' '}
-            <Link href="/clubs/apply" className="font-bold text-blue-700 underline">
+            <Link href="/clubs/apply" className="font-bold text-accent-700 underline">
               認領名錄社團
             </Link>
             。
@@ -735,12 +735,12 @@ export function MeClient({
             {data.memberships.map((m) => (
               <div
                 key={`${m.clubId}-${m.role}`}
-                className="flex flex-col justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--muted)]/50 p-4"
+                className="flex flex-col justify-between gap-3 rounded-xl border border-line bg-ink-100/50 p-4"
               >
                 <div>
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="font-bold text-slate-600">{m.universityShortName}</span>
-                    <span className="rounded-full bg-white px-2.5 py-0.5 font-bold text-slate-800">
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <span className="font-bold text-ink-600">{m.universityShortName}</span>
+                    <span className="rounded-full bg-white px-2.5 py-0.5 font-bold text-ink-800">
                       {m.role === 'owner'
                         ? '現任社長'
                         : m.role === 'editor'
@@ -752,7 +752,7 @@ export function MeClient({
                   </div>
                   <Link
                     href={`/clubs/${m.slug}`}
-                    className="mt-1 block text-base font-extrabold text-slate-900 hover:text-[var(--primary)]"
+                    className="mt-1 block text-base font-bold text-ink-900 hover:text-accent-600"
                   >
                     {m.name}
                   </Link>
@@ -762,7 +762,7 @@ export function MeClient({
                   {m.role !== 'member' && (
                     <Link
                       href={`/clubs/${m.slug}/manage`}
-                      className="inline-flex min-h-[44px] items-center gap-1 rounded-xl bg-[var(--primary)] px-3.5 py-1.5 text-xs font-bold text-white hover:bg-[var(--primary-hover)]"
+                      className="inline-flex min-h-[44px] items-center gap-1 rounded-xl bg-accent-600 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-accent-700"
                     >
                       <Settings className="h-3.5 w-3.5" aria-hidden="true" />
                       <span>{m.role === 'alumni' ? '檢視年度成果' : '進入管理後台'}</span>
@@ -770,7 +770,7 @@ export function MeClient({
                   )}
                   <Link
                     href={`/clubs/${m.slug}`}
-                    className="inline-flex min-h-[44px] items-center gap-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex min-h-[44px] items-center gap-1 rounded-xl border border-ink-300 bg-white px-3 py-1.5 text-sm font-semibold text-ink-700 hover:bg-ink-50"
                   >
                     <span>公開主頁</span>
                     <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -784,17 +784,17 @@ export function MeClient({
 
       {/* Bookmarks & Follows (with Follow Separation Mode selector) */}
       <div className="grid gap-6 md:grid-cols-2">
-        <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs">
+        <section className="rounded-xl border border-line bg-white p-5 shadow-xs">
           <div className="mb-3 flex items-center gap-2">
-            <Bookmark className="h-4 w-4 text-[var(--primary)]" aria-hidden="true" />
-            <h2 className="text-base font-extrabold text-slate-900">我的收藏</h2>
+            <Bookmark className="h-4 w-4 text-accent-600" aria-hidden="true" />
+            <h2 className="text-base font-bold text-ink-900">我的收藏</h2>
           </div>
           {data.bookmarks.length === 0 ? (
-            <div className="space-y-3 rounded-2xl bg-[var(--muted)]/40 p-4 text-xs text-slate-600">
+            <div className="space-y-3 rounded-xl bg-ink-100/40 p-4 text-sm text-ink-600">
               <p>還沒收藏任何作品或活動。</p>
               <Link
                 href="/"
-                className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border-strong)] bg-white px-4 font-bold text-slate-800 hover:bg-slate-50"
+                className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 font-bold text-ink-800 hover:bg-ink-50"
               >
                 去別的聚逛逛 →
               </Link>
@@ -804,7 +804,7 @@ export function MeClient({
               {data.bookmarks.map((b) => (
                 <li
                   key={b.postId}
-                  className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-3"
+                  className="rounded-xl border border-line bg-ink-100/40 p-3"
                 >
                   <Link
                     href={
@@ -812,11 +812,11 @@ export function MeClient({
                         ? `/e/${b.clubSlug.slice(5)}`
                         : `/posts/${b.postId}`
                     }
-                    className="block text-sm font-bold text-slate-900 hover:text-[var(--primary)]"
+                    className="block text-sm font-semibold text-ink-900 hover:text-accent-600"
                   >
                     {b.title}
                   </Link>
-                  <span className="mt-1 block text-xs text-slate-600">
+                  <span className="mt-1 block text-sm text-ink-600">
                     {b.universityShortName} · {b.clubName}
                   </span>
                 </li>
@@ -825,17 +825,17 @@ export function MeClient({
           )}
         </section>
 
-        <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs">
+        <section className="rounded-xl border border-line bg-white p-5 shadow-xs">
           <div className="mb-3 flex items-center gap-2">
-            <Heart className="h-4 w-4 text-[var(--primary)]" aria-hidden="true" />
-            <h2 className="text-base font-extrabold text-slate-900">我追蹤的社團（通知偏好）</h2>
+            <Heart className="h-4 w-4 text-accent-600" aria-hidden="true" />
+            <h2 className="text-base font-bold text-ink-900">我追蹤的社團（通知偏好）</h2>
           </div>
           {follows.length === 0 ? (
-            <div className="space-y-3 rounded-2xl bg-[var(--muted)]/40 p-4 text-xs text-slate-600">
+            <div className="space-y-3 rounded-xl bg-ink-100/40 p-4 text-sm text-ink-600">
               <p>尚未追蹤任何社團，追蹤後可選擇「只收新活動」或「全部動態」。</p>
               <Link
                 href="/"
-                className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border-strong)] bg-white px-4 font-bold text-slate-800 hover:bg-slate-50"
+                className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 font-bold text-ink-800 hover:bg-ink-50"
               >
                 去別的聚找社團 →
               </Link>
@@ -845,16 +845,16 @@ export function MeClient({
               {follows.map((f) => (
                 <li
                   key={f.clubId}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--border)] bg-[var(--muted)]/40 p-3"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-ink-100/40 p-3"
                 >
                   <div>
                     <Link
                       href={`/clubs/${f.slug}`}
-                      className="text-sm font-bold text-slate-900 hover:text-[var(--primary)]"
+                      className="text-sm font-semibold text-ink-900 hover:text-accent-600"
                     >
                       {f.name}
                     </Link>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-sm text-ink-500">
                       {f.universityShortName} · {CLUB_CATEGORIES[f.category].label}
                     </p>
                   </div>
@@ -864,7 +864,7 @@ export function MeClient({
                     onChange={(e) =>
                       handleChangeFollowMode(f.clubId, e.target.value as FollowMode)
                     }
-                    className="min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-white px-3 py-1 text-xs font-semibold text-slate-700"
+                    className="min-h-[44px] rounded-xl border border-line-input bg-white px-3 py-1 text-sm font-semibold text-ink-700"
                   >
                     <option value="all">全部動態</option>
                     <option value="events_only">只收新活動</option>
@@ -877,32 +877,32 @@ export function MeClient({
       </div>
 
       {/* Notifications */}
-      <section className="rounded-3xl border border-[var(--border)] bg-white p-5 shadow-xs sm:p-6">
+      <section className="rounded-xl border border-line bg-white p-5 shadow-xs sm:p-6">
         <div className="mb-4 flex items-center gap-2">
-          <Bell className="h-4 w-4 text-[var(--primary)]" aria-hidden="true" />
-          <h2 className="text-base font-extrabold text-slate-900">站內通知</h2>
+          <Bell className="h-4 w-4 text-accent-600" aria-hidden="true" />
+          <h2 className="text-base font-bold text-ink-900">站內通知</h2>
         </div>
 
         {notifs.length === 0 ? (
-          <p className="text-xs text-slate-500">目前沒有任何通知。</p>
+          <p className="text-sm text-ink-500">目前沒有任何通知。</p>
         ) : (
           <div className="space-y-2.5">
             {notifs.map((n) => (
               <div
                 key={n.id}
-                className={`flex flex-col justify-between gap-2 rounded-2xl border p-3.5 sm:flex-row sm:items-center ${
+                className={`flex flex-col justify-between gap-2 rounded-xl border p-3.5 sm:flex-row sm:items-center ${
                   n.readAt
-                    ? 'border-slate-200 bg-white'
-                    : 'border-orange-200 bg-orange-50/70'
+                    ? 'border-ink-200 bg-white'
+                    : 'border-accent-200 bg-accent-50/70'
                 }`}
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    {!n.readAt && <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />}
-                    <p className="text-sm font-bold text-slate-900">{n.title}</p>
+                    {!n.readAt && <span className="h-2 w-2 rounded-full bg-accent-600" />}
+                    <p className="text-sm font-semibold text-ink-900">{n.title}</p>
                   </div>
-                  <p className="text-xs text-slate-700">{n.body}</p>
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-sm text-ink-700">{n.body}</p>
+                  <p className="text-xs text-ink-500">
                     {formatTaipeiDateTime(n.createdAt)}
                   </p>
                 </div>
@@ -911,7 +911,7 @@ export function MeClient({
                   {n.linkUrl && (
                     <Link
                       href={n.linkUrl}
-                      className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-50"
+                      className="rounded-xl border border-ink-300 bg-white px-3 py-1.5 text-sm font-semibold text-ink-800 hover:bg-ink-50"
                     >
                       前往查看
                     </Link>
@@ -920,7 +920,7 @@ export function MeClient({
                     <button
                       type="button"
                       onClick={() => void markRead(n.id)}
-                      className="inline-flex items-center gap-1 rounded-xl bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200"
+                      className="inline-flex items-center gap-1 rounded-xl bg-ink-100 px-3 py-1.5 text-sm font-semibold text-ink-700 hover:bg-ink-200"
                     >
                       <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                       <span>已讀</span>

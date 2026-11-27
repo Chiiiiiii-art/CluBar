@@ -153,16 +153,16 @@ export function MyClubsClient({
   return (
     <div className="space-y-6">
       {/* Membership Cards */}
-      <div className="rounded-3xl border border-[var(--border-strong)] bg-white p-6 shadow-xs">
-        <h1 className="text-xl font-extrabold text-slate-900">我的聚｜社團切換與日常紀錄</h1>
-        <p className="mt-1 text-sm text-slate-600">
+      <div className="rounded-xl border border-ink-300 bg-white p-6 shadow-xs">
+        <h1 className="text-xl font-bold text-ink-900">我的聚｜社團切換與日常紀錄</h1>
+        <p className="mt-1 text-sm text-ink-600">
           認證社員可直接發一篇社團日常；幹部可進入管理後台發起活動或整理評鑑資料。
         </p>
 
         {memberships.length === 0 ? (
-          <div className="mt-5 rounded-2xl border border-dashed border-[var(--border-strong)] bg-[var(--muted)] p-6 text-center">
-            <p className="text-sm font-bold text-slate-800">目前尚未加入任何認證社團</p>
-            <p className="mt-1 text-xs text-slate-600">
+          <div className="mt-5 rounded-xl border border-dashed border-ink-300 bg-ink-100 p-6 text-center">
+            <p className="text-sm font-semibold text-ink-800">目前尚未加入任何認證社團</p>
+            <p className="mt-1 text-sm text-ink-600">
               輸入幹部給的限時邀請碼，或至社團公開頁點擊申請加入認證社員。
             </p>
           </div>
@@ -171,19 +171,19 @@ export function MyClubsClient({
             {memberships.map((m) => (
               <div
                 key={`${m.clubId}-${m.role}`}
-                className="flex flex-col justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--muted)] p-4 sm:flex-row sm:items-center"
+                className="flex flex-col justify-between gap-3 rounded-xl border border-line bg-ink-100 p-4 sm:flex-row sm:items-center"
               >
                 <div>
-                  <span className="text-xs font-semibold text-slate-500">
+                  <span className="text-sm font-semibold text-ink-500">
                     {m.universityShortName} · {m.role.toUpperCase()}
                     {m.title ? `（${m.title}）` : ''}
                   </span>
-                  <h2 className="text-base font-extrabold text-slate-900">{m.name}</h2>
+                  <h2 className="text-base font-bold text-ink-900">{m.name}</h2>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Link
                     href={`/clubs/${m.slug}`}
-                    className="inline-flex min-h-[40px] items-center gap-1 rounded-xl border border-slate-300 bg-white px-3.5 text-xs font-bold text-slate-800"
+                    className="inline-flex min-h-[40px] items-center gap-1 rounded-xl border border-ink-300 bg-white px-3.5 text-sm font-semibold text-ink-800"
                   >
                     社團門面
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -191,7 +191,7 @@ export function MyClubsClient({
                   {(m.role === 'owner' || m.role === 'editor' || m.role === 'alumni') && (
                     <Link
                       href={`/clubs/${m.slug}/manage`}
-                      className="inline-flex min-h-[40px] items-center gap-1 rounded-xl bg-[var(--primary)] px-3.5 text-xs font-bold text-white"
+                      className="inline-flex min-h-[40px] items-center gap-1 rounded-xl bg-accent-600 px-3.5 text-sm font-semibold text-white"
                     >
                       <Settings className="h-3.5 w-3.5" />
                       管理後台
@@ -205,17 +205,17 @@ export function MyClubsClient({
       </div>
 
       {/* Invite Code Redeem */}
-      <div className="rounded-3xl border border-[var(--border)] bg-white p-6 shadow-xs">
-        <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-          <KeyRound className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
+      <div className="rounded-xl border border-line bg-white p-6 shadow-xs">
+        <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
+          <KeyRound className="h-4 w-4 text-accent-600" aria-hidden="true" />
           輸入幹部邀請碼，成為認證社員
         </h2>
         {!isCampusVerified ? (
-          <p className="mt-2 text-xs text-slate-600">
+          <p className="mt-2 text-sm text-ink-600">
             邀請碼僅限同校學生驗證使用，請先至{' '}
             <Link
               href="/me?returnTo=/my-clubs"
-              className="inline-flex min-h-[44px] items-center font-bold text-[var(--brand)] underline"
+              className="inline-flex min-h-[44px] items-center font-bold text-accent-600 underline"
             >
               個人中心驗證學校信箱
             </Link>
@@ -228,44 +228,44 @@ export function MyClubsClient({
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value)}
               placeholder="例如：NCUP-A1B2C3"
-              className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-[var(--border-strong)] px-3.5 py-2 text-sm uppercase"
+              className="min-h-[44px] min-w-0 flex-1 rounded-xl border border-line-input px-3.5 py-2 text-sm uppercase"
             />
             <button
               type="submit"
               disabled={joinBusy || inviteCode.trim().length < 4}
-              className="min-h-[44px] rounded-full bg-[var(--brand)] px-5 py-2 text-xs font-bold text-white disabled:opacity-50"
+              className="min-h-[44px] rounded-full bg-accent-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
             >
               {joinBusy ? '驗證中...' : '立即加入社團'}
             </button>
           </form>
         )}
-        {joinMsg && <p className="mt-2 text-xs font-semibold text-emerald-700">{joinMsg}</p>}
-        {joinErr && <p className="mt-2 text-xs font-semibold text-red-700">{joinErr}</p>}
+        {joinMsg && <p className="mt-2 text-sm font-semibold text-success-700">{joinMsg}</p>}
+        {joinErr && <p className="mt-2 text-sm font-semibold text-danger-700">{joinErr}</p>}
       </div>
 
       {/* Quick Post Composer */}
       {selectedClub && (
         <form
           onSubmit={handlePublishPost}
-          className="space-y-4 rounded-3xl border border-[var(--border-strong)] bg-white p-6 shadow-xs"
+          className="space-y-4 rounded-xl border border-ink-300 bg-white p-6 shadow-xs"
         >
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-              <Sparkles className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
+            <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
+              <Sparkles className="h-4 w-4 text-accent-600" aria-hidden="true" />
               發一則社團日常
             </h2>
-            <span className="rounded-full bg-orange-50 px-3 py-1 text-xs font-bold text-orange-900">
+            <span className="rounded-full bg-accent-50 px-3 py-1 text-sm font-semibold text-accent-900">
               免公文格式，記錄真實的社員互動瞬間
             </span>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-700">發表社團</label>
+              <label className="mb-1 block text-sm font-semibold text-ink-700">發表社團</label>
               <select
                 value={selectedClub.slug}
                 onChange={(e) => setSelectedSlug(e.target.value)}
-                className="min-h-[44px] w-full rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-medium"
+                className="min-h-[44px] w-full rounded-xl border border-line-input bg-white px-3 py-2 text-sm font-medium"
               >
                 {activePostingClubs.map((c) => (
                   <option key={c.clubId} value={c.slug}>
@@ -275,12 +275,12 @@ export function MyClubsClient({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-700">內容類型</label>
+              <label className="mb-1 block text-sm font-semibold text-ink-700">內容類型</label>
               <select
                 value={isOfficerSelected ? postKind : 'nrc_moment'}
                 onChange={(e) => setPostKind(e.target.value as 'nrc_moment' | 'wip_work')}
                 disabled={!isOfficerSelected}
-                className="min-h-[44px] w-full rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-sm font-medium disabled:bg-slate-50"
+                className="min-h-[44px] w-full rounded-xl border border-line-input bg-white px-3 py-2 text-sm font-medium disabled:bg-ink-50"
               >
                 <option value="nrc_moment">社員日常紀錄</option>
                 {isOfficerSelected && <option value="wip_work">社團實作作品／成果</option>}
@@ -290,7 +290,7 @@ export function MyClubsClient({
 
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="sm:col-span-2">
-              <label className="mb-1 block text-xs font-bold text-slate-700">一句話亮點 *</label>
+              <label className="mb-1 block text-sm font-semibold text-ink-700">一句話亮點 *</label>
               <input
                 type="text"
                 required
@@ -299,34 +299,34 @@ export function MyClubsClient({
                 value={headline}
                 onChange={(e) => setHeadline(e.target.value)}
                 placeholder="例如：暗房剛沖出第一捲底片，大家在燈下等影的那刻太酷了"
-                className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-bold text-slate-700">氛圍小標（選填）</label>
+              <label className="mb-1 block text-sm font-semibold text-ink-700">氛圍小標（選填）</label>
               <input
                 type="text"
                 maxLength={24}
                 value={moodTag}
                 onChange={(e) => setMoodTag(e.target.value)}
                 placeholder="例如：週四練團夜"
-                className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
               />
             </div>
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-bold text-slate-700">補充背景（選填）</label>
+            <label className="mb-1 block text-sm font-semibold text-ink-700">補充背景（選填）</label>
             <textarea
               rows={2}
               value={contentMd}
               onChange={(e) => setContentMd(e.target.value)}
               placeholder="可以簡單補一句器材或歡迎新生一起來的原因..."
-              className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+              className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
             />
           </div>
 
-          <div className="space-y-3 rounded-2xl bg-[var(--surface-warm)] p-4">
+          <div className="space-y-3 rounded-xl bg-ink-50 p-4">
             <ImageUploader
               clubId={selectedClub.clubId}
               value={mediaItems}
@@ -335,8 +335,8 @@ export function MyClubsClient({
               purpose="post_image"
             />
             <div className="flex flex-wrap items-center gap-3 pt-1">
-              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-[var(--border-strong)] bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
-                <Film className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-ink-300 bg-white px-3.5 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50">
+                <Film className="h-4 w-4 text-accent-600" aria-hidden="true" />
                 {videoBusy ? '處理短影與封面中...' : '或上傳 15 秒內短影 (MP4/WebM ≤25MB)'}
                 <input
                   type="file"
@@ -349,7 +349,7 @@ export function MyClubsClient({
             </div>
           </div>
 
-          <div className="space-y-2 text-xs text-slate-700">
+          <div className="space-y-2 text-sm text-ink-700">
             <label className="flex cursor-pointer items-center gap-2 font-semibold">
               <input
                 type="checkbox"
@@ -368,13 +368,13 @@ export function MyClubsClient({
             </label>
           </div>
 
-          {postMsg && <p className="text-xs font-semibold text-emerald-700">{postMsg}</p>}
-          {postErr && <p className="text-xs font-semibold text-red-700">{postErr}</p>}
+          {postMsg && <p className="text-sm font-semibold text-success-700">{postMsg}</p>}
+          {postErr && <p className="text-sm font-semibold text-danger-700">{postErr}</p>}
 
           <button
             type="submit"
             disabled={postBusy || !headline.trim()}
-            className="rounded-full bg-[var(--brand)] px-6 py-2.5 text-sm font-extrabold text-white hover:bg-[var(--brand-dark)] disabled:opacity-50"
+            className="rounded-full bg-accent-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-accent-700 disabled:opacity-50"
           >
             {postBusy ? '發布中...' : '發布到社團日常與現場流'}
           </button>

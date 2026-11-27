@@ -1,10 +1,23 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
+import { Noto_Sans_TC } from 'next/font/google';
 import { and, count, eq, isNull } from 'drizzle-orm';
 import { db, isDatabaseConfigured } from '@/db';
 import { notifications } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { Navbar, type NavbarUserProp } from '@/components/Navbar';
 import './globals.css';
+
+const notoSansTC = Noto_Sans_TC({
+  // CJK fonts are split into unicode-range slices by Google Fonts; preloading
+  // would fetch every slice, so let the browser request only what it renders.
+  preload: false,
+  display: 'swap',
+  variable: '--font-noto-tc',
+});
+
+export const viewport: Viewport = {
+  themeColor: '#ffffff',
+};
 
 export const metadata: Metadata = {
   title: '社團聚 CluBar｜大專校園社團探索與交流平台',
@@ -42,8 +55,8 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="zh-Hant">
-      <body className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+    <html lang="zh-Hant" className={notoSansTC.variable}>
+      <body className="min-h-screen bg-canvas text-ink-900">
         <Navbar user={navUser} unreadCount={unreadCount} />
         <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-6xl px-4 pt-6 pb-24 sm:px-6 md:pb-12">
           {children}

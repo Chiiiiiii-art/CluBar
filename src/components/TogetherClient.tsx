@@ -269,14 +269,14 @@ export function TogetherClient({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-5 shadow-xs sm:p-6">
+      <section className="rounded-xl border border-ink-300 bg-white p-5 shadow-xs sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-[var(--primary)]" aria-hidden="true" />
-              <h1 className="text-xl font-extrabold text-slate-900">一起聚｜跨校同好舞台</h1>
+              <Users className="h-5 w-5 text-accent-600" aria-hidden="true" />
+              <h1 className="text-xl font-bold text-ink-900">一起聚｜跨校同好舞台</h1>
             </div>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-ink-600">
               依興趣領域看跨校作品試玩、找友社合作，或向前輩請益。
             </p>
           </div>
@@ -292,10 +292,10 @@ export function TogetherClient({
                 key={key}
                 type="button"
                 onClick={() => (key === 'mentors' ? openMentorsTab() : setSubTab(key))}
-                className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold ${
+                className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold ${
                   subTab === key
-                    ? 'bg-[var(--brand)] text-white'
-                    : 'border border-[var(--border-strong)] bg-white text-slate-700 hover:bg-slate-50'
+                    ? 'bg-accent-600 text-white'
+                    : 'border border-ink-300 bg-white text-ink-700 hover:bg-ink-50'
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -310,10 +310,10 @@ export function TogetherClient({
           <button
             type="button"
             onClick={() => setSelectedDomain('')}
-            className={`min-h-[44px] rounded-full px-3.5 text-xs font-semibold ${
+            className={`min-h-[44px] rounded-full px-3.5 text-sm font-semibold ${
               !selectedDomain
-                ? 'bg-slate-900 text-white'
-                : 'bg-[var(--muted)] text-slate-700 hover:bg-orange-100'
+                ? 'bg-ink-900 text-white'
+                : 'bg-ink-100 text-ink-700 hover:bg-accent-100'
             }`}
           >
             全部領域
@@ -323,10 +323,10 @@ export function TogetherClient({
               key={d.id}
               type="button"
               onClick={() => setSelectedDomain(d.id)}
-              className={`min-h-[44px] rounded-full px-3.5 text-xs font-semibold ${
+              className={`min-h-[44px] rounded-full px-3.5 text-sm font-semibold ${
                 selectedDomain === d.id
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-[var(--muted)] text-slate-700 hover:bg-orange-100'
+                  ? 'bg-ink-900 text-white'
+                  : 'bg-ink-100 text-ink-700 hover:bg-accent-100'
               }`}
             >
               #{d.name_zh}
@@ -336,12 +336,12 @@ export function TogetherClient({
       </section>
 
       {msg && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-800">
+        <div className="rounded-xl border border-success-200 bg-success-50 px-4 py-3 text-sm font-semibold text-success-800">
           {msg}
         </div>
       )}
       {err && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs font-bold text-red-800">
+        <div className="rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 text-sm font-semibold text-danger-800">
           {err}
         </div>
       )}
@@ -354,7 +354,7 @@ export function TogetherClient({
               <button
                 type="button"
                 onClick={() => setShowStageForm((v) => !v)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white"
+                className="inline-flex items-center gap-1.5 rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white"
               >
                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                 {showStageForm ? '收合發表表單' : '代表社團發表作品／觀點'}
@@ -365,13 +365,13 @@ export function TogetherClient({
           {showStageForm && myMemberships.length > 0 && (
             <form
               onSubmit={handleCreateItem}
-              className="space-y-3 rounded-3xl border border-[var(--border-strong)] bg-white p-6"
+              className="space-y-3 rounded-xl border border-ink-300 bg-white p-6"
             >
               <div className="grid gap-3 sm:grid-cols-3">
                 <select
                   value={clubId}
                   onChange={(e) => setClubId(e.target.value)}
-                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
                 >
                   {myMemberships.map((m) => (
                     <option key={m.clubId} value={m.clubId}>
@@ -382,7 +382,7 @@ export function TogetherClient({
                 <select
                   value={domainId}
                   onChange={(e) => setDomainId(e.target.value)}
-                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
                 >
                   {domains.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -393,7 +393,7 @@ export function TogetherClient({
                 <select
                   value={itemType}
                   onChange={(e) => setItemType(e.target.value as typeof itemType)}
-                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
                 >
                   <option value="showcase">作品試玩展示</option>
                   <option value="field_log">路線／實務紀錄</option>
@@ -407,7 +407,7 @@ export function TogetherClient({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="作品或交流主題名稱 *"
-                className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
               />
               <textarea
                 required
@@ -416,19 +416,19 @@ export function TogetherClient({
                 value={contentMd}
                 onChange={(e) => setContentMd(e.target.value)}
                 placeholder="分享製作心得、使用技術或希望友社接力討論的切入點..."
-                className="w-full rounded-xl border border-[var(--border)] p-3 text-sm"
+                className="w-full rounded-xl border border-line-input p-3 text-sm"
               />
               <input
                 type="url"
                 value={embedUrl}
                 onChange={(e) => setEmbedUrl(e.target.value)}
                 placeholder="選填安全預覽連結（限 itch.io / YouTube / Vimeo / SoundCloud / Figma / GitHub）"
-                className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
               />
               <button
                 type="submit"
                 disabled={busy === 'create-item'}
-                className="rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white"
+                className="rounded-full bg-ink-900 px-5 py-2 text-sm font-semibold text-white"
               >
                 送出發布
               </button>
@@ -436,13 +436,13 @@ export function TogetherClient({
           )}
 
           {filteredItems.length === 0 ? (
-            <div className="space-y-3 rounded-3xl border border-dashed border-[var(--border)] bg-white p-8 text-center text-sm text-slate-500">
+            <div className="space-y-3 rounded-xl border border-dashed border-line bg-white p-8 text-center text-sm text-ink-500">
               <p>目前沒有符合此領域的作品試玩或徵集。</p>
               {selectedDomain && (
                 <button
                   type="button"
                   onClick={() => setSelectedDomain('')}
-                  className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border-strong)] bg-white px-4 text-xs font-bold text-slate-800 hover:bg-slate-50"
+                  className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 text-sm font-semibold text-ink-800 hover:bg-ink-50"
                 >
                   查看全部領域
                 </button>
@@ -454,29 +454,29 @@ export function TogetherClient({
                 <Link
                   key={item.id}
                   href={`/together/${item.id}`}
-                  className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 shadow-xs transition hover:border-orange-300"
+                  className="flex flex-col gap-3 rounded-xl border border-line bg-white p-5 shadow-xs transition hover:border-accent-300"
                 >
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="rounded-full bg-orange-100 px-2.5 py-0.5 font-bold text-orange-900">
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <span className="rounded-full bg-accent-100 px-2.5 py-0.5 font-bold text-accent-900">
                       #{item.domain_name}
                     </span>
-                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 font-semibold text-slate-700">
+                    <span className="rounded-full bg-ink-100 px-2.5 py-0.5 font-semibold text-ink-700">
                       {TOGETHER_ITEM_TYPE_LABELS[item.item_type]}
                     </span>
                     {item.embed_url && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 font-semibold text-blue-700">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-accent-50 px-2 py-0.5 font-semibold text-accent-700">
                         <Link2 className="h-3 w-3" aria-hidden="true" />
                         可試玩／預覽
                       </span>
                     )}
                   </div>
-                  <h2 className="text-base font-extrabold text-slate-900">{item.title}</h2>
-                  <p className="line-clamp-3 text-sm text-slate-600">{item.content_md}</p>
-                  <div className="mt-auto flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs">
-                    <span className="font-semibold text-blue-700">
+                  <h2 className="text-base font-bold text-ink-900">{item.title}</h2>
+                  <p className="line-clamp-3 text-sm text-ink-600">{item.content_md}</p>
+                  <div className="mt-auto flex items-center justify-between border-t border-line pt-3 text-sm">
+                    <span className="font-semibold text-accent-700">
                       {item.club.university_short_name} · {item.club.name}
                     </span>
-                    <span className="text-slate-500">回覆 {item.reply_count}</span>
+                    <span className="text-ink-500">回覆 {item.reply_count}</span>
                   </div>
                 </Link>
               ))}
@@ -493,7 +493,7 @@ export function TogetherClient({
               <button
                 type="button"
                 onClick={() => setShowJamForm((v) => !v)}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white"
+                className="inline-flex items-center gap-1.5 rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white"
               >
                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                 {showJamForm ? '收合徵集表單' : '發起跨校共作企劃 (Jam)'}
@@ -504,13 +504,13 @@ export function TogetherClient({
           {showJamForm && officerClubs.length > 0 && (
             <form
               onSubmit={handleCreateJam}
-              className="space-y-3 rounded-3xl border border-[var(--border-strong)] bg-white p-6"
+              className="space-y-3 rounded-xl border border-ink-300 bg-white p-6"
             >
               <div className="grid gap-3 sm:grid-cols-2">
                 <select
                   value={jamClubId}
                   onChange={(e) => setJamClubId(e.target.value)}
-                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
                 >
                   {officerClubs.map((c) => (
                     <option key={c.clubId} value={c.clubId}>
@@ -521,7 +521,7 @@ export function TogetherClient({
                 <select
                   value={jamDomainId}
                   onChange={(e) => setJamDomainId(e.target.value)}
-                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
                 >
                   {domains.map((d) => (
                     <option key={d.id} value={d.id}>
@@ -535,7 +535,7 @@ export function TogetherClient({
                 value={jamTitle}
                 onChange={(e) => setJamTitle(e.target.value)}
                 placeholder="跨校企劃題目（如：北中南三校冬季 Game Jam 聯展）*"
-                className="w-full rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+                className="w-full rounded-xl border border-line-input px-3 py-2 text-sm"
               />
               <textarea
                 required
@@ -543,26 +543,26 @@ export function TogetherClient({
                 value={jamSummary}
                 onChange={(e) => setJamSummary(e.target.value)}
                 placeholder="說明各自社團分工、預計合作模式與目標成果..."
-                className="w-full rounded-xl border border-[var(--border)] p-3 text-sm"
+                className="w-full rounded-xl border border-line-input p-3 text-sm"
               />
               <div className="grid gap-3 sm:grid-cols-2">
                 <input
                   value={jamRoles}
                   onChange={(e) => setJamRoles(e.target.value)}
                   placeholder="招募友社專長（逗號分隔，如 美術, 配樂, 現場場控）"
-                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
                 />
                 <input
                   value={jamFormat}
                   onChange={(e) => setJamFormat(e.target.value)}
                   placeholder="合作方式（如 線上共創＋雙週末成果驗收）"
-                  className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                  className="rounded-xl border border-line-input px-3 py-2 text-sm"
                 />
               </div>
               <button
                 type="submit"
                 disabled={busy === 'create-jam'}
-                className="rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white"
+                className="rounded-full bg-ink-900 px-5 py-2 text-sm font-semibold text-white"
               >
                 發布跨校 Jam 徵集
               </button>
@@ -570,13 +570,13 @@ export function TogetherClient({
           )}
 
           {filteredJams.length === 0 ? (
-            <div className="space-y-3 rounded-3xl border border-dashed border-[var(--border)] bg-white p-8 text-center text-sm text-slate-500">
+            <div className="space-y-3 rounded-xl border border-dashed border-line bg-white p-8 text-center text-sm text-ink-500">
               <p>此領域目前沒有開放中的跨校共創徵集。</p>
               {selectedDomain && (
                 <button
                   type="button"
                   onClick={() => setSelectedDomain('')}
-                  className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border-strong)] bg-white px-4 text-xs font-bold text-slate-800 hover:bg-slate-50"
+                  className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 text-sm font-semibold text-ink-800 hover:bg-ink-50"
                 >
                   查看全部領域
                 </button>
@@ -587,36 +587,36 @@ export function TogetherClient({
               {filteredJams.map((jam) => (
                 <div
                   key={jam.id}
-                  className="flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-white p-5 shadow-xs"
+                  className="flex flex-col gap-3 rounded-xl border border-line bg-white p-5 shadow-xs"
                 >
-                  <div className="flex flex-wrap items-center gap-2 text-xs">
-                    <span className="rounded-full bg-orange-100 px-2.5 py-0.5 font-bold text-orange-900">
+                  <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <span className="rounded-full bg-accent-100 px-2.5 py-0.5 font-bold text-accent-900">
                       #{jam.domain_name}
                     </span>
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 font-bold text-emerald-800">
+                    <span className="rounded-full bg-success-50 px-2.5 py-0.5 font-bold text-success-800">
                       目標 ≥{jam.target_schools_count} 校共創
                     </span>
                   </div>
-                  <h2 className="text-base font-extrabold text-slate-900">{jam.title}</h2>
-                  <p className="text-sm text-slate-600">{jam.summary}</p>
+                  <h2 className="text-base font-bold text-ink-900">{jam.title}</h2>
+                  <p className="text-sm text-ink-600">{jam.summary}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {jam.needed_roles.map((r) => (
                       <span
                         key={r}
-                        className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700"
+                        className="rounded-full bg-ink-100 px-2.5 py-0.5 text-xs font-semibold text-ink-700"
                       >
                         徵求：{r}
                       </span>
                     ))}
                   </div>
-                  <div className="mt-auto flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs">
+                  <div className="mt-auto flex items-center justify-between border-t border-line pt-3 text-sm">
                     <Link
                       href={`/clubs/${jam.host_club.slug}`}
-                      className="font-semibold text-blue-700 hover:underline"
+                      className="font-semibold text-accent-700 hover:underline"
                     >
                       主辦：{jam.host_club.university_short_name} {jam.host_club.name}
                     </Link>
-                    <span className="text-slate-500">
+                    <span className="text-ink-500">
                       截止 {jam.deadline_at.slice(0, 10)}
                     </span>
                   </div>
@@ -631,40 +631,40 @@ export function TogetherClient({
       {subTab === 'mentors' && (
         <div className="space-y-6">
           {/* Alumni Ping Directory */}
-          <section className="space-y-4 rounded-3xl border border-[var(--border)] bg-white p-6">
-            <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-              <HandHeart className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
+          <section className="space-y-4 rounded-xl border border-line bg-white p-6">
+            <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
+              <HandHeart className="h-4 w-4 text-accent-600" aria-hidden="true" />
               歷屆前輩請益牆
             </h2>
             {!isCampusVerified ? (
-              <p className="text-xs text-slate-600">
+              <p className="text-sm text-ink-600">
                 為保護前輩隱私，需{' '}
                 <Link
                   href="/me?returnTo=/together"
-                  className="inline-flex min-h-[44px] items-center font-bold text-[var(--brand)] underline"
+                  className="inline-flex min-h-[44px] items-center font-bold text-accent-600 underline"
                 >
                   完成校園信箱驗證
                 </Link>{' '}
                 才可發起 1 對 1 請益（每人每日上限 3 次）。
               </p>
             ) : alumni.length === 0 ? (
-              <p className="text-xs text-slate-500">目前尚無開啟請益接待的前輩名錄。</p>
+              <p className="text-sm text-ink-500">目前尚無開啟請益接待的前輩名錄。</p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {alumni.map((al) => (
                   <div
                     key={al.user_id}
-                    className="flex flex-col justify-between gap-2 rounded-2xl bg-[var(--surface-warm)] p-4 text-xs"
+                    className="flex flex-col justify-between gap-2 rounded-xl bg-ink-50 p-4 text-sm"
                   >
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm font-extrabold text-slate-900">
+                        <span className="text-sm font-semibold text-ink-900">
                           {al.display_name}
                         </span>
-                        <span className="text-slate-600">{al.university_short_name}</span>
+                        <span className="text-ink-600">{al.university_short_name}</span>
                       </div>
                       {al.clubs.length > 0 && (
-                        <p className="mt-1 text-slate-600">
+                        <p className="mt-1 text-ink-600">
                           歷任：{al.clubs.map((c) => `${c.name}${c.title ? `(${c.title})` : ''}`).join('、')}
                         </p>
                       )}
@@ -672,7 +672,7 @@ export function TogetherClient({
                         {al.expertise_tags.map((tag) => (
                           <span
                             key={tag}
-                            className="rounded-full bg-white px-2.5 py-0.5 font-bold text-orange-900"
+                            className="rounded-full bg-white px-2.5 py-0.5 font-bold text-accent-900"
                           >
                             #{tag}
                           </span>
@@ -683,7 +683,7 @@ export function TogetherClient({
                       {al.handle ? (
                         <Link
                           href={`/u/${al.handle}`}
-                          className="font-bold text-blue-700 hover:underline"
+                          className="font-bold text-accent-700 hover:underline"
                         >
                           查看成長軌跡
                         </Link>
@@ -696,7 +696,7 @@ export function TogetherClient({
                           setPingTarget(al);
                           setPingTag(al.expertise_tags[0] || '');
                         }}
-                        className="rounded-full bg-slate-900 px-3 py-1 font-bold text-white"
+                        className="rounded-full bg-ink-900 px-3 py-1 font-bold text-white"
                       >
                         禮貌發問請益
                       </button>
@@ -709,16 +709,16 @@ export function TogetherClient({
             {pingTarget && (
               <form
                 onSubmit={handleSendPing}
-                className="space-y-3 rounded-2xl border border-orange-300 bg-orange-50/70 p-4 text-xs"
+                className="space-y-3 rounded-xl border border-accent-300 bg-accent-50/70 p-4 text-sm"
               >
-                <p className="font-bold text-slate-900">
+                <p className="font-bold text-ink-900">
                   向 {pingTarget.display_name} 送出簡短請益（對方不會看到你的個人電話，將經站內與 Email 轉達）
                 </p>
                 <input
                   value={pingTag}
                   onChange={(e) => setPingTag(e.target.value)}
                   placeholder="想請教的領域（如 社團評鑑財務核銷）"
-                  className="w-full rounded-xl border border-[var(--border)] bg-white px-3 py-2"
+                  className="w-full rounded-xl border border-line-input bg-white px-3 py-2"
                 />
                 <textarea
                   required
@@ -728,13 +728,13 @@ export function TogetherClient({
                   value={pingMessage}
                   onChange={(e) => setPingMessage(e.target.value)}
                   placeholder="簡述目前遇到的卡關情境與想請教的問題（10-500字）..."
-                  className="w-full rounded-xl border border-[var(--border)] bg-white p-3"
+                  className="w-full rounded-xl border border-line-input bg-white p-3"
                 />
                 <div className="flex gap-2">
                   <button
                     type="submit"
                     disabled={busy === 'ping'}
-                    className="inline-flex items-center gap-1 rounded-full bg-[var(--brand)] px-4 py-1.5 font-bold text-white"
+                    className="inline-flex items-center gap-1 rounded-full bg-accent-600 px-4 py-1.5 font-bold text-white"
                   >
                     <Send className="h-3 w-3" />
                     送出請益請求
@@ -742,7 +742,7 @@ export function TogetherClient({
                   <button
                     type="button"
                     onClick={() => setPingTarget(null)}
-                    className="rounded-full border border-slate-300 bg-white px-4 py-1.5 font-bold text-slate-700"
+                    className="rounded-full border border-ink-300 bg-white px-4 py-1.5 font-bold text-ink-700"
                   >
                     取消
                   </button>
@@ -752,18 +752,18 @@ export function TogetherClient({
           </section>
 
           {/* Practical Resources */}
-          <section className="space-y-4 rounded-3xl border border-[var(--border)] bg-white p-6">
-            <h2 className="text-base font-extrabold text-slate-900">
+          <section className="space-y-4 rounded-xl border border-line bg-white p-6">
+            <h2 className="text-base font-bold text-ink-900">
               跨校前輩實務筆記（去識別化共筆與行政備忘）
             </h2>
             {filteredResources.length === 0 ? (
-              <div className="space-y-3 rounded-2xl border border-dashed border-[var(--border)] bg-slate-50/70 p-6 text-center text-xs text-slate-600">
+              <div className="space-y-3 rounded-xl border border-dashed border-line bg-ink-50/70 p-6 text-center text-sm text-ink-600">
                 <p>此領域目前還沒有跨校實務筆記。</p>
                 {selectedDomain && (
                   <button
                     type="button"
                     onClick={() => setSelectedDomain('')}
-                    className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border-strong)] bg-white px-4 font-bold text-slate-800 hover:bg-slate-50"
+                    className="inline-flex min-h-[44px] items-center rounded-full border border-ink-300 bg-white px-4 font-bold text-ink-800 hover:bg-ink-50"
                   >
                     查看全部領域
                   </button>
@@ -774,16 +774,16 @@ export function TogetherClient({
                 {filteredResources.map((r) => (
                   <article
                     key={r.id}
-                    className="space-y-2 rounded-2xl border border-[var(--border)] bg-slate-50 p-4"
+                    className="space-y-2 rounded-xl border border-line bg-ink-50 p-4"
                   >
-                    <div className="flex items-center justify-between text-[11px] font-bold">
-                      <span className="rounded-full bg-orange-100 px-2 py-0.5 text-orange-900">
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <span className="rounded-full bg-accent-100 px-2 py-0.5 text-accent-900">
                         #{r.domain_name}
                       </span>
-                      <span className="text-slate-500">來源：{r.source_university_short_name}</span>
+                      <span className="text-ink-500">來源：{r.source_university_short_name}</span>
                     </div>
-                    <h3 className="text-sm font-extrabold text-slate-900">{r.title}</h3>
-                    <p className="whitespace-pre-wrap text-xs leading-relaxed text-slate-700">
+                    <h3 className="text-sm font-semibold text-ink-900">{r.title}</h3>
+                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-700">
                       {r.content_md}
                     </p>
                   </article>
@@ -794,14 +794,14 @@ export function TogetherClient({
             {isCampusVerified && (
               <form
                 onSubmit={handleCreateResource}
-                className="space-y-3 rounded-2xl border border-dashed border-[var(--border-strong)] p-4 text-xs"
+                className="space-y-3 rounded-xl border border-dashed border-ink-300 p-4 text-sm"
               >
-                <p className="font-bold text-slate-800">分享一則去識別化的社團實務秘笈</p>
+                <p className="font-bold text-ink-800">分享一則去識別化的社團實務秘笈</p>
                 <div className="grid gap-2 sm:grid-cols-3">
                   <select
                     value={resDomainId}
                     onChange={(e) => setResDomainId(e.target.value)}
-                    className="rounded-xl border border-[var(--border)] px-3 py-2"
+                    className="rounded-xl border border-line-input px-3 py-2"
                   >
                     {domains.map((d) => (
                       <option key={d.id} value={d.id}>
@@ -815,7 +815,7 @@ export function TogetherClient({
                     value={resTitle}
                     onChange={(e) => setResTitle(e.target.value)}
                     placeholder="實務筆記標題 *"
-                    className="sm:col-span-2 rounded-xl border border-[var(--border)] px-3 py-2"
+                    className="sm:col-span-2 rounded-xl border border-line-input px-3 py-2"
                   />
                 </div>
                 <textarea
@@ -825,12 +825,12 @@ export function TogetherClient({
                   value={resContent}
                   onChange={(e) => setResContent(e.target.value)}
                   placeholder="整理場地／器材／預算核銷實務經驗（請勿包含個人聯絡個資）..."
-                  className="w-full rounded-xl border border-[var(--border)] p-3"
+                  className="w-full rounded-xl border border-line-input p-3"
                 />
                 <button
                   type="submit"
                   disabled={busy === 'res'}
-                  className="rounded-full bg-slate-900 px-4 py-1.5 font-bold text-white"
+                  className="rounded-full bg-ink-900 px-4 py-1.5 font-bold text-white"
                 >
                   分享實務指南
                 </button>

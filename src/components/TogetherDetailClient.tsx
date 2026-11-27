@@ -131,44 +131,44 @@ export function TogetherDetailClient({
     <div className="mx-auto max-w-3xl min-w-0 space-y-6 overflow-hidden pb-12">
       <Link
         href="/together"
-        className="inline-flex min-h-[44px] items-center text-xs font-bold text-slate-600 hover:underline"
+        className="inline-flex min-h-[44px] items-center text-sm font-semibold text-ink-600 hover:underline"
       >
         ← 返回一起聚
       </Link>
 
       {parentItem && (
-        <div className="break-words rounded-2xl border border-orange-200 bg-[var(--surface-warm)] px-4 py-3 text-xs">
-          <Repeat2 className="mr-1.5 inline h-3.5 w-3.5 text-[var(--brand)]" aria-hidden="true" />
+        <div className="break-words rounded-xl border border-accent-200 bg-ink-50 px-4 py-3 text-sm">
+          <Repeat2 className="mr-1.5 inline h-3.5 w-3.5 text-accent-600" aria-hidden="true" />
           接力回應自{' '}
           <Link
             href={`/together/${parentItem.id}`}
-            className="break-words font-bold text-[var(--brand)] underline"
+            className="break-words font-bold text-accent-600 underline"
           >
             {parentItem.club_name}｜{parentItem.title}
           </Link>
         </div>
       )}
 
-      <article className="space-y-4 rounded-3xl border border-[var(--border-strong)] bg-white p-6 shadow-xs sm:p-8">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="rounded-full bg-orange-100 px-3 py-0.5 font-bold text-orange-900">
+      <article className="space-y-4 rounded-xl border border-ink-300 bg-white p-6 shadow-xs sm:p-8">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="rounded-full bg-accent-100 px-3 py-0.5 font-bold text-accent-900">
             #{item.domain_name}
           </span>
-          <span className="rounded-full bg-slate-100 px-3 py-0.5 font-semibold text-slate-700">
+          <span className="rounded-full bg-ink-100 px-3 py-0.5 font-semibold text-ink-700">
             {TOGETHER_ITEM_TYPE_LABELS[item.item_type]}
           </span>
-          <Link href={`/clubs/${item.club.slug}`} className="font-bold text-blue-700 hover:underline">
+          <Link href={`/clubs/${item.club.slug}`} className="font-bold text-accent-700 hover:underline">
             {item.club.university_short_name} · {item.club.name}
           </Link>
         </div>
 
-        <h1 className="text-2xl font-black text-slate-900">{item.title}</h1>
-        <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+        <h1 className="text-2xl font-bold text-ink-900">{item.title}</h1>
+        <p className="whitespace-pre-wrap text-sm leading-relaxed text-ink-700">
           {item.content_md}
         </p>
 
         {iframeSrc && (
-          <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-black/5">
+          <div className="overflow-hidden rounded-xl border border-line bg-black/5">
             <iframe
               src={iframeSrc}
               title={item.title}
@@ -184,7 +184,7 @@ export function TogetherDetailClient({
             href={item.embed_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-[var(--border-strong)] bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-100"
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-semibold text-ink-800 hover:bg-ink-100"
           >
             開啟作品連結
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
@@ -192,11 +192,11 @@ export function TogetherDetailClient({
         )}
 
         {myClubs.length > 0 && (
-          <div className="border-t border-slate-100 pt-4">
+          <div className="border-t border-ink-100 pt-4">
             <button
               type="button"
               onClick={() => setShowRebound((v) => !v)}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-white"
             >
               <Repeat2 className="h-3.5 w-3.5" aria-hidden="true" />
               接力回應此作品
@@ -206,24 +206,24 @@ export function TogetherDetailClient({
       </article>
 
       {msg && (
-        <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-800">
+        <div className="rounded-xl bg-success-50 px-4 py-3 text-sm font-semibold text-success-800">
           {msg}
         </div>
       )}
       {err && (
-        <div className="rounded-2xl bg-red-50 px-4 py-3 text-xs font-bold text-red-800">{err}</div>
+        <div className="rounded-xl bg-danger-50 px-4 py-3 text-sm font-semibold text-danger-800">{err}</div>
       )}
 
       {showRebound && myClubs.length > 0 && (
         <form
           onSubmit={handleCreateRebound}
-          className="space-y-3 rounded-3xl border border-orange-200 bg-[var(--surface-warm)] p-6 text-xs"
+          className="space-y-3 rounded-xl border border-accent-200 bg-ink-50 p-6 text-sm"
         >
-          <p className="font-bold text-slate-900">代表社團發布接力回應</p>
+          <p className="font-bold text-ink-900">代表社團發布接力回應</p>
           <select
             value={replyClubId}
             onChange={(e) => setReplyClubId(e.target.value)}
-            className="w-full rounded-xl border border-[var(--border)] bg-white px-3 py-2"
+            className="w-full rounded-xl border border-line-input bg-white px-3 py-2"
           >
             {myClubs.map((c) => (
               <option key={c.clubId} value={c.clubId}>
@@ -235,7 +235,7 @@ export function TogetherDetailClient({
             required
             value={rebTitle}
             onChange={(e) => setRebTitle(e.target.value)}
-            className="w-full rounded-xl border border-[var(--border)] bg-white px-3 py-2"
+            className="w-full rounded-xl border border-line-input bg-white px-3 py-2"
           />
           <textarea
             required
@@ -244,19 +244,19 @@ export function TogetherDetailClient({
             value={rebContent}
             onChange={(e) => setRebContent(e.target.value)}
             placeholder="寫下你們社團基於原作延伸的玩法、二創音效或新設計..."
-            className="w-full rounded-xl border border-[var(--border)] bg-white p-3"
+            className="w-full rounded-xl border border-line-input bg-white p-3"
           />
           <input
             type="url"
             value={rebEmbed}
             onChange={(e) => setRebEmbed(e.target.value)}
             placeholder="選填安全預覽連結（itch.io / YouTube / SoundCloud / GitHub 等）"
-            className="w-full rounded-xl border border-[var(--border)] bg-white px-3 py-2"
+            className="w-full rounded-xl border border-line-input bg-white px-3 py-2"
           />
           <button
             type="submit"
             disabled={busy === 'rebound'}
-            className="min-h-[44px] rounded-full bg-[var(--brand)] px-4 py-2 font-bold text-white"
+            className="min-h-[44px] rounded-full bg-accent-600 px-4 py-2 font-bold text-white"
           >
             送出接力作品
           </button>
@@ -264,17 +264,17 @@ export function TogetherDetailClient({
       )}
 
       {rebounds.length > 0 && (
-        <section className="space-y-2 rounded-3xl border border-[var(--border)] bg-white p-6">
-          <h2 className="text-sm font-extrabold text-slate-900">
+        <section className="space-y-2 rounded-xl border border-line bg-white p-6">
+          <h2 className="text-sm font-semibold text-ink-900">
             接力回應作品 ({rebounds.length})
           </h2>
           {rebounds.map((rb) => (
             <Link
               key={rb.id}
               href={`/together/${rb.id}`}
-              className="block rounded-2xl bg-[var(--surface-warm)] p-3 text-xs hover:bg-orange-100/60"
+              className="block rounded-xl bg-ink-50 p-3 text-sm hover:bg-accent-100/60"
             >
-              <span className="font-bold text-slate-900">
+              <span className="font-bold text-ink-900">
                 {rb.club_name}：{rb.title}
               </span>
             </Link>
@@ -282,9 +282,9 @@ export function TogetherDetailClient({
         </section>
       )}
 
-      <section className="space-y-4 rounded-3xl border border-[var(--border)] bg-white p-6">
-        <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-          <MessageSquare className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
+      <section className="space-y-4 rounded-xl border border-line bg-white p-6">
+        <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
+          <MessageSquare className="h-4 w-4 text-accent-600" aria-hidden="true" />
           跨校交流討論串 ({replies.length})
         </h2>
 
@@ -294,7 +294,7 @@ export function TogetherDetailClient({
               <select
                 value={replyClubId}
                 onChange={(e) => setReplyClubId(e.target.value)}
-                className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs"
+                className="rounded-xl border border-line-input px-3 py-2 text-sm"
               >
                 {myClubs.map((c) => (
                   <option key={c.clubId} value={c.clubId}>
@@ -306,33 +306,33 @@ export function TogetherDetailClient({
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 placeholder="分享回饋、技術問題或邀約聯合測試..."
-                className="min-w-0 flex-1 rounded-xl border border-[var(--border)] px-3 py-2 text-sm"
+                className="min-w-0 flex-1 rounded-xl border border-line-input px-3 py-2 text-sm"
               />
               <button
                 type="submit"
                 disabled={busy === 'reply' || replyText.trim().length < 2}
-                className="rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+                className="rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
               >
                 回覆
               </button>
             </div>
           </form>
         ) : (
-          <p className="text-xs text-slate-500">
+          <p className="text-sm text-ink-500">
             認證社員或幹部登入並從「我的聚」代表社團後即可參與交流。
           </p>
         )}
 
         <div className="space-y-2.5">
           {replies.map((r) => (
-            <div key={r.id} className="rounded-2xl bg-slate-50 p-3.5 text-xs">
+            <div key={r.id} className="rounded-xl bg-ink-50 p-3.5 text-sm">
               <Link
                 href={`/clubs/${r.club.slug}`}
-                className="font-bold text-blue-700 hover:underline"
+                className="font-bold text-accent-700 hover:underline"
               >
                 {r.club.university_short_name} · {r.club.name}
               </Link>
-              <p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{r.content_md}</p>
+              <p className="mt-1 whitespace-pre-wrap text-sm text-ink-700">{r.content_md}</p>
             </div>
           ))}
         </div>

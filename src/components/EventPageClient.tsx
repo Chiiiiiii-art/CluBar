@@ -539,35 +539,35 @@ export function EventPageClient({
     <div className="mx-auto max-w-4xl space-y-6 pb-24 md:pb-12">
       {/* Status Banner */}
       {detail.status === 'cancelled' && (
-        <div className="rounded-2xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-bold text-red-800">
+        <div className="rounded-xl border border-danger-300 bg-danger-50 px-4 py-3 text-sm font-semibold text-danger-800">
           此活動已取消（ICS 版次 v.{detail.ics_sequence} 已標記 CANCELLED）。
         </div>
       )}
 
       {statusMessage && (
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+        <div className="rounded-xl border border-success-200 bg-success-50 px-4 py-3 text-sm font-semibold text-success-800">
           {statusMessage}
         </div>
       )}
       {errorMessage && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">
+        <div className="rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 text-sm font-semibold text-danger-800">
           {errorMessage}
         </div>
       )}
 
       {/* Hero Poster & Host Header */}
       <section
-        className={`overflow-hidden rounded-3xl border border-[var(--border-strong)] bg-gradient-to-br ${theme.gradientClass} shadow-sm`}
+        className={`overflow-hidden rounded-xl border border-ink-300 bg-gradient-to-br ${theme.gradientClass} shadow-sm`}
       >
         <div className="grid gap-6 p-6 md:grid-cols-12 md:p-8">
           <div className="space-y-4 md:col-span-7">
             <div className="flex flex-wrap items-center gap-2">
               <Link
                 href={`/clubs/${detail.club.slug}`}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold ${
+                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold ${
                   isDarkTheme
                     ? 'bg-white/15 text-white hover:bg-white/25'
-                    : 'bg-white/90 text-slate-900 hover:bg-white'
+                    : 'bg-white/90 text-ink-900 hover:bg-white'
                 }`}
               >
                 {detail.club.university_short_name} · {detail.club.name}
@@ -576,7 +576,7 @@ export function EventPageClient({
                 <Link
                   key={co.id}
                   href={`/clubs/${co.slug}`}
-                  className="inline-flex items-center gap-1 rounded-full border border-orange-300 bg-white/90 px-2.5 py-0.5 text-xs font-bold text-orange-800"
+                  className="inline-flex items-center gap-1 rounded-full border border-accent-300 bg-white/90 px-2.5 py-0.5 text-sm font-semibold text-accent-800"
                 >
                   <Sparkles className="h-3 w-3" aria-hidden="true" />
                   Co-Club 共辦｜{co.university_short_name} {co.name}
@@ -584,9 +584,9 @@ export function EventPageClient({
               ))}
             </div>
 
-            <h1 className="text-2xl font-black tracking-tight sm:text-3xl">{detail.title}</h1>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{detail.title}</h1>
             {detail.summary && (
-              <p className={`text-sm leading-relaxed ${isDarkTheme ? 'text-slate-200' : 'text-slate-700'}`}>
+              <p className={`text-sm leading-relaxed ${isDarkTheme ? 'text-ink-200' : 'text-ink-700'}`}>
                 {detail.summary}
               </p>
             )}
@@ -597,7 +597,7 @@ export function EventPageClient({
                 <span>
                   {formatDisplayTime(detail.starts_at)}
                   {detail.ics_sequence > 0 && (
-                    <span className="ml-2 rounded-full bg-black/10 px-2 py-0.5 text-[11px]">
+                    <span className="ml-2 rounded-full bg-black/10 px-2 py-0.5 text-xs">
                       已更新 v.{detail.ics_sequence}
                     </span>
                   )}
@@ -613,7 +613,7 @@ export function EventPageClient({
           <div className="md:col-span-5">
             {detail.cover_media ? (
               <div
-                className="overflow-hidden rounded-2xl border border-black/10 bg-white/60 shadow-sm"
+                className="overflow-hidden rounded-xl border border-black/10 bg-white/60 shadow-sm"
                 style={{ aspectRatio: String(coverRatio) }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -624,7 +624,7 @@ export function EventPageClient({
                 />
               </div>
             ) : (
-              <div className="flex aspect-video items-center justify-center rounded-2xl border border-dashed border-black/15 bg-white/40 p-6 text-center text-xs font-semibold">
+              <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-black/15 bg-white/40 p-6 text-center text-sm font-semibold">
                 {theme.label} 主題卡片
               </div>
             )}
@@ -636,47 +636,47 @@ export function EventPageClient({
       <div className="grid gap-6 md:grid-cols-12">
         <div className="space-y-6 md:col-span-7">
           {/* Beginner Checklist */}
-          <section className="rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm">
-            <h2 className="text-base font-extrabold text-slate-900">新手參與門檻與認證資訊</h2>
+          <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
+            <h2 className="text-base font-bold text-ink-900">新手參與門檻與認證資訊</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               <span
-                className={`rounded-full px-3 py-1 text-xs font-bold ${
+                className={`rounded-full px-3 py-1 text-sm font-bold ${
                   detail.beginner_friendly
-                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    : 'bg-slate-100 text-slate-700'
+                    ? 'bg-success-50 text-success-800 border border-success-200'
+                    : 'bg-ink-100 text-ink-700'
                 }`}
               >
                 {detail.beginner_friendly ? '✓ 零基礎友善（無經驗可）' : '建議具備基礎'}
               </span>
               <span
-                className={`rounded-full px-3 py-1 text-xs font-bold ${
+                className={`rounded-full px-3 py-1 text-sm font-bold ${
                   detail.non_members_welcome
-                    ? 'bg-blue-50 text-blue-800 border border-blue-200'
-                    : 'bg-slate-100 text-slate-700'
+                    ? 'bg-accent-50 text-accent-800 border border-accent-200'
+                    : 'bg-ink-100 text-ink-700'
                 }`}
               >
                 {detail.non_members_welcome ? '✓ 非社員歡迎直接體驗' : '限入社社員參加'}
               </span>
-              <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-bold text-orange-800">
+              <span className="rounded-full border border-accent-200 bg-accent-50 px-3 py-1 text-sm font-semibold text-accent-800">
                 {detail.fee_ntd > 0 ? `費用 NT$ ${detail.fee_ntd}` : '✓ 免費參與'}
               </span>
               {detail.learning_hours_category !== 'none' && detail.learning_hours_count > 0 && (
-                <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-900">
+                <span className="rounded-full border border-warning-200 bg-warning-50 px-3 py-1 text-sm font-semibold text-warning-900">
                   ★ {LEARNING_HOURS_LABELS[detail.learning_hours_category]} {detail.learning_hours_count} 小時
                 </span>
               )}
               {detail.campus_only && (
-                <span className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-xs font-bold text-slate-800">
+                <span className="rounded-full border border-ink-300 bg-ink-100 px-3 py-1 text-sm font-semibold text-ink-800">
                   校內限定（須驗證 {detail.club.university_short_name} .edu.tw）
                 </span>
               )}
             </div>
             {detail.fee_note && (
-              <p className="mt-3 text-xs text-slate-600">費用說明：{detail.fee_note}</p>
+              <p className="mt-3 text-sm text-ink-600">費用說明：{detail.fee_note}</p>
             )}
             {detail.pre_event_notes && (
-              <div className="mt-4 rounded-2xl bg-[var(--surface-warm)] p-3.5 text-xs leading-relaxed text-slate-700">
-                <span className="font-bold text-slate-900">行前提醒：</span>
+              <div className="mt-4 rounded-xl bg-ink-50 p-3.5 text-sm leading-relaxed text-ink-700">
+                <span className="font-bold text-ink-900">行前提醒：</span>
                 {detail.pre_event_notes}
               </div>
             )}
@@ -684,18 +684,18 @@ export function EventPageClient({
 
           {/* Find a Time / Poll Section */}
           {(detail.schedule_mode !== 'scheduled' || poll_options.length > 0) && (
-            <section className="rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm">
+            <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-extrabold text-slate-900">
+                <h2 className="text-base font-bold text-ink-900">
                   {detail.schedule_mode === 'voting' ? '一起喬時間／選主題投票' : '活動時段／主題投票'}
                 </h2>
-                <span className="rounded-full bg-orange-50 px-2.5 py-0.5 text-xs font-bold text-[var(--brand)]">
+                <span className="rounded-full bg-accent-50 px-2.5 py-0.5 text-sm font-semibold text-accent-600">
                   {detail.schedule_mode === 'scheduled' ? '已定案' : '投票進行中'}
                 </span>
               </div>
 
               {poll_options.length === 0 ? (
-                <p className="mt-3 text-sm text-slate-600">
+                <p className="mt-3 text-sm text-ink-600">
                   目前為 TBD 時間待定，建議先按右方「有興趣」並開啟通知，幹部確定時段後會推播通知。
                 </p>
               ) : (
@@ -703,23 +703,23 @@ export function EventPageClient({
                   {poll_options.map((opt) => (
                     <div
                       key={opt.id}
-                      className={`flex flex-wrap items-center justify-between gap-2 rounded-2xl border p-3.5 ${
+                      className={`flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3.5 ${
                         opt.is_selected
-                          ? 'border-emerald-400 bg-emerald-50/70'
-                          : 'border-[var(--border)] bg-slate-50/50'
+                          ? 'border-success-400 bg-success-50/70'
+                          : 'border-line bg-ink-50/50'
                       }`}
                     >
                       <div>
-                        <p className="text-sm font-bold text-slate-900">
+                        <p className="text-sm font-semibold text-ink-900">
                           {opt.label}
                           {opt.is_selected && (
-                            <span className="ml-2 text-xs font-extrabold text-emerald-700">
+                            <span className="ml-2 text-sm font-semibold text-success-700">
                               ✓ 已鎖定
                             </span>
                           )}
                         </p>
                         {opt.starts_at && (
-                          <p className="text-xs text-slate-600">{formatDisplayTime(opt.starts_at)}</p>
+                          <p className="text-sm text-ink-600">{formatDisplayTime(opt.starts_at)}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
@@ -727,10 +727,10 @@ export function EventPageClient({
                           type="button"
                           disabled={!viewer.isLoggedIn || busyAction === `vote-${opt.id}`}
                           onClick={() => handlePollVote(opt.id)}
-                          className={`min-h-[44px] rounded-full px-4 text-xs font-bold transition ${
+                          className={`min-h-[44px] rounded-full px-4 text-sm font-bold transition ${
                             opt.viewer_voted
-                              ? 'bg-[var(--brand)] text-white'
-                              : 'border border-[var(--border-strong)] bg-white text-slate-700 hover:bg-slate-50'
+                              ? 'bg-accent-600 text-white'
+                              : 'border border-ink-300 bg-white text-ink-700 hover:bg-ink-50'
                           } disabled:opacity-50`}
                         >
                           {opt.viewer_voted ? '已投' : '投票'} ({opt.vote_count})
@@ -740,7 +740,7 @@ export function EventPageClient({
                             type="button"
                             disabled={busyAction === `lock-${opt.id}`}
                             onClick={() => handleLockPollOption(opt.id)}
-                            className="min-h-[44px] rounded-full border border-emerald-600 bg-white px-3.5 text-xs font-bold text-emerald-700 hover:bg-emerald-50"
+                            className="min-h-[44px] rounded-full border border-success-600 bg-white px-3.5 text-sm font-semibold text-success-700 hover:bg-success-50"
                           >
                             鎖定此時段
                           </button>
@@ -749,10 +749,10 @@ export function EventPageClient({
                     </div>
                   ))}
                   {!viewer.isLoggedIn && (
-                    <p className="text-xs text-slate-500">
+                    <p className="text-sm text-ink-500">
                       <Link
                         href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`}
-                        className="inline-flex min-h-[44px] items-center font-bold text-[var(--brand)] underline"
+                        className="inline-flex min-h-[44px] items-center font-bold text-accent-600 underline"
                       >
                         登入帳號
                       </Link>{' '}
@@ -766,8 +766,8 @@ export function EventPageClient({
 
           {/* Description */}
           {detail.description_md && (
-            <section className="rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm">
-              <h2 className="text-base font-extrabold text-slate-900">活動詳細介紹</h2>
+            <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
+              <h2 className="text-base font-bold text-ink-900">活動詳細介紹</h2>
               <div className="mt-3">
                 <MarkdownView content={detail.description_md} />
               </div>
@@ -778,9 +778,9 @@ export function EventPageClient({
         {/* Right Column: RSVP, Attendees, Calendar Sync */}
         <div id="rsvp-section" className="space-y-6 md:col-span-5">
           {/* RSVP Card */}
-          <section className="rounded-3xl border border-[var(--border-strong)] bg-white p-6 shadow-sm">
-            <h2 className="text-base font-extrabold text-slate-900">報名這場活動</h2>
-            <p className="mt-1 text-xs text-slate-600">
+          <section className="rounded-xl border border-ink-300 bg-white p-6 shadow-sm">
+            <h2 className="text-base font-bold text-ink-900">報名這場活動</h2>
+            <p className="mt-1 text-sm text-ink-600">
               {detail.capacity
                 ? `目前 ${detail.going_count} / ${detail.capacity} 人報名`
                 : `目前已有 ${detail.going_count} 人確定參加・${detail.interested_count} 人有興趣`}
@@ -790,23 +790,23 @@ export function EventPageClient({
               <div className="mt-4 space-y-3">
                 <Link
                   href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`}
-                  className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-[var(--brand)] px-5 py-3 text-sm font-extrabold text-white hover:bg-[var(--brand-dark)]"
+                  className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-accent-600 px-5 py-3 text-sm font-semibold text-white hover:bg-accent-700"
                 >
                   {loginCtaLabel}
                 </Link>
                 {detail.campus_only && (
-                  <p className="text-center text-[11px] text-slate-500">
+                  <p className="text-center text-xs text-ink-500">
                     此活動限 {detail.club.university_short_name} 學生，登入後須驗證 .edu.tw 信箱。
                   </p>
                 )}
               </div>
             ) : campusRestricted ? (
-              <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900">
+              <div className="mt-4 rounded-xl border border-warning-200 bg-warning-50 p-4 text-sm text-warning-900">
                 <p className="font-bold">此活動限 {detail.club.university_short_name} 學生報名</p>
                 <p className="mt-1">完成同校 .edu.tw 信箱驗證後，即可一鍵回到這場活動報名。</p>
                 <Link
                   href={`/me?returnTo=${encodeURIComponent(`/e/${detail.short_code}`)}`}
-                  className="mt-3 inline-flex min-h-[44px] items-center rounded-full bg-amber-900 px-4 text-xs font-bold text-white hover:bg-amber-950"
+                  className="mt-3 inline-flex min-h-[44px] items-center rounded-full bg-warning-900 px-4 text-sm font-semibold text-white hover:bg-warning-950"
                 >
                   前往完成校園認證
                 </Link>
@@ -814,8 +814,8 @@ export function EventPageClient({
             ) : (
               <div className="mt-4 space-y-4">
                 {/* 2-Tier Privacy Selector */}
-                <div className="space-y-2 rounded-2xl bg-slate-50 p-3.5 text-xs">
-                  <p className="font-bold text-slate-800">你的名單顯示偏好（隨時可改）：</p>
+                <div className="space-y-2 rounded-xl bg-ink-50 p-3.5 text-sm">
+                  <p className="font-bold text-ink-800">你的名單顯示偏好（隨時可改）：</p>
                   <label className="flex cursor-pointer items-start gap-2">
                     <input
                       type="radio"
@@ -825,7 +825,7 @@ export function EventPageClient({
                       className="mt-0.5"
                     />
                     <span>
-                      <strong className="text-slate-900">公開於同場名單</strong>（與參加者互相認識，可自訂顯示暱稱）
+                      <strong className="text-ink-900">公開於同場名單</strong>（與參加者互相認識，可自訂顯示暱稱）
                     </span>
                   </label>
                   <label className="flex cursor-pointer items-start gap-2">
@@ -837,7 +837,7 @@ export function EventPageClient({
                       className="mt-0.5"
                     />
                     <span>
-                      <strong className="flex items-center gap-1 text-slate-900">
+                      <strong className="flex items-center gap-1 text-ink-900">
                         <Lock className="h-3 w-3" aria-hidden="true" />
                         僅計入總人數（完全匿名）
                       </strong>
@@ -852,7 +852,7 @@ export function EventPageClient({
                       value={displayAlias}
                       onChange={(e) => setDisplayAlias(e.target.value)}
                       placeholder="自訂此場顯示暱稱（留空則用帳號名稱）"
-                      className="mt-1 w-full rounded-xl border border-[var(--border)] bg-white px-3 py-1.5 text-xs text-slate-900"
+                      className="mt-1 w-full rounded-xl border border-line-input bg-white px-3 py-1.5 text-sm text-ink-900"
                     />
                   )}
                 </div>
@@ -862,10 +862,10 @@ export function EventPageClient({
                     type="button"
                     disabled={busyAction !== null || detail.status === 'cancelled'}
                     onClick={() => handleRsvp('going')}
-                    className={`min-h-[44px] flex-1 rounded-full px-4 py-2.5 text-sm font-extrabold transition ${
+                    className={`min-h-[44px] flex-1 rounded-full px-4 py-2.5 text-sm font-bold transition ${
                       viewer_rsvp?.status === 'going'
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-[var(--brand)] text-white hover:bg-[var(--brand-dark)]'
+                        ? 'bg-success-600 text-white'
+                        : 'bg-accent-600 text-white hover:bg-accent-700'
                     } disabled:opacity-50`}
                   >
                     {viewer_rsvp?.status === 'going' ? '✓ 我已報名參加' : '我要參加'}
@@ -876,8 +876,8 @@ export function EventPageClient({
                     onClick={() => handleRsvp('interested')}
                     className={`min-h-[44px] rounded-full px-4 py-2.5 text-sm font-bold transition ${
                       viewer_rsvp?.status === 'interested'
-                        ? 'bg-amber-500 text-white'
-                        : 'border border-[var(--border-strong)] bg-white text-slate-800 hover:bg-slate-50'
+                        ? 'bg-warning-500 text-white'
+                        : 'border border-ink-300 bg-white text-ink-800 hover:bg-ink-50'
                     }`}
                   >
                     有興趣
@@ -889,7 +889,7 @@ export function EventPageClient({
                     type="button"
                     disabled={busyAction !== null}
                     onClick={() => handleRsvp('cancelled')}
-                    className="min-h-[44px] w-full text-center text-xs font-medium text-slate-500 hover:text-red-600"
+                    className="min-h-[44px] w-full text-center text-sm font-medium text-ink-500 hover:text-danger-600"
                   >
                     取消本次報名
                   </button>
@@ -902,7 +902,7 @@ export function EventPageClient({
                 href={detail.external_registration_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-full border border-[var(--border-strong)] bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-100"
+                className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-full border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-semibold text-ink-800 hover:bg-ink-100"
               >
                 社團指定外部報名表單
                 <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
@@ -911,14 +911,14 @@ export function EventPageClient({
           </section>
 
           {/* Public Attendees (strictly hiding private_count_only) */}
-          <section className="rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm">
-            <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-              <Users className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
+          <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
+            <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
+              <Users className="h-4 w-4 text-accent-600" aria-hidden="true" />
               同行夥伴名單（{detail.going_count}）
             </h2>
 
             {detail.public_attendees.length === 0 ? (
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-sm text-ink-500">
                 {detail.going_count > 0
                   ? `共有 ${detail.going_count} 位參加者已報名（皆選擇不公開名單顯示）。`
                   : '成為第一位報名的夥伴吧！'}
@@ -928,9 +928,9 @@ export function EventPageClient({
                 {detail.public_attendees.map((person, idx) => (
                   <span
                     key={`${person.display_name}-${idx}`}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--surface-warm)] px-3 py-1 text-xs font-semibold text-slate-800"
+                    className="inline-flex items-center gap-1.5 rounded-full border border-line bg-ink-50 px-3 py-1 text-sm font-semibold text-ink-800"
                   >
-                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-orange-200 text-[10px] font-bold text-orange-950">
+                    <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent-200 text-xs font-bold text-accent-950">
                       {person.display_name.slice(0, 1)}
                     </span>
                     {person.display_name}
@@ -939,16 +939,16 @@ export function EventPageClient({
               </div>
             )}
             {hiddenGoingCount > 0 && detail.public_attendees.length > 0 && (
-              <p className="mt-2 text-[11px] text-slate-500">
+              <p className="mt-2 text-xs text-ink-500">
                 另有 {hiddenGoingCount} 位選擇「僅計入總人數」匿名參與。
               </p>
             )}
           </section>
 
           {/* Calendar Sync & Push */}
-          <section className="rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm">
-            <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-              <CalendarPlus className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
+          <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
+            <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
+              <CalendarPlus className="h-4 w-4 text-accent-600" aria-hidden="true" />
               加入行事曆與行前通知
             </h2>
             {detail.starts_at ? (
@@ -958,7 +958,7 @@ export function EventPageClient({
                     href={googleUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border)] px-3.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex min-h-[44px] items-center rounded-full border border-line px-3.5 text-sm font-semibold text-ink-700 hover:bg-ink-50"
                   >
                     Google 日曆
                   </a>
@@ -968,7 +968,7 @@ export function EventPageClient({
                     href={outlookUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--border)] px-3.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                    className="inline-flex min-h-[44px] items-center rounded-full border border-line px-3.5 text-sm font-semibold text-ink-700 hover:bg-ink-50"
                   >
                     Outlook
                   </a>
@@ -976,7 +976,7 @@ export function EventPageClient({
                 <a
                   href={`/api/calendar/events/${detail.short_code}.ics`}
                   download={`${detail.short_code}.ics`}
-                  className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-[var(--border)] px-3.5 text-xs font-bold text-slate-700 hover:bg-slate-50"
+                  className="inline-flex min-h-[44px] items-center gap-1 rounded-full border border-line px-3.5 text-sm font-semibold text-ink-700 hover:bg-ink-50"
                 >
                   <Download className="h-3.5 w-3.5" aria-hidden="true" />
                   下載 .ics
@@ -986,14 +986,14 @@ export function EventPageClient({
                     type="button"
                     onClick={handleCopyWebcal}
                     disabled={busyAction === 'webcal'}
-                    className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-xs font-bold text-[var(--brand)] hover:bg-orange-100"
+                    className="rounded-full border border-accent-200 bg-accent-50 px-3 py-1.5 text-sm font-semibold text-accent-600 hover:bg-accent-100"
                   >
                     複製 webcal:// 訂閱
                   </button>
                 )}
               </div>
             ) : (
-              <p className="mt-2 text-xs text-slate-500">
+              <p className="mt-2 text-sm text-ink-500">
                 活動時間定案後即可一鍵匯入 Google、Apple 與 Outlook 行事曆。
               </p>
             )}
@@ -1003,7 +1003,7 @@ export function EventPageClient({
                 type="button"
                 onClick={handleEnableWebPush}
                 disabled={busyAction === 'web-push'}
-                className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-[var(--brand)]"
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-600 hover:text-accent-600"
               >
                 <Bell className="h-3.5 w-3.5" aria-hidden="true" />
                 開啟瀏覽器即時異動通知（Web Push）
@@ -1015,14 +1015,14 @@ export function EventPageClient({
 
       {/* Officer Management Bar */}
       {permissions.is_officer && (
-        <section className="rounded-3xl border-2 border-orange-300 bg-orange-50/50 p-6 shadow-sm">
+        <section className="rounded-xl border-2 border-accent-300 bg-accent-50/50 p-6 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-                <ShieldCheck className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
+              <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
+                <ShieldCheck className="h-4 w-4 text-accent-600" aria-hidden="true" />
                 幹部活動工具列
               </h2>
-              <p className="text-xs text-slate-600">
+              <p className="text-sm text-ink-600">
                 相簿策展、一鍵 LINE/IG/Discord 宣傳包、推播臨時異動與現場點名
               </p>
             </div>
@@ -1040,10 +1040,10 @@ export function EventPageClient({
                   key={key}
                   type="button"
                   onClick={() => openOfficerTab(key)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold ${
+                  className={`rounded-full px-3.5 py-1.5 text-sm font-bold ${
                     officerTab === key
-                      ? 'bg-[var(--brand)] text-white'
-                      : 'border border-[var(--border-strong)] bg-white text-slate-800 hover:bg-slate-50'
+                      ? 'bg-accent-600 text-white'
+                      : 'border border-ink-300 bg-white text-ink-800 hover:bg-ink-50'
                   }`}
                 >
                   {label}
@@ -1053,18 +1053,18 @@ export function EventPageClient({
           </div>
 
           {officerTab === 'curation' && (
-            <div className="mt-5 space-y-4 rounded-2xl bg-white p-4">
+            <div className="mt-5 space-y-4 rounded-xl bg-white p-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-900">
+                <h3 className="text-sm font-semibold text-ink-900">
                   待審核與精選上限（現場流精選 {featuredCount} / 3 張）
                 </h3>
               </div>
               {pending_album_photos.length === 0 ? (
-                <p className="text-xs text-slate-500">目前沒有待審核的新照片。</p>
+                <p className="text-sm text-ink-500">目前沒有待審核的新照片。</p>
               ) : (
                 <div className="grid gap-3 sm:grid-cols-3">
                   {pending_album_photos.map((photo) => (
-                    <div key={photo.id} className="rounded-xl border border-[var(--border)] p-2.5">
+                    <div key={photo.id} className="rounded-xl border border-line p-2.5">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={photo.preview_url}
@@ -1072,27 +1072,27 @@ export function EventPageClient({
                         className="aspect-square w-full rounded-lg object-cover"
                       />
                       {photo.caption && (
-                        <p className="mt-1.5 text-xs text-slate-700">{photo.caption}</p>
+                        <p className="mt-1.5 text-sm text-ink-700">{photo.caption}</p>
                       )}
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         <button
                           type="button"
                           onClick={() => handleCuratePhoto(photo.id, 'approve')}
-                          className="rounded-full bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-white"
+                          className="rounded-full bg-ink-800 px-2.5 py-1 text-xs font-bold text-white"
                         >
                           收入相簿
                         </button>
                         <button
                           type="button"
                           onClick={() => handleCuratePhoto(photo.id, 'feature')}
-                          className="rounded-full bg-[var(--brand)] px-2.5 py-1 text-[11px] font-bold text-white"
+                          className="rounded-full bg-accent-600 px-2.5 py-1 text-xs font-bold text-white"
                         >
                           精選上現場流
                         </button>
                         <button
                           type="button"
                           onClick={() => handleCuratePhoto(photo.id, 'reject')}
-                          className="rounded-full border border-red-200 px-2.5 py-1 text-[11px] font-bold text-red-700"
+                          className="rounded-full border border-danger-200 px-2.5 py-1 text-xs font-bold text-danger-700"
                         >
                           拒絕
                         </button>
@@ -1105,14 +1105,14 @@ export function EventPageClient({
           )}
 
           {officerTab === 'promo' && promoPack && (
-            <div className="mt-5 space-y-3 rounded-2xl bg-white p-4 text-xs">
+            <div className="mt-5 space-y-3 rounded-xl bg-white p-4 text-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-bold text-slate-900">社群導流懶人包</span>
+                <span className="font-bold text-ink-900">社群導流懶人包</span>
                 <a
                   href={promoPack.og_story_image_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1 font-bold text-orange-900"
+                  className="inline-flex items-center gap-1 rounded-full bg-accent-100 px-3 py-1 font-bold text-accent-900"
                 >
                   <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
                   開啟 9:16 限動預覽圖
@@ -1124,19 +1124,19 @@ export function EventPageClient({
                   { label: 'Discord Markdown', text: promoPack.discord_markdown },
                   { label: 'IG 貼文文案', text: promoPack.ig_caption },
                 ].map((item) => (
-                  <div key={item.label} className="rounded-xl border border-[var(--border)] p-3">
+                  <div key={item.label} className="rounded-xl border border-line p-3">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-800">{item.label}</span>
+                      <span className="font-bold text-ink-800">{item.label}</span>
                       <button
                         type="button"
                         onClick={() => handleCopyPromoText(item.text, item.label)}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-[var(--brand)]"
+                        className="inline-flex items-center gap-1 text-xs font-bold text-accent-600"
                       >
                         <Copy className="h-3 w-3" aria-hidden="true" />
                         複製
                       </button>
                     </div>
-                    <pre className="mt-2 max-h-36 overflow-auto whitespace-pre-wrap font-sans text-[11px] text-slate-600">
+                    <pre className="mt-2 max-h-36 overflow-auto whitespace-pre-wrap font-sans text-xs text-ink-600">
                       {item.text}
                     </pre>
                   </div>
@@ -1146,8 +1146,8 @@ export function EventPageClient({
           )}
 
           {officerTab === 'broadcast' && (
-            <form onSubmit={handleBroadcast} className="mt-5 space-y-3 rounded-2xl bg-white p-4">
-              <p className="text-xs font-bold text-slate-800">
+            <form onSubmit={handleBroadcast} className="mt-5 space-y-3 rounded-xl bg-white p-4">
+              <p className="text-sm font-semibold text-ink-800">
                 發送臨時異動／行前通知給所有已報名與有興趣同學（每小時上限 2 次）
               </p>
               <textarea
@@ -1156,12 +1156,12 @@ export function EventPageClient({
                 value={broadcastMessage}
                 onChange={(e) => setBroadcastMessage(e.target.value)}
                 placeholder="例如：今天改到綜教館 R204 教室，請記得帶水壺！"
-                className="w-full rounded-xl border border-[var(--border)] p-3 text-sm"
+                className="w-full rounded-xl border border-line-input p-3 text-sm"
               />
               <button
                 type="submit"
                 disabled={busyAction === 'broadcast' || broadcastMessage.trim().length < 4}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
               >
                 <Send className="h-3.5 w-3.5" aria-hidden="true" />
                 立即推播通知
@@ -1170,18 +1170,18 @@ export function EventPageClient({
           )}
 
           {officerTab === 'attendance' && (
-            <div className="mt-5 space-y-2 rounded-2xl bg-white p-4 text-xs">
-              <h3 className="font-bold text-slate-900">現場簽到名單（僅幹部可見）</h3>
+            <div className="mt-5 space-y-2 rounded-xl bg-white p-4 text-sm">
+              <h3 className="font-bold text-ink-900">現場簽到名單（僅幹部可見）</h3>
               {attendanceList.length === 0 ? (
-                <p className="text-slate-500">尚無確定參加的報名者。</p>
+                <p className="text-ink-500">尚無確定參加的報名者。</p>
               ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-ink-100">
                   {attendanceList.map((row) => (
                     <div key={row.user_id} className="flex items-center justify-between py-2">
                       <div>
-                        <span className="font-bold text-slate-900">{row.display_name}</span>
+                        <span className="font-bold text-ink-900">{row.display_name}</span>
                         {row.privacy_mode === 'private_count_only' && (
-                          <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">
+                          <span className="ml-2 rounded bg-ink-100 px-1.5 py-0.5 text-xs text-ink-600">
                             公開匿名
                           </span>
                         )}
@@ -1191,8 +1191,8 @@ export function EventPageClient({
                         onClick={() => handleToggleAttendance(row.user_id, !row.attended)}
                         className={`inline-flex items-center gap-1 rounded-full px-3 py-1 font-bold ${
                           row.attended
-                            ? 'bg-emerald-600 text-white'
-                            : 'border border-[var(--border-strong)] text-slate-700'
+                            ? 'bg-success-600 text-white'
+                            : 'border border-ink-300 text-ink-700'
                         }`}
                       >
                         <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1206,9 +1206,9 @@ export function EventPageClient({
           )}
 
           {officerTab === 'edit' && (
-            <div className="mt-5 space-y-4 rounded-2xl bg-white p-4 text-xs">
+            <div className="mt-5 space-y-4 rounded-xl bg-white p-4 text-sm">
               <div>
-                <p className="mb-2 font-bold text-slate-900">單圖封面即時替換</p>
+                <p className="mb-2 font-bold text-ink-900">單圖封面即時替換</p>
                 <ImageUploader
                   clubId={detail.club.id}
                   value={coverItems}
@@ -1218,11 +1218,11 @@ export function EventPageClient({
                 />
               </div>
               {detail.status !== 'cancelled' && (
-                <div className="border-t border-slate-100 pt-3">
+                <div className="border-t border-ink-100 pt-3">
                   <button
                     type="button"
                     onClick={handleCancelEvent}
-                    className="rounded-full border border-red-300 bg-red-50 px-4 py-2 font-bold text-red-700 hover:bg-red-100"
+                    className="rounded-full border border-danger-300 bg-danger-50 px-4 py-2 font-bold text-danger-700 hover:bg-danger-100"
                   >
                     取消此場活動（同步發送 ICS 取消狀態）
                   </button>
@@ -1234,9 +1234,9 @@ export function EventPageClient({
       )}
 
       {/* Event Comments (Participants & Officers) */}
-      <section className="rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm">
-        <h2 className="flex items-center gap-2 text-base font-extrabold text-slate-900">
-          <MessageSquare className="h-4 w-4 text-[var(--brand)]" aria-hidden="true" />
+      <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
+        <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
+          <MessageSquare className="h-4 w-4 text-accent-600" aria-hidden="true" />
           共乘／道具／出發前留言板（{comments.length}）
         </h2>
 
@@ -1248,38 +1248,38 @@ export function EventPageClient({
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
               placeholder="揪一起從校門出發、問集合細節或攜帶物品..."
-              className="flex-1 rounded-full border border-[var(--border-strong)] px-4 py-2 text-sm"
+              className="flex-1 rounded-full border border-line-input px-4 py-2 text-sm"
             />
             <button
               type="submit"
               disabled={busyAction === 'comment' || !commentText.trim()}
-              className="rounded-full bg-[var(--brand)] px-5 py-2 text-sm font-bold text-white disabled:opacity-50"
+              className="rounded-full bg-accent-600 px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
             >
               留言
             </button>
           </form>
         ) : (
-          <p className="mt-2 text-xs text-slate-500">
+          <p className="mt-2 text-sm text-ink-500">
             點擊上方「我要參加」成為同場參與者後即可發起共乘或行前討論。
           </p>
         )}
 
         <div className="mt-4 space-y-3">
           {comments.length === 0 ? (
-            <p className="text-xs text-slate-500">尚無留言。</p>
+            <p className="text-sm text-ink-500">尚無留言。</p>
           ) : (
             comments.map((c) => (
-              <div key={c.id} className="flex items-start justify-between gap-3 rounded-2xl bg-slate-50 p-3.5">
+              <div key={c.id} className="flex items-start justify-between gap-3 rounded-xl bg-ink-50 p-3.5">
                 <div>
-                  <p className="text-xs font-bold text-slate-900">{c.display_author}</p>
-                  <p className="mt-1 text-sm text-slate-700">{c.content}</p>
+                  <p className="text-sm font-semibold text-ink-900">{c.display_author}</p>
+                  <p className="mt-1 text-sm text-ink-700">{c.content}</p>
                 </div>
                 {(c.is_mine || permissions.is_officer) && (
                   <button
                     type="button"
                     onClick={() => handleDeleteComment(c.id)}
                     aria-label="刪除留言"
-                    className="rounded-lg p-1 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                    className="rounded-lg p-1 text-ink-500 hover:bg-danger-50 hover:text-danger-600"
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
                   </button>
@@ -1291,20 +1291,20 @@ export function EventPageClient({
       </section>
 
       {/* Post-Event Dual-Variant Lossless Album */}
-      <section className="rounded-3xl border border-[var(--border)] bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-extrabold text-slate-900">
+            <h2 className="text-base font-bold text-ink-900">
               活動無損共編相簿（{album_photos.length}）
             </h2>
-            <p className="text-xs text-slate-600">
+            <p className="text-sm text-ink-600">
               保留原檔無損下載，並自動壓縮為流暢預覽圖；精選照片可登上平台現場流
             </p>
           </div>
         </div>
 
         {permissions.can_participate && (
-          <div className="mt-4 space-y-3 rounded-2xl border border-dashed border-[var(--border-strong)] bg-[var(--surface-warm)] p-4">
+          <div className="mt-4 space-y-3 rounded-xl border border-dashed border-ink-300 bg-ink-50 p-4">
             <div className="flex flex-wrap gap-3">
               <input
                 type="text"
@@ -1312,9 +1312,9 @@ export function EventPageClient({
                 value={albumCaption}
                 onChange={(e) => setAlbumCaption(e.target.value)}
                 placeholder="這張照片的故事或標題（選填，最多 120 字）"
-                className="min-w-0 flex-1 rounded-xl border border-[var(--border)] bg-white px-3 py-2 text-xs"
+                className="min-w-0 flex-1 rounded-xl border border-line-input bg-white px-3 py-2 text-sm"
               />
-              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-[var(--brand)] px-4 py-2 text-xs font-bold text-white hover:bg-[var(--brand-dark)]">
+              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full bg-accent-600 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-700">
                 <ImagePlus className="h-4 w-4" aria-hidden="true" />
                 {busyAction === 'album-upload' ? '上傳雙軌原檔中...' : '上傳活動照片 (≤20MB)'}
                 <input
@@ -1326,14 +1326,14 @@ export function EventPageClient({
                 />
               </label>
             </div>
-            <label className="flex cursor-pointer items-center gap-2 text-xs text-slate-700">
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-ink-700">
               <input
                 type="checkbox"
                 checked={consentConfirmed}
                 onChange={(e) => setConsentConfirmed(e.target.checked)}
               />
               <span>
-                <Check className="mr-1 inline h-3 w-3 text-emerald-600" aria-hidden="true" />
+                <Check className="mr-1 inline h-3 w-3 text-success-700" aria-hidden="true" />
                 本人確認拍攝素材未侵犯他人肖像權，並同意授權主辦社團收錄於活動相簿與評鑑成果。
               </span>
             </label>
@@ -1341,16 +1341,16 @@ export function EventPageClient({
         )}
 
         {album_photos.length === 0 ? (
-          <p className="mt-4 text-xs text-slate-500">目前尚無已公開的活動相簿照片。</p>
+          <p className="mt-4 text-sm text-ink-500">目前尚無已公開的活動相簿照片。</p>
         ) : (
           <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {album_photos.map((photo) => (
               <figure
                 key={photo.id}
-                className="overflow-hidden rounded-2xl border border-[var(--border)] bg-slate-50"
+                className="overflow-hidden rounded-xl border border-line bg-ink-50"
               >
                 <div
-                  className="w-full overflow-hidden bg-slate-100"
+                  className="w-full overflow-hidden bg-ink-100"
                   style={{
                     aspectRatio: String(
                       Math.max(0.65, Math.min(1.9, photo.width / Math.max(1, photo.height)))
@@ -1365,10 +1365,10 @@ export function EventPageClient({
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <figcaption className="flex items-center justify-between gap-2 p-3 text-xs">
-                  <span className="line-clamp-1 font-medium text-slate-700">
+                <figcaption className="flex items-center justify-between gap-2 p-3 text-sm">
+                  <span className="line-clamp-1 font-medium text-ink-700">
                     {photo.status === 'featured_stream' && (
-                      <span className="mr-1.5 rounded bg-orange-100 px-1.5 py-0.5 text-[10px] font-bold text-orange-900">
+                      <span className="mr-1.5 rounded bg-accent-100 px-1.5 py-0.5 text-xs font-bold text-accent-900">
                         精選現場流
                       </span>
                     )}
@@ -1380,7 +1380,7 @@ export function EventPageClient({
                       download
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 font-bold text-[var(--brand)] hover:underline"
+                      className="inline-flex items-center gap-1 font-bold text-accent-600 hover:underline"
                     >
                       <Download className="h-3 w-3" aria-hidden="true" />
                       原圖
@@ -1394,7 +1394,7 @@ export function EventPageClient({
                             photo.status === 'featured_stream' ? 'approve' : 'feature'
                           )
                         }
-                        className="rounded border border-[var(--border-strong)] px-2 py-0.5 text-[10px] font-bold text-slate-700"
+                        className="rounded border border-ink-300 px-2 py-0.5 text-xs font-bold text-ink-700"
                       >
                         {photo.status === 'featured_stream' ? '取消精選' : '推上現場流'}
                       </button>
@@ -1408,32 +1408,32 @@ export function EventPageClient({
       </section>
 
       {/* Mobile Sticky Bottom RSVP Bar (Luma Pattern) */}
-      <div className="no-print fixed inset-x-0 bottom-[57px] z-30 border-t border-[var(--border-strong)] bg-white/95 px-4 py-2.5 backdrop-blur md:hidden">
+      <div className="no-print fixed inset-x-0 bottom-[57px] z-30 border-t border-ink-300 bg-white/95 px-4 py-2.5 backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
-          <div className="min-w-0 text-xs">
-            <p className="truncate font-bold text-slate-900">{detail.title}</p>
-            <p className="text-[11px] text-slate-600">
+          <div className="min-w-0 text-sm">
+            <p className="truncate font-bold text-ink-900">{detail.title}</p>
+            <p className="text-xs text-ink-600">
               {detail.fee_ntd === 0 ? '免費' : `NT$${detail.fee_ntd}`} · 已有 {detail.going_count} 人報名
             </p>
           </div>
           {!viewer.isLoggedIn ? (
             <Link
               href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`}
-              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-[var(--brand)] px-4 text-xs font-extrabold text-white"
+              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-accent-600 px-4 text-sm font-semibold text-white"
             >
               登入報名
             </Link>
           ) : campusRestricted ? (
             <Link
               href={`/me?returnTo=${encodeURIComponent(`/e/${detail.short_code}`)}`}
-              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-amber-900 px-4 text-xs font-extrabold text-white"
+              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-warning-900 px-4 text-sm font-semibold text-white"
             >
               去驗學校信箱
             </Link>
           ) : viewer_rsvp?.status === 'going' ? (
             <a
               href="#rsvp-section"
-              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-emerald-600 px-4 text-xs font-extrabold text-white"
+              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-success-600 px-4 text-sm font-semibold text-white"
             >
               ✓ 已報名
             </a>
@@ -1442,7 +1442,7 @@ export function EventPageClient({
               type="button"
               disabled={busyAction !== null || detail.status === 'cancelled'}
               onClick={() => handleRsvp('going')}
-              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-[var(--brand)] px-5 text-xs font-extrabold text-white disabled:opacity-50"
+              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-accent-600 px-5 text-sm font-semibold text-white disabled:opacity-50"
             >
               我要參加
             </button>

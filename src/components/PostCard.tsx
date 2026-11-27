@@ -25,10 +25,10 @@ export function PostCard({
   };
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-md">
+    <article className="group flex flex-col overflow-hidden rounded-xl border border-line bg-white shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-ink-300 hover:shadow-md">
       <Link href={`/posts/${card.id}`} onClick={handleCardClick} className="block">
         <div
-          className="relative w-full overflow-hidden bg-[var(--muted)]"
+          className="relative w-full overflow-hidden bg-ink-100"
           style={{ aspectRatio: aspect }}
         >
           {card.cover_media?.kind === 'video' ? (
@@ -53,15 +53,15 @@ export function PostCard({
 
       <div className="flex flex-1 flex-col gap-2 px-4 pt-3.5 pb-2.5">
         {card.reason && (
-          <div className="flex items-start gap-2 rounded-xl border border-orange-200 bg-orange-50/90 px-3 py-2 text-xs font-medium text-orange-950">
-            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--brand)]" aria-hidden="true" />
+          <div className="flex items-start gap-2 rounded-xl border border-accent-200 bg-accent-50/90 px-3 py-2 text-sm font-medium text-accent-950">
+            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-600" aria-hidden="true" />
             <span>{card.reason}</span>
           </div>
         )}
 
         {/* Element 2: 1 concise human headline */}
         <Link href={`/posts/${card.id}`} onClick={handleCardClick} className="block min-h-[44px]">
-          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-slate-900 group-hover:text-[var(--primary)] sm:text-base">
+          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-ink-900 group-hover:text-accent-600 sm:text-base">
             {card.headline}
           </h3>
         </Link>
@@ -70,17 +70,17 @@ export function PostCard({
         <div className="mt-auto flex items-center justify-between gap-2">
           <Link
             href={`/clubs/${card.club.slug}`}
-            className="flex min-h-[44px] min-w-0 items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-[var(--primary)]"
+            className="flex min-h-[44px] min-w-0 items-center gap-1.5 text-sm font-semibold text-ink-700 hover:text-accent-600"
           >
             <span className="truncate">
               {card.club.university_short_name} · {card.club.name}
             </span>
             {card.club.verification_status === 'verified' && (
-              <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-blue-600" aria-label="官方認證" />
+              <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-accent-600" aria-label="官方認證" />
             )}
           </Link>
-          <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium text-emerald-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-success-700">
+            <span className="h-1.5 w-1.5 rounded-full bg-success-500" />
             {card.pulse_label}
           </span>
         </div>
@@ -89,7 +89,7 @@ export function PostCard({
         {card.contextual_event && (
           <Link
             href={`/e/${card.contextual_event.short_code}`}
-            className="flex min-h-[44px] items-center gap-1.5 border-t border-[var(--border)] text-xs font-semibold text-blue-700 hover:underline"
+            className="flex min-h-[44px] items-center gap-1.5 border-t border-line text-sm font-semibold text-accent-700 hover:underline"
           >
             <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span className="truncate">{card.contextual_event.label} →</span>

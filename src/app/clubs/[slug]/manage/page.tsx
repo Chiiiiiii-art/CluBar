@@ -60,14 +60,14 @@ export default async function ClubManagePage({
 
   if (!myRole || myRole === 'member') {
     return (
-      <div className="mx-auto max-w-lg rounded-3xl border border-red-200 bg-white p-8 text-center">
-        <h1 className="text-lg font-extrabold text-slate-900">您沒有此社團的管理後台權限</h1>
-        <p className="mt-2 text-sm text-slate-600">
+      <div className="mx-auto max-w-lg rounded-xl border border-danger-200 bg-white p-8 text-center">
+        <h1 className="text-lg font-bold text-ink-900">您沒有此社團的管理後台權限</h1>
+        <p className="mt-2 text-sm text-ink-600">
           僅現任社長、現任幹部或歷屆校友（只讀檢視評鑑檔案）可進入社團管理後台。
         </p>
         <Link
           href={`/clubs/${slug}`}
-          className="mt-4 inline-flex rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white"
+          className="mt-4 inline-flex rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-white"
         >
           返回社團門面
         </Link>

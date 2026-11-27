@@ -32,7 +32,7 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
           : '時間待定';
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-md">
+    <article className="group flex flex-col overflow-hidden rounded-xl border border-line bg-white shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-accent-300 hover:shadow-md">
       {/* Element 1: Aspect-ratio Event Cover */}
       <Link
         href={`/e/${event.short_code}`}
@@ -59,7 +59,7 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
             />
           ) : null}
           {event.schedule_mode !== 'scheduled' && (
-            <span className="absolute top-3 left-3 rounded-full bg-amber-600 px-2.5 py-0.5 text-[11px] font-bold text-white shadow-xs">
+            <span className="absolute top-3 left-3 rounded-full bg-warning-600 px-2.5 py-0.5 text-xs font-bold text-white shadow-xs">
               {event.schedule_mode === 'voting' ? '時間投票中' : '時間待定'}
             </span>
           )}
@@ -68,30 +68,30 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
 
       <div className="flex flex-1 flex-col gap-2.5 p-4">
         {event.reason && (
-          <div className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50/90 px-3 py-2 text-xs font-medium text-blue-950">
-            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-600" aria-hidden="true" />
+          <div className="flex items-start gap-2 rounded-xl border border-accent-200 bg-accent-50/90 px-3 py-2 text-sm font-medium text-accent-950">
+            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent-600" aria-hidden="true" />
             <span>{event.reason}</span>
           </div>
         )}
 
         {/* Element 2: Event Title + Time & Location */}
         <Link href={`/e/${event.short_code}`} className="block space-y-1.5">
-          <p className="text-[11px] font-semibold text-slate-500">
+          <p className="text-xs font-semibold text-ink-500">
             {event.club.university_short_name} · {event.club.name}
             {event.co_host_clubs && event.co_host_clubs.length > 0
               ? ` × ${event.co_host_clubs.map((c) => c.name).join(' × ')}`
               : ''}
           </p>
-          <h3 className="line-clamp-2 text-base font-bold leading-snug text-slate-900 group-hover:text-blue-700">
+          <h3 className="line-clamp-2 text-base font-bold leading-snug text-ink-900 group-hover:text-accent-700">
             {event.title}
           </h3>
-          <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-600">
+          <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-ink-600">
             <span className="inline-flex items-center gap-1">
-              <Calendar className="h-3.5 w-3.5 text-blue-600" aria-hidden="true" />
+              <Calendar className="h-3.5 w-3.5 text-accent-600" aria-hidden="true" />
               {timeLabel}
             </span>
             <span className="inline-flex items-center gap-1">
-              <MapPin className="h-3.5 w-3.5 text-slate-400" aria-hidden="true" />
+              <MapPin className="h-3.5 w-3.5 text-ink-500" aria-hidden="true" />
               <span className="truncate max-w-[160px]">{event.location_text}</span>
             </span>
           </div>
@@ -102,7 +102,7 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
           {decisionTags.slice(0, 3).map((tag) => (
             <span
               key={tag}
-              className="rounded-full bg-[var(--muted)] px-2.5 py-0.5 text-[11px] font-bold text-slate-700"
+              className="rounded-full bg-ink-100 px-2.5 py-0.5 text-xs font-bold text-ink-700"
             >
               {tag}
             </span>
@@ -110,16 +110,16 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
         </div>
 
         {/* Element 4: Non-vanity attendance momentum prompt */}
-        <div className="mt-auto flex items-center justify-between border-t border-[var(--border)] pt-1.5 text-xs">
-          <span className="inline-flex items-center gap-1 font-semibold text-slate-700">
-            <Users className="h-3.5 w-3.5 text-blue-600" aria-hidden="true" />
+        <div className="mt-auto flex items-center justify-between border-t border-line pt-1.5 text-sm">
+          <span className="inline-flex items-center gap-1 font-semibold text-ink-700">
+            <Users className="h-3.5 w-3.5 text-accent-600" aria-hidden="true" />
             {event.going_count > 0
               ? `已有 ${event.going_count} 人想參加`
               : '搶先卡位這場體驗'}
           </span>
           <Link
             href={`/e/${event.short_code}`}
-            className="inline-flex min-h-[44px] items-center font-bold text-blue-700 hover:underline"
+            className="inline-flex min-h-[44px] items-center font-bold text-accent-700 hover:underline"
           >
             詳情／報名 →
           </Link>

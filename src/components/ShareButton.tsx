@@ -20,12 +20,12 @@ export function ShareButton({ label = '分享連結' }: { label?: string }) {
     <button
       type="button"
       onClick={handleCopy}
-      className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border-strong)] bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 transition-colors hover:bg-orange-50"
+      className="inline-flex items-center gap-1.5 rounded-xl border border-ink-300 bg-white px-3.5 py-2 text-sm font-semibold text-ink-700 transition-colors hover:bg-accent-50"
     >
       {copied ? (
         <>
-          <Check className="h-3.5 w-3.5 text-emerald-600" aria-hidden="true" />
-          <span className="text-emerald-700">已複製連結</span>
+          <Check className="h-3.5 w-3.5 text-success-700" aria-hidden="true" />
+          <span className="text-success-700">已複製連結</span>
         </>
       ) : (
         <>
