@@ -28,8 +28,23 @@ import { uploadDualAlbumPhoto } from '@/lib/media/client-upload';
 import type { EventFullViewDTO } from '@/lib/services/events';
 import { ImageUploader } from '@/components/ImageUploader';
 import { MarkdownView } from '@/components/MarkdownView';
-import { Badge, Button, ButtonLink, ClubMark, Notice, buttonClasses, controlClasses, useConfirm } from '@/components/ui';
+import {
+  Badge,
+  Button,
+  ButtonLink,
+  ClubMark,
+  FilterChip,
+  IconButton,
+  Notice,
+  Tabs,
+  buttonClasses,
+  controlClasses,
+  tabPanelProps,
+  useConfirm,
+} from '@/components/ui';
 import { realMediaUrl } from '@/lib/media/placeholder';
+
+type OfficerTab = 'none' | 'curation' | 'promo' | 'broadcast' | 'attendance' | 'edit';
 
 function formatUtcStamp(iso: string): string {
   return new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
@@ -126,9 +141,7 @@ export function EventPageClient({
   const [consentConfirmed, setConsentConfirmed] = useState(false);
 
   // Officer panel states
-  const [officerTab, setOfficerTab] = useState<
-    'none' | 'curation' | 'promo' | 'broadcast' | 'attendance' | 'edit'
-  >('none');
+  const [officerTab, setOfficerTab] = useState<OfficerTab>('none');
   const [promoPack, setPromoPack] = useState<{
     event_url: string;
     og_story_image_url: string;
@@ -903,7 +916,7 @@ export function EventPageClient({
                 href={detail.external_registration_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-full border border-ink-300 bg-ink-50 px-4 py-2 text-sm font-semibold text-ink-800 hover:bg-ink-100"
+                className={buttonClasses({ variant: 'secondary', size: 'md', block: true, className: 'mt-4' })}
               >
                 社團指定外部報名表單
                 <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1004,7 +1017,7 @@ export function EventPageClient({
                 type="button"
                 onClick={handleEnableWebPush}
                 disabled={busyAction === 'web-push'}
-                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-600 hover:text-accent-600"
+                className={buttonClasses({ variant: 'ghost', size: 'sm', className: 'mt-3' })}
               >
                 <Bell className="h-3.5 w-3.5" aria-hidden="true" />
                 開啟瀏覽器即時異動通知（Web Push）
@@ -1027,34 +1040,25 @@ export function EventPageClient({
                 相簿策展、一鍵 LINE/IG/Discord 宣傳包、推播臨時異動與現場點名
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {(
-                [
-                  ['curation', `相簿策展 (${pending_album_photos.length} 待審)`],
-                  ['promo', 'LINE / IG 宣傳包'],
-                  ['broadcast', '發送通知推播'],
-                  ['attendance', '現場簽到名單'],
-                  ['edit', '封面更換／取消活動'],
-                ] as const
-              ).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => openOfficerTab(key)}
-                  className={`rounded-full px-3.5 py-1.5 text-sm font-bold ${
-                    officerTab === key
-                      ? 'bg-accent-600 text-white'
-                      : 'border border-ink-300 bg-white text-ink-800 hover:bg-ink-50'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
           </div>
 
+          <Tabs<OfficerTab>
+            label="幹部活動工具"
+            idPrefix="officer"
+            variant="underline"
+            className="mt-4"
+            value={officerTab}
+            onChange={(k) => openOfficerTab(k)}
+            items={[
+              { id: 'curation', label: `相簿策展 (${pending_album_photos.length} 待審)` },
+              { id: 'promo', label: 'LINE / IG 宣傳包' },
+              { id: 'broadcast', label: '發送通知推播' },
+              { id: 'attendance', label: '現場簽到名單' },
+              { id: 'edit', label: '封面更換／取消活動' },
+            ]}
+          />
           {officerTab === 'curation' && (
-            <div className="mt-5 space-y-4 rounded-xl bg-white p-4">
+            <div {...tabPanelProps('officer', 'curation')} className="mt-5 space-y-4 rounded-xl bg-white p-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-ink-900">
                   待審核與精選上限（現場流精選 {featuredCount} / 3 張）
@@ -1075,11 +1079,11 @@ export function EventPageClient({
                       {photo.caption && (
                         <p className="mt-1.5 text-sm text-ink-700">{photo.caption}</p>
                       )}
-                      <div className="mt-2 flex flex-wrap gap-1.5">
+                      <div className="mt-2 flex flex-wrap gap-2">
                         <button
                           type="button"
                           onClick={() => handleCuratePhoto(photo.id, 'approve')}
-                          className="rounded-full bg-ink-800 px-2.5 py-1 text-xs font-bold text-white"
+                          className={buttonClasses({ variant: 'secondary', size: 'sm' })}
                         >
                           收入相簿
                         </button>
@@ -1093,7 +1097,7 @@ export function EventPageClient({
                         <button
                           type="button"
                           onClick={() => handleCuratePhoto(photo.id, 'reject')}
-                          className="rounded-full border border-danger-200 px-2.5 py-1 text-xs font-bold text-danger-700"
+                          className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'border-danger-200 text-danger-700 hover:bg-danger-50' })}
                         >
                           拒絕
                         </button>
@@ -1106,7 +1110,7 @@ export function EventPageClient({
           )}
 
           {officerTab === 'promo' && promoPack && (
-            <div className="mt-5 space-y-3 rounded-xl bg-white p-4 text-sm">
+            <div {...tabPanelProps('officer', 'promo')} className="mt-5 space-y-3 rounded-xl bg-white p-4 text-sm">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="font-bold text-ink-900">社群導流懶人包</span>
                 <a
@@ -1131,9 +1135,9 @@ export function EventPageClient({
                       <button
                         type="button"
                         onClick={() => handleCopyPromoText(item.text, item.label)}
-                        className="inline-flex items-center gap-1 text-xs font-bold text-accent-600"
+                        className={buttonClasses({ variant: 'soft', size: 'sm' })}
                       >
-                        <Copy className="h-3 w-3" aria-hidden="true" />
+                        <Copy className="h-3.5 w-3.5" aria-hidden="true" />
                         複製
                       </button>
                     </div>
@@ -1147,7 +1151,11 @@ export function EventPageClient({
           )}
 
           {officerTab === 'broadcast' && (
-            <form onSubmit={handleBroadcast} className="mt-5 space-y-3 rounded-xl bg-white p-4">
+            <form
+              {...tabPanelProps('officer', 'broadcast')}
+              onSubmit={handleBroadcast}
+              className="mt-5 space-y-3 rounded-xl bg-white p-4"
+            >
               <p className="text-sm font-semibold text-ink-800">
                 發送臨時異動／行前通知給所有已報名與有興趣同學（每小時上限 2 次）
               </p>
@@ -1176,7 +1184,7 @@ export function EventPageClient({
           )}
 
           {officerTab === 'attendance' && (
-            <div className="mt-5 space-y-2 rounded-xl bg-white p-4 text-sm">
+            <div {...tabPanelProps('officer', 'attendance')} className="mt-5 space-y-2 rounded-xl bg-white p-4 text-sm">
               <h3 className="font-bold text-ink-900">現場簽到名單（僅幹部可見）</h3>
               {attendanceList.length === 0 ? (
                 <p className="text-ink-500">尚無確定參加的報名者。</p>
@@ -1192,18 +1200,13 @@ export function EventPageClient({
                           </span>
                         )}
                       </div>
-                      <button
-                        type="button"
+                      <FilterChip
+                        selected={row.attended}
                         onClick={() => handleToggleAttendance(row.user_id, !row.attended)}
-                        className={`inline-flex items-center gap-1 rounded-full px-3 py-1 font-bold ${
-                          row.attended
-                            ? 'bg-success-600 text-white'
-                            : 'border border-ink-300 text-ink-700'
-                        }`}
+                        icon={<CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />}
                       >
-                        <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                         {row.attended ? '已簽到' : '標記出席'}
-                      </button>
+                      </FilterChip>
                     </div>
                   ))}
                 </div>
@@ -1212,7 +1215,7 @@ export function EventPageClient({
           )}
 
           {officerTab === 'edit' && (
-            <div className="mt-5 space-y-4 rounded-xl bg-white p-4 text-sm">
+            <div {...tabPanelProps('officer', 'edit')} className="mt-5 space-y-4 rounded-xl bg-white p-4 text-sm">
               <div>
                 <p className="mb-2 font-bold text-ink-900">單圖封面即時替換</p>
                 <ImageUploader
@@ -1228,9 +1231,9 @@ export function EventPageClient({
                   <button
                     type="button"
                     onClick={handleCancelEvent}
-                    className="rounded-full border border-danger-300 bg-danger-50 px-4 py-2 font-bold text-danger-700 hover:bg-danger-100"
+                    className={buttonClasses({ variant: 'danger', size: 'sm' })}
                   >
-                    取消此場活動（同步發送 ICS 取消狀態）
+                    取消活動
                   </button>
                 </div>
               )}
@@ -1281,14 +1284,13 @@ export function EventPageClient({
                   <p className="mt-1 text-sm text-ink-700">{c.content}</p>
                 </div>
                 {(c.is_mine || permissions.is_officer) && (
-                  <button
-                    type="button"
+                  <IconButton
                     onClick={() => handleDeleteComment(c.id)}
                     aria-label="刪除留言"
-                    className="rounded-lg p-1 text-ink-500 hover:bg-danger-50 hover:text-danger-600"
+                    className="-my-2 -mr-2 text-ink-500 hover:bg-danger-50 hover:text-danger-600"
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
-                  </button>
+                  </IconButton>
                 )}
               </div>
             ))
@@ -1391,9 +1393,9 @@ export function EventPageClient({
                       download
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 font-bold text-accent-600 hover:underline"
+                      className={buttonClasses({ variant: 'soft', size: 'sm' })}
                     >
-                      <Download className="h-3 w-3" aria-hidden="true" />
+                      <Download className="h-3.5 w-3.5" aria-hidden="true" />
                       原圖
                     </a>
                     {permissions.is_officer && (
@@ -1405,7 +1407,7 @@ export function EventPageClient({
                             photo.status === 'featured_stream' ? 'approve' : 'feature'
                           )
                         }
-                        className="rounded border border-ink-300 px-2 py-0.5 text-xs font-bold text-ink-700"
+                        className={buttonClasses({ variant: 'secondary', size: 'sm' })}
                       >
                         {photo.status === 'featured_stream' ? '取消精選' : '推上現場流'}
                       </button>

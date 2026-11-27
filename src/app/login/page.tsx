@@ -1,14 +1,14 @@
 import { redirect } from 'next/navigation';
 import { AuthError } from 'next-auth';
 import { asc } from 'drizzle-orm';
-import { ShieldCheck, Sparkles, Terminal } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { signIn } from '@/auth';
 import { db, isDatabaseConfigured } from '@/db';
 import { users } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { sanitizeInternalPath } from '@/lib/validators';
 
-import { buttonClasses } from '@/components/ui';
+import { Notice, buttonClasses } from '@/components/ui';
 export const dynamic = 'force-dynamic';
 
 export default async function LoginPage({
@@ -48,103 +48,100 @@ export default async function LoginPage({
       : [];
 
   return (
-    <div className="mx-auto max-w-lg py-6">
-      <div className="rounded-xl border border-ink-300 bg-white p-6 sm:p-8">
-        <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent-600 text-white">
-            <Sparkles className="h-6 w-6" aria-hidden="true" />
-          </span>
-          <div>
-            <h1 className="text-xl font-bold text-ink-900">登入社團聚 CluBar</h1>
-            <p className="text-sm text-ink-600">
-              登入後可私密收藏作品、追蹤社團，並驗證 .edu.tw 校園身分。
-            </p>
-          </div>
-        </div>
+    <div className="mx-auto max-w-sm py-8 sm:py-12">
+      <h1 className="text-2xl font-bold text-ink-900">登入社團聚</h1>
+      <p className="mt-2 text-base text-ink-600">
+        登入後可收藏作品、追蹤社團，並驗證 .edu.tw 校園身分。
+      </p>
 
-        {params.error && (
-          <div className="mt-4 rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 text-sm font-medium text-danger-800">
-            登入失敗或帳號未通過驗證，請重新選擇登入方式。
-          </div>
+      {params.error && (
+        <Notice tone="danger" className="mt-6">
+          登入失敗或帳號未通過驗證，請重新選擇登入方式。
+        </Notice>
+      )}
+
+      <div className="mt-6 space-y-3">
+        {hasEntra && (
+          <form
+            action={async () => {
+              'use server';
+              try {
+                await signIn('microsoft-entra-id', { redirectTo: callbackUrl });
+              } catch (err) {
+                if (err instanceof AuthError) {
+                  redirect(`/login?error=OAuthFailed&callbackUrl=${encodeURIComponent(callbackUrl)}`);
+                }
+                throw err;
+              }
+            }}
+          >
+            <button
+              type="submit"
+              className={buttonClasses({ variant: 'primary', size: 'lg', block: true })}
+            >
+              <ShieldCheck className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>使用 Microsoft 帳號登入</span>
+            </button>
+            <p className="mt-1.5 text-center text-sm text-ink-600">支援校園信箱自動驗證</p>
+          </form>
         )}
 
-        <div className="mt-6 space-y-3">
-          {hasEntra && (
-            <form
-              action={async () => {
-                'use server';
-                try {
-                  await signIn('microsoft-entra-id', { redirectTo: callbackUrl });
-                } catch (err) {
-                  if (err instanceof AuthError) {
-                    redirect(`/login?error=OAuthFailed&callbackUrl=${encodeURIComponent(callbackUrl)}`);
-                  }
-                  throw err;
+        {hasGoogle && (
+          <form
+            action={async () => {
+              'use server';
+              try {
+                await signIn('google', { redirectTo: callbackUrl });
+              } catch (err) {
+                if (err instanceof AuthError) {
+                  redirect(`/login?error=OAuthFailed&callbackUrl=${encodeURIComponent(callbackUrl)}`);
                 }
-              }}
+                throw err;
+              }
+            }}
+          >
+            <button
+              type="submit"
+              className={buttonClasses({
+                variant: hasEntra ? 'secondary' : 'primary',
+                size: 'lg',
+                block: true,
+              })}
             >
-              <button
-                type="submit"
-                className={buttonClasses({ variant: 'primary', size: 'lg', className: 'w-full' })}
-              >
-                <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-                <span>使用 Microsoft 帳號登入（支援校園信箱自動驗證）</span>
-              </button>
-            </form>
-          )}
+              <span>使用 Google 帳號登入</span>
+            </button>
+          </form>
+        )}
 
-          {hasGoogle && (
-            <form
-              action={async () => {
-                'use server';
-                try {
-                  await signIn('google', { redirectTo: callbackUrl });
-                } catch (err) {
-                  if (err instanceof AuthError) {
-                    redirect(`/login?error=OAuthFailed&callbackUrl=${encodeURIComponent(callbackUrl)}`);
-                  }
-                  throw err;
-                }
-              }}
+        {!hasEntra && !hasGoogle && !enableDevLogin && (
+          <Notice tone="warning">
+            尚未設定 Microsoft Entra ID 或 Google OAuth 環境變數，請依 .env.example 設定後再進行登入。
+          </Notice>
+        )}
+      </div>
+
+      <p className="mt-6 text-sm leading-relaxed text-ink-600">
+        你的信箱與校園驗證資訊僅用於資格判定，不會顯示在公開的作品卡片或社團頁面。
+      </p>
+
+      {enableDevLogin && (
+        <details className="group mt-8 border-t border-line pt-2">
+          <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-2 text-sm font-medium text-ink-700 hover:text-ink-900">
+            <span>開發測試帳號（僅非正式環境）</span>
+            <span
+              aria-hidden="true"
+              className="text-ink-500 transition-transform group-open:rotate-90"
             >
-              <button
-                type="submit"
-                className={buttonClasses({ variant: 'secondary', size: 'lg', className: 'w-full' })}
-              >
-                <span>使用 Google 帳號登入</span>
-              </button>
-            </form>
-          )}
-
-          {!hasEntra && !hasGoogle && !enableDevLogin && (
-            <p className="rounded-xl bg-warning-50 p-4 text-sm leading-relaxed text-warning-900">
-              尚未設定 Microsoft Entra ID 或 Google OAuth 環境變數，請依 `.env.example` 設定後再進行登入。
-            </p>
-          )}
-        </div>
-
-        <div className="mt-6 rounded-xl bg-ink-100 p-4 text-sm leading-relaxed text-ink-700">
-          <p className="font-semibold text-ink-900">隱私與最小揭露承諾</p>
-          <p className="mt-1">
-            您的信箱與校園驗證資訊僅用於資格判定，絕不會在公開作品卡片或社團頁面顯示。
-          </p>
-        </div>
-
-        {enableDevLogin && (
-          <div className="mt-6 border-t border-line pt-6">
-            <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-ink-700">
-              <Terminal className="h-4 w-4 text-accent-600" aria-hidden="true" />
-              <span>開發測試帳號快速登入（僅非正式環境啟用）</span>
-            </div>
-            {devAccounts.length === 0 ? (
-              <p className="text-sm text-ink-500">
-                目前尚無可用測試帳號，請先完成資料初始化。
-              </p>
-            ) : (
-              <div className="grid gap-2 sm:grid-cols-2">
-                {devAccounts.map((acc) => (
+              ›
+            </span>
+          </summary>
+          {devAccounts.length === 0 ? (
+            <p className="mt-2 text-sm text-ink-600">目前尚無可用測試帳號，請先完成資料初始化。</p>
+          ) : (
+            <ul className="mt-2 divide-y divide-line overflow-hidden rounded-xl border border-line">
+              {devAccounts.map((acc) => (
+                <li key={acc.id}>
                   <form
-                    key={acc.id}
                     action={async () => {
                       'use server';
                       try {
@@ -164,13 +161,17 @@ export default async function LoginPage({
                   >
                     <button
                       type="submit"
-                      className={buttonClasses({ variant: 'secondary', size: 'md', className: 'w-full justify-between' })}
+                      className="flex min-h-14 w-full items-center justify-between gap-3 px-3 py-2 text-left transition-colors hover:bg-ink-50"
                     >
-                      <div className="min-w-0">
-                        <p className="truncate font-bold text-ink-900">{acc.displayName}</p>
-                        <p className="truncate text-xs text-ink-500">{acc.email}</p>
-                      </div>
-                      <span className="shrink-0 rounded-full bg-ink-100 px-2.5 py-0.5 text-xs font-semibold text-ink-700">
+                      <span className="min-w-0">
+                        <span className="block truncate font-medium text-ink-900">
+                          {acc.displayName}
+                        </span>
+                        <span className="block truncate text-sm font-normal text-ink-600">
+                          {acc.email}
+                        </span>
+                      </span>
+                      <span className="shrink-0 text-sm font-normal text-ink-600">
                         {acc.platformRole === 'platform_admin'
                           ? '平台管理員'
                           : acc.campusEmail
@@ -179,12 +180,12 @@ export default async function LoginPage({
                       </span>
                     </button>
                   </form>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </details>
+      )}
     </div>
   );
 }

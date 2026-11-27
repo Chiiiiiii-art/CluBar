@@ -54,6 +54,34 @@ for (const rule of RULES) {
   });
 }
 
+/**
+ * Class strings defined in non-JSX modules. The only raw palette allowed is
+ * EVENT_THEME_PRESETS[*].gradientClass: organisers pick an event theme, so
+ * those colours are content, not UI chrome.
+ */
+const CLASS_CONSTANT_FILES = [join('lib', 'constants.ts')];
+const ALLOWED_RAW_PALETTE_LINE = /^\s*gradientClass:/;
+
+test('class constants use design tokens (event theme gradients excepted)', () => {
+  const palette = RULES[0].pattern;
+  const hits: string[] = [];
+  for (const rel of CLASS_CONSTANT_FILES) {
+    readFileSync(join(ROOT, rel), 'utf8')
+      .split('\n')
+      .forEach((line, i) => {
+        if (ALLOWED_RAW_PALETTE_LINE.test(line)) return;
+        const m = line.match(palette);
+        if (m) hits.push(`${rel}:${i + 1}  ${m[0]}`);
+      });
+  }
+  assert.deepEqual(hits, [], `raw palette in class constants:\n${hits.join('\n')}`);
+});
+
+test('legacy CSS variable aliases are gone', () => {
+  const css = readFileSync(join(ROOT, 'app', 'globals.css'), 'utf8');
+  assert.doesNotMatch(css, /--(?:brand|primary|surface-warm|border-strong):/);
+});
+
 /** Index just past the `>` closing the JSX opening tag that starts at `i`. */
 function openingTagEnd(src: string, i: number): number {
   let depth = 0;

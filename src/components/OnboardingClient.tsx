@@ -3,11 +3,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, CheckCircle2, Share2, Sparkles } from 'lucide-react';
+import { ArrowRight, Check, Share2 } from 'lucide-react';
 import { EventCard } from './EventCard';
 import type { DiscoverEventCardDTO } from '@/lib/serializers';
 
-import { buttonClasses } from '@/components/ui';
+import { Button, ButtonLink, PageHeader, cn } from '@/components/ui';
 interface RecommendResult {
   persona_archetype: string;
   clubs: {
@@ -34,6 +34,56 @@ const VIBES = [
   { id: 'chill', label: '低壓力、像跟朋友聊天的氛圍' },
   { id: 'active', label: '戶外活動或揮汗運動' },
 ];
+
+/** One selected style for every step: dark border, light fill, check mark. */
+function Choice({
+  selected,
+  onClick,
+  children,
+}: {
+  selected: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onClick}
+      className={cn(
+        'flex min-h-12 w-full items-center justify-between gap-2 rounded-xl border px-4 py-2.5 text-left text-sm transition-colors',
+        selected
+          ? 'border-ink-900 bg-ink-50 font-semibold text-ink-900'
+          : 'border-line bg-white text-ink-700 hover:border-ink-300 hover:bg-ink-50'
+      )}
+    >
+      <span className="min-w-0 break-words">{children}</span>
+      {selected && <Check className="h-4 w-4 shrink-0 text-ink-900" aria-hidden="true" />}
+    </button>
+  );
+}
+
+function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
+  return (
+    <div>
+      <p className="text-sm font-medium text-ink-600">步驟 {step} / 3</p>
+      <div
+        role="progressbar"
+        aria-label="完成進度"
+        aria-valuemin={1}
+        aria-valuemax={3}
+        aria-valuenow={step}
+        aria-valuetext={`步驟 ${step} / 3`}
+        className="mt-2 h-1 overflow-hidden rounded-full bg-ink-200"
+      >
+        <div
+          className="h-full rounded-full bg-accent-600 transition-all"
+          style={{ width: `${(step / 3) * 100}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export function OnboardingClient({
   universities,
@@ -141,193 +191,153 @@ export function OnboardingClient({
   };
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <div className="rounded-xl border border-ink-300 bg-white p-6 sm:p-8">
-        <div className="flex items-center gap-2 text-sm font-semibold text-accent-600">
-          <Sparkles className="h-4 w-4" aria-hidden="true" />
-          <span>免登入找社團方向（步驟 {step} / 3）</span>
-        </div>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <StepIndicator step={step} />
 
-        {step === 1 && (
-          <div className="mt-4 space-y-5">
-            <h1 className="text-2xl font-bold text-ink-900">先選你目前就讀的大專校院</h1>
-            <p className="text-sm text-ink-600">
-              不用註冊即可瀏覽全校活躍社團日常與近期可參加體驗課。
-            </p>
+      {step === 1 && (
+        <div className="space-y-6">
+          <PageHeader
+            title="先選你就讀的大專校院"
+            description="不用註冊，就能瀏覽全校活躍社團與近期可參加的體驗課。"
+          />
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {universities.map((u) => (
+              <Choice key={u.id} selected={universityId === u.id} onClick={() => setUniversityId(u.id)}>
+                {u.name}
+              </Choice>
+            ))}
+          </div>
+          <div className="flex justify-end border-t border-line pt-4">
+            <Button size="md" onClick={() => goStep(2)} icon={<ArrowRight className="h-4 w-4" aria-hidden="true" />} className="flex-row-reverse">
+              下一步
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {step === 2 && (
+        <div className="space-y-8">
+          <PageHeader title="這學期想怎麼探索校園？" />
+
+          <section className="space-y-3" aria-labelledby="onb-goals">
+            <h2 id="onb-goals" className="text-base font-semibold text-ink-900">
+              你現在比較在意什麼？
+              <span className="ml-2 text-sm font-normal text-ink-600">可選 1–2 項</span>
+            </h2>
             <div className="grid gap-2.5 sm:grid-cols-2">
-              {universities.map((u) => (
-                <button
-                  key={u.id}
-                  type="button"
-                  onClick={() => setUniversityId(u.id)}
-                  className={`flex min-h-[48px] items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-bold transition-colors ${
-                    universityId === u.id
-                      ? 'border-accent-600 bg-accent-50 text-accent-950'
-                      : 'border-line bg-ink-100 text-ink-800 hover:bg-accent-50/50'
-                  }`}
-                >
-                  <span>{u.name}</span>
-                  {universityId === u.id && <CheckCircle2 className="h-4 w-4 text-accent-600" />}
-                </button>
+              {GOALS.map((g) => (
+                <Choice key={g.id} selected={goals.includes(g.id)} onClick={() => toggleGoal(g.id)}>
+                  {g.label}
+                </Choice>
               ))}
             </div>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => goStep(2)}
-                className={buttonClasses({ variant: 'primary', size: 'md' })}
-              >
-                <span>下一步</span>
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </button>
+          </section>
+
+          <section className="space-y-3" aria-labelledby="onb-domains">
+            <h2 id="onb-domains" className="text-base font-semibold text-ink-900">
+              挑幾個你有點好奇的領域
+              <span className="ml-2 text-sm font-normal text-ink-600">可選 1–4 個</span>
+            </h2>
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+              {domains.map((d) => (
+                <Choice key={d.id} selected={domainIds.includes(d.id)} onClick={() => toggleDomain(d.id)}>
+                  #{d.name_zh}
+                </Choice>
+              ))}
             </div>
+          </section>
+
+          <section className="space-y-3" aria-labelledby="onb-vibe">
+            <h2 id="onb-vibe" className="text-base font-semibold text-ink-900">
+              偏好的社團氛圍
+            </h2>
+            <div className="grid gap-2.5 sm:grid-cols-2">
+              {VIBES.map((v) => (
+                <Choice key={v.id} selected={vibe === v.id} onClick={() => setVibe(v.id)}>
+                  {v.label}
+                </Choice>
+              ))}
+            </div>
+          </section>
+
+          <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
+            <Button variant="ghost" onClick={() => goStep(1)}>
+              上一步
+            </Button>
+            <Button
+              disabled={loading}
+              onClick={submitQuiz}
+              icon={<ArrowRight className="h-4 w-4" aria-hidden="true" />}
+              className="flex-row-reverse"
+            >
+              {loading ? '配對中...' : '看結果（免註冊）'}
+            </Button>
           </div>
-        )}
+        </div>
+      )}
 
-        {step === 2 && (
-          <div className="mt-4 space-y-6">
-            <h1 className="text-2xl font-bold text-ink-900">這學期想怎麼探索校園？</h1>
-
-            <div className="space-y-2.5">
-              <p className="text-sm font-semibold text-ink-600">1. 你此刻比較在意什麼？（可選 1–2 項）</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {GOALS.map((g) => (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => toggleGoal(g.id)}
-                    className={`min-h-[44px] rounded-xl border px-3.5 py-2.5 text-left text-sm font-bold ${
-                      goals.includes(g.id)
-                        ? 'border-accent-600 bg-accent-50 text-accent-950'
-                        : 'border-ink-200 bg-white text-ink-700'
-                    }`}
-                  >
-                    {g.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2.5">
-              <p className="text-sm font-semibold text-ink-600">2. 挑 1–4 個看了會有點好奇的領域</p>
-              <div className="flex flex-wrap gap-2">
-                {domains.map((d) => (
-                  <button
-                    key={d.id}
-                    type="button"
-                    onClick={() => toggleDomain(d.id)}
-                    className={`min-h-[44px] rounded-full px-4 text-sm font-bold ${
-                      domainIds.includes(d.id)
-                        ? 'bg-accent-600 text-white'
-                        : 'bg-ink-100 text-ink-700 hover:bg-accent-100'
-                    }`}
-                  >
-                    #{d.name_zh}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2.5">
-              <p className="text-sm font-semibold text-ink-600">3. 偏好的社團氛圍</p>
-              <div className="flex flex-wrap gap-2">
-                {VIBES.map((v) => (
-                  <button
-                    key={v.id}
-                    type="button"
-                    onClick={() => setVibe(v.id)}
-                    className={`min-h-[44px] rounded-xl border px-3.5 text-sm font-bold ${
-                      vibe === v.id
-                        ? 'border-accent-600 bg-accent-50 text-accent-950'
-                        : 'border-ink-200 bg-white text-ink-700'
-                    }`}
-                  >
-                    {v.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex justify-between">
-              <button
-                type="button"
-                onClick={() => goStep(1)}
-                className="min-h-[44px] rounded-xl border border-ink-300 px-4 text-sm font-semibold text-ink-700"
-              >
-                上一步
-              </button>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={submitQuiz}
-                className={buttonClasses({ variant: 'primary', size: 'md' })}
-              >
-                <span>{loading ? '配對中...' : '立刻看結果（免註冊）'}</span>
-                <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && result && (
-          <div className="mt-4 space-y-6">
-            <div className="rounded-xl bg-white p-5">
-              <p className="text-sm font-semibold text-accent-800">你的個人校園探索特質</p>
-              <h1 className="mt-1 text-2xl font-bold text-ink-900">{result.persona_archetype}</h1>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <button
-                  type="button"
+      {step === 3 && result && (
+        <div className="space-y-8">
+          <PageHeader
+            eyebrow="你的校園探索類型"
+            title={result.persona_archetype}
+            action={
+              <>
+                <Button
                   disabled={blendLoading}
                   onClick={handleCreateBlend}
-                  className={buttonClasses({ variant: 'primary', size: 'md' })}
+                  icon={<Share2 className="h-4 w-4" aria-hidden="true" />}
                 >
-                  <Share2 className="h-4 w-4" aria-hidden="true" />
-                  <span>{isLoggedIn ? '做一張分享卡，約朋友合拍' : '登入做個人興趣分享卡'}</span>
-                </button>
-                <Link
+                  {isLoggedIn ? '做一張分享卡，約朋友合拍' : '登入做興趣分享卡'}
+                </Button>
+                <ButtonLink
                   href={`/?university_id=${encodeURIComponent(universityId)}`}
-                  className={buttonClasses({ variant: 'secondary', size: 'md' })}
+                  variant="secondary"
                 >
-                  直接進「別的聚」逛現場流 →
-                </Link>
-              </div>
-            </div>
+                  逛逛現場動態
+                </ButtonLink>
+              </>
+            }
+          />
 
-            {result.clubs.length > 0 && (
-              <div className="space-y-3">
-                <h2 className="text-base font-bold text-ink-900">為你挑出的校內活躍社團</h2>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {result.clubs.map((c) => (
-                    <Link
-                      key={c.id}
-                      href={`/clubs/${c.slug}`}
-                      className="rounded-xl border border-line bg-ink-100 p-4 hover:border-accent-600"
-                    >
-                      <div className="flex items-center justify-between text-xs font-semibold text-success-700">
-                        <span>{c.university_short_name}</span>
-                        <span>● {c.pulse_label}</span>
-                      </div>
-                      <h3 className="mt-1 text-sm font-semibold text-ink-900">{c.name}</h3>
-                      <p className="mt-1 line-clamp-2 text-sm text-ink-600">{c.tagline}</p>
-                    </Link>
-                  ))}
-                </div>
+          {result.clubs.length > 0 && (
+            <section className="space-y-3" aria-labelledby="onb-clubs">
+              <h2 id="onb-clubs" className="text-lg font-semibold text-ink-900">
+                為你挑出的校內活躍社團
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {result.clubs.map((c) => (
+                  <Link
+                    key={c.id}
+                    href={`/clubs/${c.slug}`}
+                    className="min-w-0 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-ink-300"
+                  >
+                    <div className="flex items-center justify-between gap-2 text-sm text-ink-600">
+                      <span className="truncate">{c.university_short_name}</span>
+                      <span className="shrink-0 text-success-700">● {c.pulse_label}</span>
+                    </div>
+                    <h3 className="mt-1 break-words text-base font-semibold text-ink-900">{c.name}</h3>
+                    <p className="mt-1 line-clamp-2 text-sm text-ink-600">{c.tagline}</p>
+                  </Link>
+                ))}
               </div>
-            )}
+            </section>
+          )}
 
-            {result.events.length > 0 && (
-              <div className="space-y-3">
-                <h2 className="text-base font-bold text-ink-900">近期可直接報名的體驗場次</h2>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {result.events.map((ev) => (
-                    <EventCard key={ev.id} event={ev} />
-                  ))}
-                </div>
+          {result.events.length > 0 && (
+            <section className="space-y-3" aria-labelledby="onb-events">
+              <h2 id="onb-events" className="text-lg font-semibold text-ink-900">
+                近期可直接報名的體驗場次
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {result.events.map((ev) => (
+                  <EventCard key={ev.id} event={ev} />
+                ))}
               </div>
-            )}
-          </div>
-        )}
-      </div>
+            </section>
+          )}
+        </div>
+      )}
     </div>
   );
 }
