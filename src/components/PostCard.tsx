@@ -72,7 +72,7 @@ export function PostCard({
         )}
 
         {media && (
-          <Link href={`/posts/${card.id}`} onClick={handleCardClick} className="block">
+          <Link href={`/posts/${card.id}`} onClick={handleCardClick} className="block py-1">
             <h3 className="line-clamp-2 text-base font-semibold leading-snug text-ink-900 group-hover:underline group-hover:decoration-ink-300 group-hover:underline-offset-4">
               {card.headline}
             </h3>

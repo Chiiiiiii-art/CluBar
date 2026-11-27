@@ -7,6 +7,14 @@ import { ArrowRight, Film, KeyRound, Settings, Sparkles } from 'lucide-react';
 import type { ClubMemberRole, MediaItem, PostKind } from '@/db/schema';
 import { uploadShortVideo } from '@/lib/media/client-upload';
 import { ImageUploader } from '@/components/ImageUploader';
+import { ButtonLink, ClubMark, EmptyState, PageHeader } from '@/components/ui';
+
+const ROLE_LABELS: Partial<Record<ClubMemberRole, string>> = {
+  owner: '社長',
+  editor: '幹部',
+  member: '社員',
+  alumni: '校友',
+};
 
 export interface MyClubMembershipItem {
   clubId: string;
@@ -152,57 +160,45 @@ export function MyClubsClient({
 
   return (
     <div className="space-y-6">
-      {/* Membership Cards */}
-      <div className="rounded-xl border border-ink-300 bg-white p-6">
-        <h1 className="text-xl font-bold text-ink-900">我的聚｜社團切換與日常紀錄</h1>
-        <p className="mt-1 text-sm text-ink-600">
-          認證社員可直接發一篇社團日常；幹部可進入管理後台發起活動或整理評鑑資料。
-        </p>
+      <PageHeader title="我的聚" description="切換你的社團、發一則社團日常；幹部可以進管理頁辦活動。" />
 
-        {memberships.length === 0 ? (
-          <div className="mt-5 rounded-xl border border-dashed border-ink-300 bg-ink-100 p-6 text-center">
-            <p className="text-sm font-semibold text-ink-800">目前尚未加入任何認證社團</p>
-            <p className="mt-1 text-sm text-ink-600">
-              輸入幹部給的限時邀請碼，或至社團公開頁點擊申請加入認證社員。
-            </p>
-          </div>
-        ) : (
-          <div className="mt-5 grid gap-3">
-            {memberships.map((m) => (
-              <div
-                key={`${m.clubId}-${m.role}`}
-                className="flex flex-col justify-between gap-3 rounded-xl border border-line bg-ink-100 p-4 sm:flex-row sm:items-center"
-              >
-                <div>
-                  <span className="text-sm font-semibold text-ink-500">
-                    {m.universityShortName} · {m.role.toUpperCase()}
-                    {m.title ? `（${m.title}）` : ''}
-                  </span>
-                  <h2 className="text-base font-bold text-ink-900">{m.name}</h2>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  <Link
-                    href={`/clubs/${m.slug}`}
-                    className="inline-flex min-h-[40px] items-center gap-1 rounded-xl border border-ink-300 bg-white px-3.5 text-sm font-semibold text-ink-800"
+      {/* Memberships: one divided list, one primary action per row at most */}
+      {memberships.length === 0 ? (
+        <EmptyState
+          icon={<KeyRound />}
+          title="還沒加入任何社團"
+          description="輸入幹部給你的邀請碼，或到社團頁申請加入。"
+        />
+      ) : (
+        <ul className="divide-y divide-line rounded-xl border border-line bg-white">
+          {memberships.map((m) => {
+            const canManage = m.role === 'owner' || m.role === 'editor' || m.role === 'alumni';
+            return (
+              <li key={`${m.clubId}-${m.role}`} className="flex items-center gap-3 px-4 py-3 sm:px-5">
+                <ClubMark name={m.name} seed={m.slug} size="md" />
+                <Link href={`/clubs/${m.slug}`} className="min-w-0 flex-1 py-1 hover:underline">
+                  <p className="truncate text-base font-semibold text-ink-900">{m.name}</p>
+                  <p className="truncate text-sm text-ink-600">
+                    {m.universityShortName} · {m.title || ROLE_LABELS[m.role] || m.role}
+                  </p>
+                </Link>
+                {canManage ? (
+                  <ButtonLink
+                    href={`/clubs/${m.slug}/manage`}
+                    variant="secondary"
+                    size="sm"
+                    icon={<Settings className="h-4 w-4" aria-hidden="true" />}
                   >
-                    社團門面
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                  {(m.role === 'owner' || m.role === 'editor' || m.role === 'alumni') && (
-                    <Link
-                      href={`/clubs/${m.slug}/manage`}
-                      className="inline-flex min-h-[40px] items-center gap-1 rounded-xl bg-accent-600 px-3.5 text-sm font-semibold text-white"
-                    >
-                      <Settings className="h-3.5 w-3.5" />
-                      管理後台
-                    </Link>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+                    管理
+                  </ButtonLink>
+                ) : (
+                  <ArrowRight className="h-4 w-4 shrink-0 text-ink-400" aria-hidden="true" />
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
 
       {/* Invite Code Redeem */}
       <div className="rounded-xl border border-line bg-white p-6">

@@ -15,7 +15,7 @@ import {
 import { TOGETHER_ITEM_TYPE_LABELS } from '@/lib/constants';
 import type { PublicTogetherItemDTO } from '@/lib/serializers';
 
-import { Notice } from '@/components/ui';
+import { ChipRow, FilterChip, Notice, PageHeader, Tabs } from '@/components/ui';
 export interface TogetherJamDTO {
   id: string;
   title: string;
@@ -270,71 +270,31 @@ export function TogetherClient({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border border-ink-300 bg-white p-5 sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-accent-600" aria-hidden="true" />
-              <h1 className="text-xl font-bold text-ink-900">一起聚｜跨校同好舞台</h1>
-            </div>
-            <p className="mt-1 text-sm text-ink-600">
-              依興趣領域看跨校作品試玩、找友社合作，或向前輩請益。
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {(
-              [
-                ['stage', '作品試玩與接力', Compass],
-                ['jam', `跨校共創徵集 (${jams.length})`, Sparkles],
-                ['mentors', '前輩請益與筆記', BookOpen],
-              ] as const
-            ).map(([key, label, Icon]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => (key === 'mentors' ? openMentorsTab() : setSubTab(key))}
-                className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold ${
-                  subTab === key
-                    ? 'bg-accent-600 text-white'
-                    : 'border border-ink-300 bg-white text-ink-700 hover:bg-ink-50'
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" aria-hidden="true" />
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Domain Filter Chips */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setSelectedDomain('')}
-            className={`min-h-[44px] rounded-full px-3.5 text-sm font-semibold ${
-              !selectedDomain
-                ? 'bg-ink-900 text-white'
-                : 'bg-ink-100 text-ink-700 hover:bg-accent-100'
-            }`}
-          >
-            全部領域
-          </button>
+      <div className="space-y-4">
+        <PageHeader title="一起聚" description="跨校看同好作品、找友社合作，或向學長姐請益。" />
+        <Tabs
+          variant="underline"
+          label="一起聚分頁"
+          idPrefix="together"
+          value={subTab}
+          onChange={(key) => (key === 'mentors' ? openMentorsTab() : setSubTab(key))}
+          items={[
+            { id: 'stage', label: '作品與接力', icon: <Compass className="h-4 w-4" aria-hidden="true" /> },
+            { id: 'jam', label: `跨校合作（${jams.length}）`, icon: <Sparkles className="h-4 w-4" aria-hidden="true" /> },
+            { id: 'mentors', label: '請益與筆記', icon: <BookOpen className="h-4 w-4" aria-hidden="true" /> },
+          ]}
+        />
+        <ChipRow aria-label="興趣領域">
+          <FilterChip selected={!selectedDomain} onClick={() => setSelectedDomain('')}>
+            全部
+          </FilterChip>
           {domains.map((d) => (
-            <button
-              key={d.id}
-              type="button"
-              onClick={() => setSelectedDomain(d.id)}
-              className={`min-h-[44px] rounded-full px-3.5 text-sm font-semibold ${
-                selectedDomain === d.id
-                  ? 'bg-ink-900 text-white'
-                  : 'bg-ink-100 text-ink-700 hover:bg-accent-100'
-              }`}
-            >
-              #{d.name_zh}
-            </button>
+            <FilterChip key={d.id} selected={selectedDomain === d.id} onClick={() => setSelectedDomain(d.id)}>
+              {d.name_zh}
+            </FilterChip>
           ))}
-        </div>
-      </section>
+        </ChipRow>
+      </div>
 
       {msg && (
         <Notice tone="success">{msg}</Notice>

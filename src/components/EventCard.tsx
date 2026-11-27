@@ -78,7 +78,7 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
           {timeLabel}
         </p>
 
-        <Link href={href} onClick={track} className="block">
+        <Link href={href} onClick={track} className="block py-1">
           <h3 className="line-clamp-2 text-base font-semibold leading-snug text-ink-900 group-hover:underline group-hover:decoration-ink-300 group-hover:underline-offset-4">
             {event.title}
           </h3>

@@ -13,32 +13,32 @@ export const CLUB_CATEGORIES: Record<
   academic: {
     label: '學術',
     shortDesc: '程式、天文、語言、研究與專業技能',
-    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+    badgeClass: 'bg-accent-50 text-accent-700 border-accent-200',
   },
   arts: {
     label: '藝文',
     shortDesc: '攝影、音樂、設計、戲劇與文學創作',
-    badgeClass: 'bg-orange-50 text-orange-800 border-orange-200',
+    badgeClass: 'bg-accent-50 text-accent-800 border-accent-200',
   },
   recreation: {
     label: '康樂',
     shortDesc: '登山、露營、桌遊、手作與生活興趣',
-    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+    badgeClass: 'bg-warning-50 text-warning-800 border-warning-200',
   },
   sports: {
     label: '體育',
     shortDesc: '球類、武術、舞蹈運動與體能訓練',
-    badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    badgeClass: 'bg-success-50 text-success-800 border-success-200',
   },
   service: {
     label: '服務',
     shortDesc: '偏鄉教育、環境永續與社會公益',
-    badgeClass: 'bg-teal-50 text-teal-800 border-teal-200',
+    badgeClass: 'bg-success-50 text-success-800 border-success-200',
   },
   social: {
     label: '聯誼',
     shortDesc: '系友交流、跨校聯誼與國際文化',
-    badgeClass: 'bg-rose-50 text-rose-800 border-rose-200',
+    badgeClass: 'bg-danger-50 text-danger-800 border-danger-200',
   },
 };
 
@@ -78,10 +78,10 @@ export const DEFAULT_FAQ_TEMPLATES = [
 ] as const;
 
 export const POST_KIND_LABELS: Record<PostKind, { label: string; badgeClass: string }> = {
-  nrc_moment: { label: '社員日常', badgeClass: 'bg-orange-50 text-orange-800' },
-  wip_work: { label: '實作作品', badgeClass: 'bg-amber-50 text-amber-900' },
-  album_highlight: { label: '活動精選', badgeClass: 'bg-blue-50 text-blue-800' },
-  qa_highlight: { label: '問答精華', badgeClass: 'bg-emerald-50 text-emerald-800' },
+  nrc_moment: { label: '社員日常', badgeClass: 'bg-accent-50 text-accent-800' },
+  wip_work: { label: '實作作品', badgeClass: 'bg-warning-50 text-warning-900' },
+  album_highlight: { label: '活動精選', badgeClass: 'bg-accent-50 text-accent-800' },
+  qa_highlight: { label: '問答精華', badgeClass: 'bg-success-50 text-success-800' },
 };
 
 export const LEARNING_HOURS_LABELS: Record<LearningHoursCategory, string> = {
