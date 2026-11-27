@@ -833,7 +833,7 @@ export function getAiConfig() {
 4. **CSRF 與 Cookie 安全**：Auth.js 預設啟用 `HttpOnly`、`SameSite=Lax`、`Secure`（Production）。
 5. **資料庫連線池（Supabase + Vercel 關鍵坑位）**：
    - Runtime（`DATABASE_URL`）一律連線至 Supabase **Transaction Pooler（Port 6543）**（程式端 `postgres` 客戶端已強制傳入 `{ prepare: false }`），避免 Serverless 併發打爆 Postgres 連線上限。
-   - Migration（`DIRECT_URL`）透過 `npm run db:migrate`（`scripts/migrate.ts` 執行 `drizzle/0000_init.sql` 並記錄 `_clubar_migrations`，自動讀取 `.env.local`）執行；連線至 Supabase Direct Port 5432 或 **Session Pooler Port 5432**（IPv4 網路環境建議使用 Session Pooler，含 `pgvector` HNSW 與 `pg_trgm` GIN 自訂索引請以 SQL Migration 管理，勿用 `drizzle-kit push` 覆蓋）；本機離線開發亦附 `docker-compose.yml`（`pgvector/pgvector:pg16`）。
+   - Migration（`DIRECT_URL`）透過 `npm run db:migrate`（`scripts/migrate.ts` 執行 `drizzle/0000_init.sql` 並記錄 `_clubar_migrations`，自動讀取 `.env.local`）執行；連線至 Supabase Direct Port 5432 或 **Session Pooler Port 5432**（IPv4 網路環境建議使用 Session Pooler，含 `pgvector` HNSW 與 `pg_trgm` GIN 自訂索引請以 SQL Migration 管理，勿用 `drizzle-kit push` 覆蓋）。
 
 ### 8.3 環境變數清單（`.env.example` 契約）
 
