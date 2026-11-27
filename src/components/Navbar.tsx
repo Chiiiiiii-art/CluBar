@@ -2,21 +2,26 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  Compass,
-  Users,
-  Sparkles,
-  User,
-  LogIn,
-  ShieldCheck,
-  FolderHeart,
-} from 'lucide-react';
+import { Compass, Users, User, LogIn, ShieldCheck, FolderHeart, type LucideIcon } from 'lucide-react';
+import { ButtonLink, cn } from '@/components/ui';
 
 export interface NavbarUserProp {
   id: string;
   displayName: string;
   platformRole: 'user' | 'school_admin' | 'platform_admin';
   campusVerified: boolean;
+}
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+}
+
+/** Routes whose page carries its own sticky bottom action bar. */
+function hasOwnBottomBar(pathname: string) {
+  return pathname.startsWith('/e/');
 }
 
 export function Navbar({
@@ -26,84 +31,65 @@ export function Navbar({
   user: NavbarUserProp | null;
   unreadCount: number;
 }) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '/';
 
-  const isDiscover =
-    pathname === '/' ||
-    pathname.startsWith('/posts') ||
-    pathname.startsWith('/onboarding') ||
-    pathname.startsWith('/blend');
+  // "我的聚" is the user's own workspace; public club/event/post pages belong
+  // to discovery, so they keep "別的聚" highlighted.
+  const isMyClubs =
+    pathname.startsWith('/my-clubs') ||
+    pathname === '/clubs/apply' ||
+    /^\/clubs\/[^/]+\/(manage|evaluation)/.test(pathname);
   const isTogether = pathname.startsWith('/together');
-  const isMyClubs = pathname.startsWith('/my-clubs') || pathname.startsWith('/clubs');
-  const isMe =
-    pathname.startsWith('/me') || pathname.startsWith('/u/') || pathname.startsWith('/login');
+  const isMe = pathname.startsWith('/me') || pathname.startsWith('/u/') || pathname.startsWith('/login');
   const isAdmin = pathname.startsWith('/admin');
+  const isDiscover = !isMyClubs && !isTogether && !isMe && !isAdmin;
+
   const loginHref =
-    pathname && pathname !== '/login'
-      ? `/login?callbackUrl=${encodeURIComponent(pathname)}`
-      : '/login';
+    pathname && pathname !== '/login' ? `/login?callbackUrl=${encodeURIComponent(pathname)}` : '/login';
+
+  const items: NavItem[] = [
+    { href: '/', label: '別的聚', icon: Compass, active: isDiscover },
+    { href: '/together', label: '一起聚', icon: Users, active: isTogether },
+    { href: '/my-clubs', label: '我的聚', icon: FolderHeart, active: isMyClubs },
+  ];
 
   return (
     <>
       <header className="no-print sticky top-0 z-40 border-b border-line bg-white/90 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-6">
-            <Link
-              href="/"
-              className="flex min-h-[44px] items-center gap-2.5 font-bold tracking-tight text-ink-900"
-            >
-              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-600 text-white shadow-sm">
-                <Sparkles className="h-5 w-5" aria-hidden="true" />
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex min-h-11 items-center gap-2.5" aria-label="社團聚 CluBar 首頁">
+              <span
+                aria-hidden="true"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-900 text-base font-bold text-white"
+              >
+                聚
               </span>
-              <span className="flex flex-col leading-none">
-                <span className="text-base font-bold">社團聚</span>
-                <span className="text-xs font-medium text-ink-500">CluBar</span>
-              </span>
+              <span className="text-lg font-bold tracking-tight text-ink-900">社團聚</span>
             </Link>
 
             <nav className="hidden items-center gap-1 md:flex" aria-label="主導覽列">
-              <Link
-                href="/"
-                aria-current={isDiscover ? 'page' : undefined}
-                className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                  isDiscover
-                    ? 'bg-accent-100 text-accent-900'
-                    : 'text-ink-700 hover:bg-accent-50'
-                }`}
-              >
-                別的聚
-              </Link>
-              <Link
-                href="/together"
-                aria-current={isTogether ? 'page' : undefined}
-                className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                  isTogether
-                    ? 'bg-accent-100 text-accent-900'
-                    : 'text-ink-700 hover:bg-accent-50'
-                }`}
-              >
-                一起聚
-              </Link>
-              <Link
-                href="/my-clubs"
-                aria-current={isMyClubs ? 'page' : undefined}
-                className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                  isMyClubs
-                    ? 'bg-accent-100 text-accent-900'
-                    : 'text-ink-700 hover:bg-accent-50'
-                }`}
-              >
-                我的聚
-              </Link>
+              {items.map((it) => (
+                <Link
+                  key={it.href}
+                  href={it.href}
+                  aria-current={it.active ? 'page' : undefined}
+                  className={cn(
+                    'inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors',
+                    it.active ? 'bg-ink-100 text-ink-900' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900'
+                  )}
+                >
+                  {it.label}
+                </Link>
+              ))}
               {user?.platformRole === 'platform_admin' && (
                 <Link
                   href="/admin"
                   aria-current={isAdmin ? 'page' : undefined}
-                  className={`inline-flex min-h-[44px] items-center rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
-                    isAdmin
-                      ? 'bg-accent-100 text-accent-900'
-                      : 'text-accent-700 hover:bg-accent-50'
-                  }`}
+                  className={cn(
+                    'inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-medium transition-colors',
+                    isAdmin ? 'bg-ink-100 text-ink-900' : 'text-ink-600 hover:bg-ink-50 hover:text-ink-900'
+                  )}
                 >
                   平台治理
                 </Link>
@@ -116,85 +102,68 @@ export function Navbar({
               <Link
                 href="/me"
                 aria-current={isMe ? 'page' : undefined}
-                className="relative inline-flex min-h-[44px] items-center gap-2 rounded-xl border border-ink-300 bg-white px-3.5 py-2 text-sm font-semibold text-ink-900 shadow-xs transition-colors hover:bg-accent-50"
+                aria-label={unreadCount > 0 ? `${user.displayName}，${unreadCount} 則未讀通知` : undefined}
+                className="relative inline-flex min-h-11 items-center gap-2 rounded-full border border-line bg-white py-1 pr-3 pl-1 text-sm font-medium text-ink-900 transition-colors hover:border-ink-300"
               >
-                <User className="h-4 w-4 text-accent-600" aria-hidden="true" />
-                <span className="max-w-[120px] truncate">{user.displayName}</span>
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink-100 text-ink-700">
+                  <User className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <span className="hidden max-w-[120px] truncate sm:inline">{user.displayName}</span>
                 {user.campusVerified && (
-                  <ShieldCheck
-                    className="h-4 w-4 text-accent-600"
-                    aria-label="已完成校園驗證"
-                  />
+                  <ShieldCheck className="h-4 w-4 text-accent-600" aria-label="已完成校園驗證" />
                 )}
                 {unreadCount > 0 && (
-                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-600 px-1.5 text-xs font-bold text-white">
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger-600 px-1.5 text-xs font-semibold text-white">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
               </Link>
             ) : (
-              <Link
-                href={loginHref}
-                aria-current={isMe ? 'page' : undefined}
-                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl bg-accent-600 px-4 py-2 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-accent-700"
-              >
-                <LogIn className="h-4 w-4" aria-hidden="true" />
-                登入
-              </Link>
+              <div className="hidden md:block">
+                <ButtonLink
+                  href={loginHref}
+                  aria-current={isMe ? 'page' : undefined}
+                  icon={<LogIn className="h-4 w-4" aria-hidden="true" />}
+                >
+                  登入
+                </ButtonLink>
+              </div>
             )}
           </div>
         </div>
       </header>
 
-      {/* Mobile bottom 4-tab navigation (PRD v2 §3.2) */}
-      <nav
-        className="no-print fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-ink-300 bg-white/95 backdrop-blur md:hidden"
-        aria-label="行動版底部導覽"
-      >
-        <Link
-          href="/"
-          aria-current={isDiscover ? 'page' : undefined}
-          className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-xs font-semibold ${
-            isDiscover ? 'text-accent-600' : 'text-ink-600'
-          }`}
+      {/* Mobile bottom navigation (PRD v2 §3.2) */}
+      {!hasOwnBottomBar(pathname) && (
+        <nav
+          className="no-print fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-white/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+          aria-label="行動版底部導覽"
         >
-          <Compass className="h-5 w-5" aria-hidden="true" />
-          <span>別的聚</span>
-        </Link>
-        <Link
-          href="/together"
-          aria-current={isTogether ? 'page' : undefined}
-          className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-xs font-semibold ${
-            isTogether ? 'text-accent-600' : 'text-ink-600'
-          }`}
-        >
-          <Users className="h-5 w-5" aria-hidden="true" />
-          <span>一起聚</span>
-        </Link>
-        <Link
-          href="/my-clubs"
-          aria-current={isMyClubs ? 'page' : undefined}
-          className={`flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-xs font-semibold ${
-            isMyClubs ? 'text-accent-600' : 'text-ink-600'
-          }`}
-        >
-          <FolderHeart className="h-5 w-5" aria-hidden="true" />
-          <span>我的聚</span>
-        </Link>
-        <Link
-          href={user ? '/me' : loginHref}
-          aria-current={isMe ? 'page' : undefined}
-          className={`relative flex min-h-[56px] flex-col items-center justify-center gap-1 py-2 text-xs font-semibold ${
-            isMe ? 'text-accent-600' : 'text-ink-600'
-          }`}
-        >
-          <User className="h-5 w-5" aria-hidden="true" />
-          <span>{user ? '足跡與個人' : '登入'}</span>
-          {user && unreadCount > 0 && (
-            <span className="absolute top-2 right-6 h-2 w-2 rounded-full bg-accent-600" />
-          )}
-        </Link>
-      </nav>
+          {[
+            ...items,
+            { href: user ? '/me' : loginHref, label: user ? '我' : '登入', icon: user ? User : LogIn, active: isMe },
+          ].map((it) => {
+            const Icon = it.icon;
+            return (
+              <Link
+                key={it.label}
+                href={it.href}
+                aria-current={it.active ? 'page' : undefined}
+                className={cn(
+                  'relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium',
+                  it.active ? 'text-ink-900' : 'text-ink-500'
+                )}
+              >
+                <Icon className="h-5 w-5" strokeWidth={it.active ? 2.4 : 1.8} aria-hidden="true" />
+                <span>{it.label}</span>
+                {it.label === '我' && unreadCount > 0 && (
+                  <span className="absolute top-2 right-[calc(50%-14px)] h-2 w-2 rounded-full bg-danger-600" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+      )}
     </>
   );
 }

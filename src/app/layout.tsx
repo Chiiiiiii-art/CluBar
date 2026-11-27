@@ -5,6 +5,7 @@ import { db, isDatabaseConfigured } from '@/db';
 import { notifications } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { Navbar, type NavbarUserProp } from '@/components/Navbar';
+import { ConfirmProvider } from '@/components/ui/Dialog';
 import './globals.css';
 
 const notoSansTC = Noto_Sans_TC({
@@ -57,10 +58,12 @@ export default async function RootLayout({
   return (
     <html lang="zh-Hant" className={notoSansTC.variable}>
       <body className="min-h-screen bg-canvas text-ink-900">
+        <ConfirmProvider>
         <Navbar user={navUser} unreadCount={unreadCount} />
         <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-6xl px-4 pt-6 pb-24 sm:px-6 md:pb-12">
           {children}
         </main>
+        </ConfirmProvider>
       </body>
     </html>
   );
