@@ -114,7 +114,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             <Button variant="secondary" onClick={() => settle(false)}>
               {state?.cancelLabel ?? '取消'}
             </Button>
-            <Button variant={state?.tone === 'primary' ? 'primary' : 'danger'} onClick={() => settle(true)} autoFocus>
+            <Button variant={state?.tone === 'primary' ? 'primary' : 'danger'} onClick={() => settle(true)}>
               {state?.confirmLabel ?? '確定'}
             </Button>
           </>
