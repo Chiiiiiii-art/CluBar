@@ -28,6 +28,8 @@ import { uploadDualAlbumPhoto } from '@/lib/media/client-upload';
 import type { EventFullViewDTO } from '@/lib/services/events';
 import { ImageUploader } from '@/components/ImageUploader';
 import { MarkdownView } from '@/components/MarkdownView';
+import { Badge, Button, ButtonLink, ClubMark, Notice, buttonClasses } from '@/components/ui';
+import { realMediaUrl } from '@/lib/media/placeholder';
 
 function formatUtcStamp(iso: string): string {
   return new Date(iso).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
@@ -159,7 +161,6 @@ export function EventPageClient({
   const { detail, poll_options, comments, album_photos, pending_album_photos, viewer_rsvp, permissions } =
     data;
   const theme = EVENT_THEME_PRESETS[detail.theme_preset] ?? EVENT_THEME_PRESETS.warm_paper;
-  const isDarkTheme = detail.theme_preset === 'midnight_jam';
 
   const campusRestricted =
     detail.campus_only &&
@@ -537,98 +538,85 @@ export function EventPageClient({
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 pb-24 md:pb-12">
-      {/* Status Banner */}
       {detail.status === 'cancelled' && (
-        <div className="rounded-xl border border-danger-300 bg-danger-50 px-4 py-3 text-sm font-semibold text-danger-800">
-          此活動已取消（ICS 版次 v.{detail.ics_sequence} 已標記 CANCELLED）。
-        </div>
+        <Notice tone="danger" title="此活動已取消">
+          行事曆版次 v.{detail.ics_sequence} 已標記取消。
+        </Notice>
       )}
+      {statusMessage && <Notice tone="success">{statusMessage}</Notice>}
+      {errorMessage && <Notice tone="danger">{errorMessage}</Notice>}
 
-      {statusMessage && (
-        <div className="rounded-xl border border-success-200 bg-success-50 px-4 py-3 text-sm font-semibold text-success-800">
-          {statusMessage}
+      {/* Hero: cover first on mobile, title + key facts beside it on desktop */}
+      <section className="grid gap-6 md:grid-cols-12 md:items-start md:gap-8">
+        <div className="md:order-2 md:col-span-5">
+          {realMediaUrl(detail.cover_media?.url) ? (
+            <div
+              className="overflow-hidden rounded-xl bg-ink-100"
+              style={{ aspectRatio: String(coverRatio) }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={detail.cover_media!.url}
+                alt={detail.cover_media!.alt || detail.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          ) : (
+            <div
+              className={`flex aspect-video items-end rounded-xl bg-gradient-to-br p-5 ${theme.gradientClass}`}
+            >
+              <ClubMark name={detail.club.name} seed={detail.club.id} size="lg" />
+            </div>
+          )}
         </div>
-      )}
-      {errorMessage && (
-        <div className="rounded-xl border border-danger-200 bg-danger-50 px-4 py-3 text-sm font-semibold text-danger-800">
-          {errorMessage}
-        </div>
-      )}
 
-      {/* Hero Poster & Host Header */}
-      <section
-        className={`overflow-hidden rounded-xl border border-ink-300 bg-gradient-to-br ${theme.gradientClass} shadow-sm`}
-      >
-        <div className="grid gap-6 p-6 md:grid-cols-12 md:p-8">
-          <div className="space-y-4 md:col-span-7">
-            <div className="flex flex-wrap items-center gap-2">
+        <div className="space-y-5 md:order-1 md:col-span-7">
+          <div className="space-y-3">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
               <Link
                 href={`/clubs/${detail.club.slug}`}
-                className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold ${
-                  isDarkTheme
-                    ? 'bg-white/15 text-white hover:bg-white/25'
-                    : 'bg-white/90 text-ink-900 hover:bg-white'
-                }`}
+                className="inline-flex min-h-8 items-center font-medium text-ink-700 hover:text-ink-900 hover:underline"
               >
-                {detail.club.university_short_name} · {detail.club.name}
+                {detail.club.name}
+                <span className="ml-1 font-normal text-ink-500">· {detail.club.university_short_name}</span>
               </Link>
               {detail.co_host_clubs.map((co) => (
                 <Link
                   key={co.id}
                   href={`/clubs/${co.slug}`}
-                  className="inline-flex items-center gap-1 rounded-full border border-accent-300 bg-white/90 px-2.5 py-0.5 text-sm font-semibold text-accent-800"
+                  className="inline-flex min-h-8 items-center text-ink-600 hover:text-ink-900 hover:underline"
                 >
-                  <Sparkles className="h-3 w-3" aria-hidden="true" />
-                  Co-Club 共辦｜{co.university_short_name} {co.name}
+                  × {co.name}
                 </Link>
               ))}
             </div>
+            <h1 className="text-2xl font-bold text-ink-900 sm:text-3xl">{detail.title}</h1>
+            {detail.summary && <p className="text-base text-ink-600">{detail.summary}</p>}
+          </div>
 
-            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{detail.title}</h1>
-            {detail.summary && (
-              <p className={`text-sm leading-relaxed ${isDarkTheme ? 'text-ink-200' : 'text-ink-700'}`}>
-                {detail.summary}
-              </p>
-            )}
-
-            <div className="space-y-2 pt-1 text-sm font-medium">
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span>
-                  {formatDisplayTime(detail.starts_at)}
-                  {detail.ics_sequence > 0 && (
-                    <span className="ml-2 rounded-full bg-black/10 px-2 py-0.5 text-xs">
-                      已更新 v.{detail.ics_sequence}
-                    </span>
-                  )}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-                <span>{detail.location_text}</span>
-              </div>
+          <dl className="divide-y divide-line rounded-xl border border-line bg-white">
+            <div className="flex items-start gap-3 px-4 py-3">
+              <dt className="mt-0.5">
+                <Clock className="h-5 w-5 text-ink-500" aria-hidden="true" />
+                <span className="sr-only">時間</span>
+              </dt>
+              <dd className="text-base font-medium text-ink-900">
+                {formatDisplayTime(detail.starts_at)}
+                {detail.ics_sequence > 0 && (
+                  <span className="ml-2 align-middle">
+                    <Badge tone="warning">時間已更新</Badge>
+                  </span>
+                )}
+              </dd>
             </div>
-          </div>
-
-          <div className="md:col-span-5">
-            {detail.cover_media ? (
-              <div
-                className="overflow-hidden rounded-xl border border-black/10 bg-white/60 shadow-sm"
-                style={{ aspectRatio: String(coverRatio) }}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={detail.cover_media.url}
-                  alt={detail.cover_media.alt || detail.title}
-                  className="h-full w-full object-cover"
-                />
-              </div>
-            ) : (
-              <div className="flex aspect-video items-center justify-center rounded-xl border border-dashed border-black/15 bg-white/40 p-6 text-center text-sm font-semibold">
-                {theme.label} 主題卡片
-              </div>
-            )}
-          </div>
+            <div className="flex items-start gap-3 px-4 py-3">
+              <dt className="mt-0.5">
+                <MapPin className="h-5 w-5 text-ink-500" aria-hidden="true" />
+                <span className="sr-only">地點</span>
+              </dt>
+              <dd className="text-base font-medium text-ink-900">{detail.location_text}</dd>
+            </div>
+          </dl>
         </div>
       </section>
 
@@ -636,37 +624,37 @@ export function EventPageClient({
       <div className="grid gap-6 md:grid-cols-12">
         <div className="space-y-6 md:col-span-7">
           {/* Beginner Checklist */}
-          <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
-            <h2 className="text-base font-bold text-ink-900">新手參與門檻與認證資訊</h2>
+          <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+            <h2 className="text-lg font-semibold text-ink-900">參加條件</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               <span
-                className={`rounded-full px-3 py-1 text-sm font-bold ${
+                className={`rounded-md px-2.5 py-1 text-sm font-medium ${
                   detail.beginner_friendly
                     ? 'bg-success-50 text-success-800 border border-success-200'
                     : 'bg-ink-100 text-ink-700'
                 }`}
               >
-                {detail.beginner_friendly ? '✓ 零基礎友善（無經驗可）' : '建議具備基礎'}
+                {detail.beginner_friendly ? '零基礎可' : '建議有基礎'}
               </span>
               <span
-                className={`rounded-full px-3 py-1 text-sm font-bold ${
+                className={`rounded-md px-2.5 py-1 text-sm font-medium ${
                   detail.non_members_welcome
                     ? 'bg-accent-50 text-accent-800 border border-accent-200'
                     : 'bg-ink-100 text-ink-700'
                 }`}
               >
-                {detail.non_members_welcome ? '✓ 非社員歡迎直接體驗' : '限入社社員參加'}
+                {detail.non_members_welcome ? '非社員可參加' : '限社員'}
               </span>
-              <span className="rounded-full border border-accent-200 bg-accent-50 px-3 py-1 text-sm font-semibold text-accent-800">
-                {detail.fee_ntd > 0 ? `費用 NT$ ${detail.fee_ntd}` : '✓ 免費參與'}
+              <span className="rounded-md border border-accent-200 bg-accent-50 px-2.5 py-1 text-sm font-medium text-accent-800">
+                {detail.fee_ntd > 0 ? `NT$ ${detail.fee_ntd}` : '免費'}
               </span>
               {detail.learning_hours_category !== 'none' && detail.learning_hours_count > 0 && (
-                <span className="rounded-full border border-warning-200 bg-warning-50 px-3 py-1 text-sm font-semibold text-warning-900">
-                  ★ {LEARNING_HOURS_LABELS[detail.learning_hours_category]} {detail.learning_hours_count} 小時
+                <span className="rounded-md border border-warning-200 bg-warning-50 px-2.5 py-1 text-sm font-medium text-warning-900">
+                  {LEARNING_HOURS_LABELS[detail.learning_hours_category]} {detail.learning_hours_count} 小時
                 </span>
               )}
               {detail.campus_only && (
-                <span className="rounded-full border border-ink-300 bg-ink-100 px-3 py-1 text-sm font-semibold text-ink-800">
+                <span className="rounded-md border border-ink-300 bg-ink-100 px-2.5 py-1 text-sm font-medium text-ink-800">
                   校內限定（須驗證 {detail.club.university_short_name} .edu.tw）
                 </span>
               )}
@@ -684,9 +672,9 @@ export function EventPageClient({
 
           {/* Find a Time / Poll Section */}
           {(detail.schedule_mode !== 'scheduled' || poll_options.length > 0) && (
-            <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
+            <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-bold text-ink-900">
+                <h2 className="text-lg font-semibold text-ink-900">
                   {detail.schedule_mode === 'voting' ? '一起喬時間／選主題投票' : '活動時段／主題投票'}
                 </h2>
                 <span className="rounded-full bg-accent-50 px-2.5 py-0.5 text-sm font-semibold text-accent-600">
@@ -766,8 +754,8 @@ export function EventPageClient({
 
           {/* Description */}
           {detail.description_md && (
-            <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
-              <h2 className="text-base font-bold text-ink-900">活動詳細介紹</h2>
+            <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+              <h2 className="text-lg font-semibold text-ink-900">活動詳細介紹</h2>
               <div className="mt-3">
                 <MarkdownView content={detail.description_md} />
               </div>
@@ -778,8 +766,8 @@ export function EventPageClient({
         {/* Right Column: RSVP, Attendees, Calendar Sync */}
         <div id="rsvp-section" className="space-y-6 md:col-span-5">
           {/* RSVP Card */}
-          <section className="rounded-xl border border-ink-300 bg-white p-6 shadow-sm">
-            <h2 className="text-base font-bold text-ink-900">報名這場活動</h2>
+          <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
+            <h2 className="text-lg font-semibold text-ink-900">報名這場活動</h2>
             <p className="mt-1 text-sm text-ink-600">
               {detail.capacity
                 ? `目前 ${detail.going_count} / ${detail.capacity} 人報名`
@@ -911,7 +899,7 @@ export function EventPageClient({
           </section>
 
           {/* Public Attendees (strictly hiding private_count_only) */}
-          <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
+          <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
             <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
               <Users className="h-4 w-4 text-accent-600" aria-hidden="true" />
               同行夥伴名單（{detail.going_count}）
@@ -928,7 +916,7 @@ export function EventPageClient({
                 {detail.public_attendees.map((person, idx) => (
                   <span
                     key={`${person.display_name}-${idx}`}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-line bg-ink-50 px-3 py-1 text-sm font-semibold text-ink-800"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-line bg-ink-50 px-2.5 py-1 text-sm font-medium text-ink-800"
                   >
                     <span className="flex h-4 w-4 items-center justify-center rounded-full bg-accent-200 text-xs font-bold text-accent-950">
                       {person.display_name.slice(0, 1)}
@@ -946,7 +934,7 @@ export function EventPageClient({
           </section>
 
           {/* Calendar Sync & Push */}
-          <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
+          <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
             <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
               <CalendarPlus className="h-4 w-4 text-accent-600" aria-hidden="true" />
               加入行事曆與行前通知
@@ -1234,7 +1222,7 @@ export function EventPageClient({
       )}
 
       {/* Event Comments (Participants & Officers) */}
-      <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
         <h2 className="flex items-center gap-2 text-base font-bold text-ink-900">
           <MessageSquare className="h-4 w-4 text-accent-600" aria-hidden="true" />
           共乘／道具／出發前留言板（{comments.length}）
@@ -1291,10 +1279,10 @@ export function EventPageClient({
       </section>
 
       {/* Post-Event Dual-Variant Lossless Album */}
-      <section className="rounded-xl border border-line bg-white p-6 shadow-sm">
+      <section className="rounded-xl border border-line bg-white p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-bold text-ink-900">
+            <h2 className="text-lg font-semibold text-ink-900">
               活動無損共編相簿（{album_photos.length}）
             </h2>
             <p className="text-sm text-ink-600">
@@ -1407,45 +1395,36 @@ export function EventPageClient({
         )}
       </section>
 
-      {/* Mobile Sticky Bottom RSVP Bar (Luma Pattern) */}
-      <div className="no-print fixed inset-x-0 bottom-[57px] z-30 border-t border-ink-300 bg-white/95 px-4 py-2.5 backdrop-blur md:hidden">
+      {/* Mobile sticky RSVP bar (bottom nav is hidden on event pages) */}
+      <div className="no-print fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur md:hidden">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-3">
-          <div className="min-w-0 text-sm">
-            <p className="truncate font-bold text-ink-900">{detail.title}</p>
-            <p className="text-xs text-ink-600">
-              {detail.fee_ntd === 0 ? '免費' : `NT$${detail.fee_ntd}`} · 已有 {detail.going_count} 人報名
+          <div className="min-w-0">
+            <p className="text-base font-semibold text-ink-900">
+              {detail.fee_ntd === 0 ? '免費' : `NT$${detail.fee_ntd}`}
             </p>
+            <p className="text-sm text-ink-600">{detail.going_count} 人已報名</p>
           </div>
           {!viewer.isLoggedIn ? (
-            <Link
-              href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`}
-              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-accent-600 px-4 text-sm font-semibold text-white"
-            >
+            <ButtonLink href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`} size="lg">
               登入報名
-            </Link>
+            </ButtonLink>
           ) : campusRestricted ? (
-            <Link
-              href={`/me?returnTo=${encodeURIComponent(`/e/${detail.short_code}`)}`}
-              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-warning-900 px-4 text-sm font-semibold text-white"
-            >
-              去驗學校信箱
-            </Link>
+            <ButtonLink href={`/me?returnTo=${encodeURIComponent(`/e/${detail.short_code}`)}`} size="lg" variant="secondary">
+              先驗證學校信箱
+            </ButtonLink>
           ) : viewer_rsvp?.status === 'going' ? (
-            <a
-              href="#rsvp-section"
-              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-success-600 px-4 text-sm font-semibold text-white"
-            >
-              ✓ 已報名
+            <a href="#rsvp-section" className={buttonClasses({ size: 'lg', variant: 'soft' })}>
+              <Check className="h-4 w-4" aria-hidden="true" />
+              已報名
             </a>
           ) : (
-            <button
-              type="button"
+            <Button
+              size="lg"
               disabled={busyAction !== null || detail.status === 'cancelled'}
               onClick={() => handleRsvp('going')}
-              className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-accent-600 px-5 text-sm font-semibold text-white disabled:opacity-50"
             >
               我要參加
-            </button>
+            </Button>
           )}
         </div>
       </div>

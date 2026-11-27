@@ -22,6 +22,8 @@ import { formatTaipeiDate, formatTaipeiDateTime } from '@/lib/academic-year';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { CLUB_CATEGORIES, POST_KIND_LABELS } from '@/lib/constants';
 import { computeClubPulse } from '@/lib/discovery/fairness';
+import { Badge, ClubMark } from '@/components/ui';
+import { realMediaUrl } from '@/lib/media/placeholder';
 import {
   clampedAspectRatio,
   serializePublicClub,
@@ -175,75 +177,77 @@ export default async function ClubPublicPage({
         </div>
       )}
 
-      <section className="overflow-hidden rounded-xl border border-ink-300 bg-white shadow-xs">
-        <div className="h-36 w-full overflow-hidden bg-ink-100 sm:h-48">
-          <img
-            src={publicClub.cover_url || '/images/demo/cover.svg'}
-            alt={`${publicClub.name} 封面`}
-            className="h-full w-full object-cover"
-          />
-        </div>
-        <div className="p-5 sm:p-7">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-ink-100 px-3 py-0.5 text-sm font-semibold text-ink-800">
-                  {publicClub.university.name}
-                </span>
-                <span
-                  className={`rounded-full border px-3 py-0.5 text-sm font-semibold ${categoryMeta.badgeClass}`}
-                >
-                  {categoryMeta.label}
-                </span>
+      <section className="space-y-6">
+        {realMediaUrl(publicClub.cover_url) && (
+          <div className="h-40 w-full overflow-hidden rounded-xl bg-ink-100 sm:h-56">
+            <img
+              src={publicClub.cover_url!}
+              alt={`${publicClub.name} 封面`}
+              className="h-full w-full object-cover"
+            />
+          </div>
+        )}
+
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 items-start gap-4">
+            {realMediaUrl(publicClub.avatar_url) ? (
+              <img
+                src={publicClub.avatar_url!}
+                alt=""
+                className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-20 sm:w-20"
+              />
+            ) : (
+              <ClubMark name={publicClub.name} seed={publicClub.slug} size="lg" className="sm:h-20 sm:w-20 sm:text-3xl" />
+            )}
+            <div className="min-w-0 space-y-1.5">
+              <h1 className="text-2xl font-bold text-ink-900 sm:text-3xl">{publicClub.name}</h1>
+              <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-ink-600">
+                <span>{publicClub.university.name}</span>
+                <span aria-hidden="true">·</span>
+                <span>{categoryMeta.label}</span>
                 {publicClub.verification_status === 'verified' ? (
                   <>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-accent-50 px-3 py-0.5 text-sm font-semibold text-accent-700">
-                      <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                      官方認證社團
+                    <span aria-hidden="true">·</span>
+                    <span className="inline-flex items-center gap-1 text-accent-700">
+                      <BadgeCheck className="h-4 w-4" aria-hidden="true" />
+                      官方認證
                     </span>
-                    <span className="rounded-full bg-success-50 px-3 py-0.5 text-sm font-semibold text-success-700">
-                      {publicClub.pulse_label}
-                    </span>
+                    {publicClub.pulse_label && (
+                      <span className="inline-flex items-center gap-1 text-ink-500">
+                        <span className="h-1.5 w-1.5 rounded-full bg-success-500" aria-hidden="true" />
+                        {publicClub.pulse_label}
+                      </span>
+                    )}
                   </>
                 ) : (
-                  <span className="rounded-full bg-warning-100 px-3 py-0.5 text-sm font-semibold text-warning-900">
-                    待認領校方名錄
-                  </span>
+                  <Badge tone="warning">待認領</Badge>
                 )}
-              </div>
-              <h1 className="text-2xl font-bold text-ink-900 sm:text-3xl">
-                {publicClub.name}
-              </h1>
-              {publicClub.tagline && (
-                <p className="text-sm font-medium text-ink-700 sm:text-base">
-                  {publicClub.tagline}
-                </p>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              <FollowButton
-                clubId={publicClub.id}
-                initialFollowed={isFollowed}
-                initialMode={followMode}
-                isLoggedIn={Boolean(currentUser)}
-              />
-              <ShareButton />
-              <ReportModal
-                targetType="club"
-                targetId={publicClub.id}
-                isLoggedIn={Boolean(currentUser)}
-              />
+              </p>
             </div>
           </div>
 
-          {publicClub.description && (
-            <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-ink-700">
-              {publicClub.description}
-            </p>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <FollowButton
+              clubId={publicClub.id}
+              initialFollowed={isFollowed}
+              initialMode={followMode}
+              isLoggedIn={Boolean(currentUser)}
+            />
+            <ShareButton />
+            <ReportModal targetType="club" targetId={publicClub.id} isLoggedIn={Boolean(currentUser)} />
+          </div>
+        </div>
 
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-4">
+        {(publicClub.tagline || publicClub.description) && (
+          <div className="max-w-3xl space-y-2">
+            {publicClub.tagline && <p className="text-lg font-medium text-ink-900">{publicClub.tagline}</p>}
+            {publicClub.description && (
+              <p className="whitespace-pre-line text-base text-ink-700">{publicClub.description}</p>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
             <ClubOfficialLinks
               clubId={publicClub.id}
               links={
@@ -277,22 +281,21 @@ export default async function ClubPublicPage({
                 <span>社團管理後台</span>
               </Link>
             )}
-          </div>
         </div>
       </section>
 
       {eventRows.length > 0 && (
-        <section className="rounded-xl border border-accent-200 bg-accent-50/60 p-5 sm:p-6">
+        <section>
           <div className="mb-3 flex items-center gap-2">
             <Calendar className="h-5 w-5 text-accent-700" aria-hidden="true" />
-            <h2 className="text-lg font-bold text-ink-900">近期可參加體驗活動</h2>
+            <h2 className="text-lg font-semibold text-ink-900">近期活動</h2>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {eventRows.map((ev) => (
               <Link
                 key={ev.id}
                 href={`/e/${ev.shortCode}`}
-                className="flex flex-col justify-between gap-2 rounded-xl border border-accent-200/80 bg-white p-4 shadow-xs hover:border-accent-400"
+                className="flex flex-col justify-between gap-2 rounded-xl border border-line bg-white p-4 transition-colors hover:border-ink-300"
               >
                 <h3 className="text-sm font-semibold text-ink-900">{ev.title}</h3>
                 <div className="flex flex-wrap gap-2 text-sm text-ink-600">
