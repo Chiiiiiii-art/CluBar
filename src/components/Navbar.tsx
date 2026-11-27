@@ -59,12 +59,14 @@ export function Navbar({
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-center gap-8">
             <Link href="/" className="flex min-h-11 items-center gap-2.5" aria-label="社團聚 CluBar 首頁">
-              <span
-                aria-hidden="true"
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink-900 text-base font-bold text-white"
-              >
-                聚
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/brand/clubar-mark.png"
+                alt=""
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-lg"
+              />
               <span className="text-lg font-bold tracking-tight text-ink-900">社團聚</span>
             </Link>
 
