@@ -7,6 +7,7 @@ import {
   ilike,
   inArray,
   lte,
+  ne,
   notInArray,
   or,
   sql,
@@ -288,6 +289,7 @@ export async function getDiscoverEvents(params: {
   domainId?: string;
   dateRange?: 'this_week' | 'this_month' | 'all';
   hoursType?: LearningHoursCategory;
+  hasHours?: boolean;
   freeOnly?: boolean;
   beginnerOnly?: boolean;
   nonMemberOnly?: boolean;
@@ -315,6 +317,8 @@ export async function getDiscoverEvents(params: {
   }
   if (params.hoursType && params.hoursType !== 'none') {
     conditions.push(eq(clubEvents.learningHoursCategory, params.hoursType));
+  } else if (params.hasHours) {
+    conditions.push(ne(clubEvents.learningHoursCategory, 'none'));
   }
   if (params.freeOnly) conditions.push(eq(clubEvents.feeNtd, 0));
   if (params.beginnerOnly) conditions.push(eq(clubEvents.beginnerFriendly, true));

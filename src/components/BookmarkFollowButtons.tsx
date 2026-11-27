@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Bookmark, Heart } from 'lucide-react';
 import type { FollowMode } from '@/db/schema';
 
+import { controlClasses } from '@/components/ui';
 const FOLLOW_MODE_LABELS: Record<FollowMode, string> = {
   all: '全動態追蹤中',
   events_only: '只追活動中',
@@ -52,10 +53,10 @@ export function BookmarkButton({
       type="button"
       disabled={pending}
       onClick={toggle}
-      className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border px-3.5 py-2 text-xs font-semibold transition-colors ${
+      className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-semibold transition-colors ${
         bookmarked
-          ? 'border-[var(--primary)] bg-orange-50 text-[var(--primary)]'
-          : 'border-[var(--border-strong)] bg-white text-slate-700 hover:bg-orange-50'
+          ? 'border-accent-600 bg-accent-50 text-accent-600'
+          : 'border-ink-300 bg-white text-ink-700 hover:bg-accent-50'
       }`}
     >
       <Bookmark className={`h-3.5 w-3.5 ${bookmarked ? 'fill-current' : ''}`} aria-hidden="true" />
@@ -111,8 +112,8 @@ export function FollowButton({
         onClick={() => toggle()}
         className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
           followed
-            ? 'border border-[var(--primary)] bg-orange-50 text-[var(--primary)]'
-            : 'bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)]'
+            ? 'border border-accent-600 bg-accent-50 text-accent-600'
+            : 'bg-accent-600 text-white hover:bg-accent-700'
         }`}
       >
         <Heart className={`h-4 w-4 ${followed ? 'fill-current' : ''}`} aria-hidden="true" />
@@ -124,7 +125,7 @@ export function FollowButton({
           disabled={pending}
           value={followMode}
           onChange={(e) => toggle(e.target.value as FollowMode)}
-          className="min-h-[44px] rounded-xl border border-[var(--border-strong)] bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+          className={`${controlClasses} min-h-11`}
         >
           <option value="all">只看：全動態</option>
           <option value="events_only">只看：新活動</option>

@@ -23,9 +23,9 @@ export default async function AdminPage() {
 
   if (user.platformRole !== 'platform_admin') {
     return (
-      <div className="mx-auto max-w-lg rounded-3xl border border-red-200 bg-white p-8 text-center">
-        <h1 className="text-lg font-extrabold text-slate-900">僅限平台管理員存取</h1>
-        <p className="mt-2 text-sm text-slate-600">
+      <div className="mx-auto max-w-lg rounded-xl border border-danger-200 bg-white p-8 text-center">
+        <h1 className="text-lg font-bold text-ink-900">僅限平台管理員存取</h1>
+        <p className="mt-2 text-sm text-ink-600">
           您的帳號目前不是平台管理員（platform_admin）。
         </p>
       </div>

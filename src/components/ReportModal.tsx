@@ -6,6 +6,7 @@ import { Flag, X } from 'lucide-react';
 import type { ReportReason, ReportTargetType } from '@/db/schema';
 import { REPORT_REASONS } from '@/lib/constants';
 
+import { buttonClasses, controlClasses } from '@/components/ui';
 export function ReportModal({
   targetType,
   targetId,
@@ -69,7 +70,7 @@ export function ReportModal({
       <button
         type="button"
         onClick={handleOpen}
-        className="inline-flex items-center gap-1.5 rounded-xl border border-[var(--border-strong)] bg-white px-3 py-2 text-xs font-semibold text-slate-600 transition-colors hover:bg-red-50 hover:text-red-700"
+        className={buttonClasses({ variant: 'secondary', size: 'md' })}
       >
         <Flag className="h-3.5 w-3.5" aria-hidden="true" />
         <span>{buttonLabel}</span>
@@ -77,19 +78,19 @@ export function ReportModal({
 
       {open && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/50 p-4"
           role="dialog"
           aria-modal="true"
           aria-label="檢舉違規內容"
         >
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
-              <h3 className="text-base font-bold text-slate-900">回報違規或侵權內容</h3>
+          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+            <div className="flex items-center justify-between border-b border-line pb-3">
+              <h3 className="text-base font-bold text-ink-900">回報違規或侵權內容</h3>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="關閉視窗"
-                className="rounded-lg p-1 text-slate-500 hover:bg-slate-100"
+                className="rounded-lg p-1 text-ink-500 hover:bg-ink-100"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -97,13 +98,13 @@ export function ReportModal({
 
             {done ? (
               <div className="mt-4 space-y-4">
-                <p className="rounded-xl bg-emerald-50 p-4 text-sm font-medium text-emerald-900">
+                <p className="rounded-xl bg-success-50 p-4 text-sm font-medium text-success-900">
                   已收到您的檢舉回報，平台管理員將會儘速檢視並依法規與社群守則處置。
                 </p>
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="w-full rounded-xl bg-[var(--primary)] py-2.5 text-sm font-semibold text-white hover:bg-[var(--primary-hover)]"
+                  className={buttonClasses({ variant: 'primary', size: 'md', className: 'w-full' })}
                 >
                   完成
                 </button>
@@ -111,13 +112,13 @@ export function ReportModal({
             ) : (
               <form onSubmit={handleSubmit} className="mt-4 space-y-4">
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+                  <label htmlFor="report-reason" className="mb-1.5 block text-sm font-semibold text-ink-700">
                     檢舉原因
                   </label>
-                  <select
+                  <select id="report-reason"
                     value={reason}
                     onChange={(e) => setReason(e.target.value as ReportReason)}
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900"
+                    className={`${controlClasses} min-h-11 w-full`}
                   >
                     {Object.entries(REPORT_REASONS).map(([k, v]) => (
                       <option key={k} value={k}>
@@ -128,21 +129,21 @@ export function ReportModal({
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-slate-700">
+                  <label htmlFor="report-detail" className="mb-1.5 block text-sm font-semibold text-ink-700">
                     補充說明（選填）
                   </label>
-                  <textarea
+                  <textarea id="report-detail"
                     rows={3}
                     maxLength={1000}
                     value={detail}
                     onChange={(e) => setDetail(e.target.value)}
                     placeholder="請簡述問題所在或佐證連結，利於管理員快速判讀。"
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900"
+                    className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
                   />
                 </div>
 
                 {error && (
-                  <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-medium text-red-700">
+                  <p className="rounded-xl bg-danger-50 px-3 py-2 text-sm font-medium text-danger-700">
                     {error}
                   </p>
                 )}
@@ -151,14 +152,14 @@ export function ReportModal({
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    className="rounded-xl border border-ink-300 px-4 py-2 text-sm font-semibold text-ink-700 hover:bg-ink-50"
                   >
                     取消
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                    className={buttonClasses({ variant: 'danger', size: 'md' })}
                   >
                     {submitting ? '送出中...' : '送出檢舉'}
                   </button>

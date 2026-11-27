@@ -7,3 +7,6 @@ out
 npm-debug.log*
 tsconfig.tsbuildinfo
 .DS_Store
+
+.vercel
+.env*

@@ -43,9 +43,17 @@ export default async function EventDetailPage({
     notFound();
   }
 
+  const hasEntra = Boolean(
+    process.env.AUTH_MICROSOFT_ENTRA_ID_ID && process.env.AUTH_MICROSOFT_ENTRA_ID_SECRET
+  );
+  const hasGoogle = Boolean(process.env.AUTH_GOOGLE_ID && process.env.AUTH_GOOGLE_SECRET);
+  const enableDevLogin =
+    process.env.NODE_ENV !== 'production' && process.env.ENABLE_DEV_LOGIN === 'true';
+
   return (
     <EventPageClient
       initialData={view}
+      authProviders={{ hasEntra, hasGoogle, enableDevLogin }}
       viewer={
         viewer
           ? {

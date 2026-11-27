@@ -36,9 +36,26 @@ export const safeExternalUrlSchema = z
     }
   }, '連結僅支援 https://、http:// 或 mailto: 格式。');
 
+export function sanitizeInternalPath(raw?: string | null, fallback = '/'): string {
+  if (!raw || typeof raw !== 'string') return fallback;
+  const trimmed = raw.trim();
+  if (
+    !trimmed.startsWith('/') ||
+    trimmed.startsWith('//') ||
+    trimmed.includes('\\') ||
+    trimmed.startsWith('/\\')
+  ) {
+    return fallback;
+  }
+  return trimmed;
+}
+
 export function isAllowedMediaUrl(val: string): boolean {
-  if (val.startsWith('/images/demo/') && !val.includes('..')) {
-    return /^\/images\/demo\/[a-zA-Z0-9._-]+$/.test(val);
+  if (
+    (val.startsWith('/images/demo/') || val.startsWith('/images/examples/')) &&
+    !val.includes('..')
+  ) {
+    return /^\/images\/(demo|examples)\/[a-zA-Z0-9._-]+$/.test(val);
   }
   const base = process.env.AZURE_STORAGE_PUBLIC_BASE_URL?.trim().replace(/\/+$/, '');
   if (base && val.startsWith(`${base}/`)) {
@@ -223,6 +240,52 @@ export function isBootstrapAdminAccount(params: {
     params.campusVerifiedAt &&
     params.campusEmail &&
     admins.has(params.campusEmail.trim().toLowerCase())
+  ) {
+    return true;
+  }
+  return false;
+}
+
+const EVENT_INTENT_RE =
+  /(報名|招生|迎新|說明會|體驗課|工作坊|講座|擺攤|表單|名額|截止|早鳥|免費體驗|繳費|歡迎參加|歡迎蒞臨|rsvp|register|workshop|open house)/i;
+const RETROSPECTIVE_RE = /(回顧|昨晚|上週|昨日|試作心得|練習紀錄|成品紀錄)/;
+
+export interface DraftRouteInput {
+  title: string;
+  summary: string;
+  poster_text_heavy?: boolean;
+  extracted_event?: {
+    starts_at_hint?: string | null;
+    location_text?: string | null;
+    learning_hours_hint?: string | null;
+    fee_ntd?: number | null;
+  };
+}
+
+/**
+ * Guardrail for AS-04: identify promotional/event posters that belong in Events rather than stream posts.
+ */
+export function shouldRouteDraftToEvent(
+  draft: DraftRouteInput,
+  rawText = ''
+): boolean {
+  const ev = draft.extracted_event;
+  const hasScheduleOrPlace = Boolean(
+    ev?.starts_at_hint?.trim() ||
+      ev?.location_text?.trim() ||
+      ev?.learning_hours_hint?.trim() ||
+      typeof ev?.fee_ntd === 'number'
+  );
+  const combined = `${rawText}\n${draft.title}\n${draft.summary}`;
+  const hasEventIntent = EVENT_INTENT_RE.test(combined);
+  const isDensePoster = Boolean(draft.poster_text_heavy);
+
+  if (isDensePoster && (hasScheduleOrPlace || hasEventIntent)) return true;
+  if (hasEventIntent && hasScheduleOrPlace) return true;
+  if (
+    Boolean(ev?.starts_at_hint?.trim()) &&
+    Boolean(ev?.location_text?.trim()) &&
+    !RETROSPECTIVE_RE.test(combined)
   ) {
     return true;
   }

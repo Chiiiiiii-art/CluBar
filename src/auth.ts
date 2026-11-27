@@ -78,6 +78,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: '/login',
   },
+  logger: {
+    error(error) {
+      if (
+        error?.name === 'JWTSessionError' ||
+        error?.constructor?.name === 'JWTSessionError' ||
+        String(error).includes('JWTSessionError')
+      ) {
+        return;
+      }
+      console.error('[auth][error]', error);
+    },
+  },
   callbacks: {
     async signIn({ user, account, profile }) {
       if (!account || !isDatabaseConfigured()) return false;

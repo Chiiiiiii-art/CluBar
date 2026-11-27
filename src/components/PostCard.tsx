@@ -4,7 +4,14 @@ import Link from 'next/link';
 import { BadgeCheck, Calendar, Sparkles } from 'lucide-react';
 import { trackAnalyticsEvent } from '@/lib/analytics-client';
 import { clampedAspectRatio, type DiscoverStreamCardDTO } from '@/lib/serializers';
+import { ClubMark, buttonClasses } from '@/components/ui';
+import { isPlaceholderMedia } from '@/lib/media/placeholder';
 
+/**
+ * Discovery stream card. Content-first: the photo carries the card, text sits
+ * underneath without a box. Posts with no media get a text-first tile rather
+ * than decorative placeholder art.
+ */
 export function PostCard({
   card,
   sourceSurface = 'discover_stream',
@@ -12,8 +19,8 @@ export function PostCard({
   card: DiscoverStreamCardDTO;
   sourceSurface?: 'discover_stream' | 'discover_nl';
 }) {
-  const imgSrc = card.cover_media?.url || '/images/demo/moment-4x5.svg';
-  const aspect = clampedAspectRatio(card.cover_media?.width, card.cover_media?.height);
+  const media = isPlaceholderMedia(card.cover_media?.url) ? null : card.cover_media;
+  const aspect = clampedAspectRatio(media?.width, media?.height);
 
   const handleCardClick = () => {
     trackAnalyticsEvent({
@@ -25,79 +32,81 @@ export function PostCard({
   };
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-md">
-      <Link href={`/posts/${card.id}`} onClick={handleCardClick} className="block">
-        <div
-          className="relative w-full overflow-hidden bg-[var(--muted)]"
-          style={{ aspectRatio: aspect }}
-        >
-          {card.cover_media?.kind === 'video' ? (
-            <video
-              src={card.cover_media.url}
-              poster={card.cover_media.poster_url}
-              muted
-              playsInline
-              preload="metadata"
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <img
-              src={imgSrc}
-              alt={card.cover_media?.alt || card.headline}
-              loading="lazy"
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-            />
-          )}
-          {card.club.is_demo && (
-            <span className="absolute top-3 right-3 rounded-full bg-slate-900/70 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur-xs">
-              示範
-            </span>
-          )}
-        </div>
-      </Link>
-
-      <div className="flex flex-1 flex-col gap-2.5 p-4">
-        {card.reason && (
-          <div className="flex items-start gap-2 rounded-xl border border-orange-200 bg-orange-50/90 px-3 py-2 text-xs font-medium text-orange-950">
-            <Sparkles className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--brand)]" aria-hidden="true" />
-            <span>{card.reason}</span>
+    <article className="group">
+      <Link href={`/posts/${card.id}`} onClick={handleCardClick} className="block rounded-xl">
+        {media ? (
+          <div className="relative w-full overflow-hidden rounded-xl bg-ink-100" style={{ aspectRatio: aspect }}>
+            {media.kind === 'video' ? (
+              <video
+                src={media.url}
+                poster={media.poster_url}
+                muted
+                playsInline
+                preload="metadata"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <img
+                src={media.url}
+                alt={media.alt || card.headline}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              />
+            )}
+          </div>
+        ) : (
+          <div className="flex min-h-44 flex-col justify-between gap-6 rounded-xl bg-ink-100 p-5 transition-colors group-hover:bg-ink-200/70">
+            <ClubMark name={card.club.name} seed={card.club.slug} size="md" />
+            <p className="line-clamp-5 text-lg font-semibold leading-snug text-ink-900">{card.headline}</p>
           </div>
         )}
+      </Link>
 
-        {/* Element 2: 1 concise human headline (<=30 chars) */}
-        <Link href={`/posts/${card.id}`} onClick={handleCardClick} className="block">
-          <h3 className="line-clamp-2 text-sm font-bold leading-snug text-slate-900 group-hover:text-[var(--primary)] sm:text-base">
-            {card.headline}
-          </h3>
-        </Link>
+      <div className="mt-3 space-y-1">
+        {card.reason && (
+          <p className="flex items-start gap-1.5 text-sm text-accent-700">
+            <Sparkles className="mt-1 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <span>{card.reason}</span>
+          </p>
+        )}
 
-        {/* Element 3: University + Club + single qualitative pulse dot */}
-        <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+        {media && (
+          <Link href={`/posts/${card.id}`} onClick={handleCardClick} className="block py-1">
+            <h3 className="line-clamp-2 text-base font-semibold leading-snug text-ink-900 group-hover:underline group-hover:decoration-ink-300 group-hover:underline-offset-4">
+              {card.headline}
+            </h3>
+          </Link>
+        )}
+
+        <div className="flex items-center gap-2 text-sm text-ink-600">
           <Link
             href={`/clubs/${card.club.slug}`}
-            className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-[var(--primary)]"
+            className="inline-flex min-h-8 min-w-0 items-center gap-1 hover:text-ink-900"
           >
             <span className="truncate">
-              {card.club.university_short_name} · {card.club.name}
+              {card.club.name}
+              <span className="text-ink-500"> · {card.club.university_short_name}</span>
             </span>
             {card.club.verification_status === 'verified' && (
-              <BadgeCheck className="h-3.5 w-3.5 shrink-0 text-blue-600" aria-label="官方認證" />
+              <BadgeCheck className="h-4 w-4 shrink-0 text-accent-600" aria-label="官方認證" />
             )}
           </Link>
-          <span className="inline-flex shrink-0 items-center gap-1 text-[11px] font-medium text-emerald-700">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            {card.pulse_label}
-          </span>
+          {card.pulse_label && (
+            <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-xs text-ink-500">
+              <span className="h-1.5 w-1.5 rounded-full bg-success-500" aria-hidden="true" />
+              {card.pulse_label}
+            </span>
+          )}
         </div>
 
-        {/* Optional single-line contextual event attachment */}
         {card.contextual_event && (
           <Link
             href={`/e/${card.contextual_event.short_code}`}
-            className="flex items-center gap-1.5 border-t border-[var(--border)] pt-2 text-xs font-semibold text-blue-700 hover:underline"
+            className={buttonClasses({ variant: 'soft', size: 'md' })}
           >
-            <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-            <span className="truncate">{card.contextual_event.label} →</span>
+            <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">{card.contextual_event.label}</span>
           </Link>
         )}
       </div>
