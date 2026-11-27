@@ -24,7 +24,9 @@ export async function generateMetadata({
       `${view.detail.club.university_short_name} ${view.detail.club.name} 主辦活動`,
     openGraph: {
       title: `${view.detail.title}｜${view.detail.club.name}`,
-      description: view.detail.summary || view.detail.location_text,
+      description:
+        view.detail.summary ||
+        (view.detail.share_hide_location ? `${view.detail.club.name} 主辦活動` : view.detail.location_text),
       images: [{ url: ogUrl, width: 1200, height: 630 }],
     },
   };

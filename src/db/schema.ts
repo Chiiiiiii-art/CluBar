@@ -425,6 +425,8 @@ export const clubs = pgTable(
 export const clubMemberships = pgTable(
   'club_memberships',
   {
+    // U-14: hide this club from the member's public footprint.
+    hiddenFromPortfolio: boolean('hidden_from_portfolio').notNull().default(false),
     id: uuid('id').defaultRandom().primaryKey(),
     clubId: uuid('club_id')
       .notNull()
@@ -525,6 +527,8 @@ export const clubQuestions = pgTable(
 export const clubEvents = pgTable(
   'club_events',
   {
+    // U-09: keep the location out of share cards and link previews.
+    shareHideLocation: boolean('share_hide_location').notNull().default(false),
     id: uuid('id').defaultRandom().primaryKey(),
     clubId: uuid('club_id')
       .notNull()
@@ -613,6 +617,8 @@ export const eventPollVotes = pgTable(
 export const eventRsvps = pgTable(
   'event_rsvps',
   {
+    // U-14: hide this event from the attendee's public footprint.
+    hiddenFromPortfolio: boolean('hidden_from_portfolio').notNull().default(false),
     eventId: uuid('event_id')
       .notNull()
       .references(() => clubEvents.id, { onDelete: 'cascade' }),
@@ -693,6 +699,8 @@ export const eventAlbumPhotos = pgTable(
 export const posts = pgTable(
   'posts',
   {
+    // U-05: pinned representative works sort first on the club page (max 4).
+    pinnedAt: timestamp('pinned_at', { withTimezone: true }),
     id: uuid('id').defaultRandom().primaryKey(),
     clubId: uuid('club_id')
       .notNull()

@@ -164,6 +164,7 @@ export interface PublicEventDetailDTO {
   starts_at: string | null;
   ends_at: string | null;
   location_text: string;
+  share_hide_location: boolean;
   beginner_friendly: boolean;
   non_members_welcome: boolean;
   campus_only: boolean;

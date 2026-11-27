@@ -35,6 +35,7 @@ export interface UserPortfolioDTO {
     role: ClubMemberRole;
     title: string | null;
     is_active: boolean;
+    hidden_from_portfolio: boolean;
   }[];
   attended_events: {
     id: string;
@@ -45,6 +46,7 @@ export interface UserPortfolioDTO {
     attended: boolean;
     learning_hours_category: LearningHoursCategory;
     learning_hours_count: number;
+    hidden_from_portfolio: boolean;
   }[];
   works_and_moments: {
     id: string;
@@ -126,6 +128,7 @@ export async function buildUserPortfolio(params: {
         role: clubMemberships.role,
         title: clubMemberships.title,
         endedAt: clubMemberships.endedAt,
+        hidden: clubMemberships.hiddenFromPortfolio,
       })
       .from(clubMemberships)
       .innerJoin(clubs, eq(clubMemberships.clubId, clubs.id))
@@ -137,6 +140,7 @@ export async function buildUserPortfolio(params: {
         event: clubEvents,
         clubName: clubs.name,
         attended: eventRsvps.attended,
+        hidden: eventRsvps.hiddenFromPortfolio,
       })
       .from(eventRsvps)
       .innerJoin(clubEvents, eq(eventRsvps.eventId, clubEvents.id))
@@ -182,6 +186,11 @@ export async function buildUserPortfolio(params: {
       .limit(20),
   ]);
 
+  // U-14: items the owner hid stay visible to the owner only (and leave no trace in totals for others).
+  const isOwner = params.viewer?.id === target.user.id;
+  const visibleMemRows = isOwner ? memRows : memRows.filter((m) => !m.hidden);
+  const visibleRsvpRows = isOwner ? rsvpRows : rsvpRows.filter((r) => !r.hidden);
+
   const byCat: Record<LearningHoursCategory, number> = {
     none: 0,
     art: 0,
@@ -190,9 +199,9 @@ export async function buildUserPortfolio(params: {
   };
   let totalHours = 0;
 
-  const attendedEvents = rsvpRows.map(({ event, clubName, attended }) => {
+  const attendedEvents = visibleRsvpRows.map(({ event, clubName, attended, hidden }) => {
     const hrs = Number(event.learningHoursCount || 0);
-    if (attended && event.learningHoursCategory !== 'none' && hrs > 0) {
+    if (attended && !hidden && event.learningHoursCategory !== 'none' && hrs > 0) {
       byCat[event.learningHoursCategory] += hrs;
       totalHours += hrs;
     }
@@ -205,6 +214,7 @@ export async function buildUserPortfolio(params: {
       attended,
       learning_hours_category: event.learningHoursCategory,
       learning_hours_count: hrs,
+      hidden_from_portfolio: hidden,
     };
   });
 
@@ -249,7 +259,7 @@ export async function buildUserPortfolio(params: {
       alumni_expertise_tags: target.user.alumniExpertiseTags ?? [],
       learning_hours_total: totalHours,
       learning_hours_by_category: byCat,
-      clubs: memRows.map((m) => ({
+      clubs: visibleMemRows.map((m) => ({
         club_id: m.clubId,
         slug: m.slug,
         name: m.name,
@@ -257,6 +267,7 @@ export async function buildUserPortfolio(params: {
         role: m.role,
         title: m.title,
         is_active: m.endedAt === null,
+        hidden_from_portfolio: m.hidden,
       })),
       attended_events: attendedEvents,
       works_and_moments: worksAndMoments,

@@ -159,6 +159,8 @@ export const eventWriteSchema = z.object({
   starts_at: z.string().datetime().optional().nullable(),
   ends_at: z.string().datetime().optional().nullable(),
   location_text: z.string().trim().min(1).max(120).default('TBD 待定'),
+  // U-09: keep the location out of share cards / link previews. Optional (no default) so PATCH leaves it alone.
+  share_hide_location: z.boolean().optional(),
   beginner_friendly: z.boolean().default(true),
   non_members_welcome: z.boolean().default(true),
   campus_only: z.boolean().default(false),

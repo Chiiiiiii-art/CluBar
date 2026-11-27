@@ -354,6 +354,23 @@ export function MeClient({
     }
   };
 
+  // U-14: per-item footprint visibility (owner always sees everything).
+  const [footClubs, setFootClubs] = useState(data.portfolio?.clubs ?? []);
+  const [footEvents, setFootEvents] = useState(data.portfolio?.attended_events ?? []);
+  const handleToggleFootprint = async (kind: 'club' | 'event', id: string, hidden: boolean) => {
+    const res = await fetch('/api/me/portfolio/items', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kind, id, hidden }),
+    });
+    if (!res.ok) return;
+    if (kind === 'club') {
+      setFootClubs((prev) => prev.map((c) => (c.club_id === id ? { ...c, hidden_from_portfolio: hidden } : c)));
+    } else {
+      setFootEvents((prev) => prev.map((e) => (e.id === id ? { ...e, hidden_from_portfolio: hidden } : e)));
+    }
+  };
+
   const handleChangeFollowMode = async (clubId: string, nextMode: FollowMode) => {
     const res = await fetch(`/api/me/follows/${clubId}`, {
       method: 'PUT',
@@ -873,6 +890,45 @@ export function MeClient({
 
       {meTab === 'settings' && (
         <div {...tabPanelProps('me', 'settings')} className="space-y-6">
+      {(footClubs.length > 0 || footEvents.length > 0) && (
+        <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
+          <h2 className="text-lg font-bold text-fg">足跡裡要放哪些</h2>
+          <p className="mt-1 text-sm text-fg-muted">
+            關掉的項目只有你自己看得到，別人看你的足跡頁時不會出現，也不會算進時數。
+          </p>
+          <ul className="mt-4 divide-y divide-line">
+            {footClubs.map((c) => (
+              <li key={`club-${c.club_id}`} className="flex min-h-11 items-center justify-between gap-3 py-2">
+                <span className="min-w-0 truncate text-sm text-fg-body">社團・{c.name}</span>
+                <label className="flex shrink-0 cursor-pointer items-center gap-2 text-sm text-fg-muted">
+                  <input
+                    type="checkbox"
+                    checked={!c.hidden_from_portfolio}
+                    onChange={(e) => void handleToggleFootprint('club', c.club_id, !e.target.checked)}
+                    className="h-4 w-4 rounded accent-brand"
+                  />
+                  公開
+                </label>
+              </li>
+            ))}
+            {footEvents.map((ev) => (
+              <li key={`event-${ev.id}`} className="flex min-h-11 items-center justify-between gap-3 py-2">
+                <span className="min-w-0 truncate text-sm text-fg-body">活動・{ev.title}</span>
+                <label className="flex shrink-0 cursor-pointer items-center gap-2 text-sm text-fg-muted">
+                  <input
+                    type="checkbox"
+                    checked={!ev.hidden_from_portfolio}
+                    onChange={(e) => void handleToggleFootprint('event', ev.id, !e.target.checked)}
+                    className="h-4 w-4 rounded accent-brand"
+                  />
+                  公開
+                </label>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {/* 1D Portfolio, Webcal Subscription & Push Controls */}
       <section className="rounded-xl border border-border-strong bg-surface p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-2">

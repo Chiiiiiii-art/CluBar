@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { and, desc, eq, gt, isNull, or } from 'drizzle-orm';
+import { and, desc, eq, gt, isNull, or, sql } from 'drizzle-orm';
 import {
   AlertTriangle,
   BadgeCheck,
@@ -88,7 +88,8 @@ export default async function ClubPublicPage({
       .select()
       .from(posts)
       .where(and(eq(posts.clubId, clubRow.club.id), eq(posts.status, 'published')))
-      .orderBy(desc(posts.publishedAt), desc(posts.createdAt)),
+      // U-05: pinned representative works first, then newest.
+      .orderBy(sql`${posts.pinnedAt} desc nulls last`, desc(posts.publishedAt), desc(posts.createdAt)),
     db
       .select()
       .from(clubQuestions)
@@ -141,6 +142,7 @@ export default async function ClubPublicPage({
 
   const questions = questionRows.map(serializePublicQuestion);
   const categoryMeta = CLUB_CATEGORIES[publicClub.category];
+  const pinnedPostIds = new Set(postRows.filter((p) => p.pinnedAt).map((p) => p.id));
   const nrcCount = publicPosts.filter((p) => p.post_kind === 'nrc_moment').length;
   const isUnclaimed = publicClub.verification_status === 'unclaimed_directory';
   // Qualitative trust signals only — no counts (docs/design/04-patterns.md §2).
@@ -429,7 +431,7 @@ export default async function ClubPublicPage({
                     <span
                       className={`absolute top-3 left-3 rounded-full px-2.5 py-0.5 text-sm font-semibold ${kindMeta.badgeClass}`}
                     >
-                      {kindMeta.label}
+                      {pinnedPostIds.has(post.id) ? `代表作・${kindMeta.label}` : kindMeta.label}
                     </span>
                   </div>
                   <div className="flex flex-1 flex-col gap-2 p-4">

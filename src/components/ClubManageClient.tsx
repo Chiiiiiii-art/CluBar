@@ -14,6 +14,7 @@ import {
   Film,
   HelpCircle,
   KeyRound,
+  Pin,
   Printer,
   Sparkles,
   Upload,
@@ -53,6 +54,7 @@ export interface ManageClubData {
     headline: string;
     status: PostStatus;
     includeInEvaluation: boolean;
+    pinnedAt: string | null;
     publishedAt: string | null;
   }[];
   events: {
@@ -130,6 +132,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
   const isReadOnlyAlumni = data.myRole === 'alumni';
   const canWrite = !isReadOnlyAlumni;
   const isOwner = data.myRole === 'owner';
+  const isOfficer = isOwner || data.myRole === 'editor';
 
   const [tab, setTab] = useState<
     'events' | 'posts' | 'members' | 'questions' | 'evaluation' | 'handover'
@@ -156,6 +159,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
   const [evStart, setEvStart] = useState('');
   const [evEnd, setEvEnd] = useState('');
   const [evLocation, setEvLocation] = useState('TBD 待定');
+  const [evHideLocation, setEvHideLocation] = useState(false);
   const [evFee, setEvFee] = useState('0');
   const [evBeginner, setEvBeginner] = useState(true);
   const [evNonMember, setEvNonMember] = useState(true);
@@ -170,6 +174,29 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
 
   // Posts + Vision AI state
   const [postsList, setPostsList] = useState(data.posts);
+  const pinnedCount = postsList.filter((p) => p.pinnedAt).length;
+
+  // U-05: pin up to 4 representative works to the top of the public club page.
+  async function handleTogglePin(postId: string, pinned: boolean) {
+    setBannerErr(null);
+    setBusy(`pin-${postId}`);
+    try {
+      const res = await fetch(`/api/clubs/${data.club.slug}/posts/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pinned }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || '更新代表作失敗');
+      setPostsList((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, pinnedAt: pinned ? new Date().toISOString() : null } : p))
+      );
+    } catch (err) {
+      setBannerErr(err instanceof Error ? err.message : '更新代表作失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
   const [aiRawText, setAiRawText] = useState('');
   const [aiResult, setAiResult] = useState<VisionDraftState | null>(null);
   const [postKind, setPostKind] = useState<'nrc_moment' | 'wip_work'>('wip_work');
@@ -294,6 +321,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
         starts_at: evMode === 'scheduled' && evStart ? new Date(evStart).toISOString() : null,
         ends_at: evMode === 'scheduled' && evEnd ? new Date(evEnd).toISOString() : null,
         location_text: evLocation.trim() || 'TBD 待定',
+        share_hide_location: evHideLocation,
         beginner_friendly: evBeginner,
         non_members_welcome: evNonMember,
         campus_only: evCampusOnly,
@@ -425,6 +453,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
           headline: json.post.headline,
           status: 'published',
           includeInEvaluation: postEval,
+          pinnedAt: null,
           publishedAt: json.post.published_at,
         },
         ...prev,
@@ -900,6 +929,15 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                       onChange={(e) => setEvLocation(e.target.value)}
                       className={`${controlClasses} min-h-11 w-full`}
                     />
+                    <label className="mt-2 flex min-h-11 cursor-pointer items-center gap-2.5 text-sm text-fg-secondary">
+                      <input
+                        type="checkbox"
+                        checked={evHideLocation}
+                        onChange={(e) => setEvHideLocation(e.target.checked)}
+                        className="h-4 w-4 rounded accent-brand"
+                      />
+                      分享圖與連結預覽不顯示地點（例如在社辦或私人場地）
+                    </label>
                   </div>
                 </fieldset>
 
@@ -1278,10 +1316,23 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 <div>
                   <span className="text-xs font-bold text-accent-800">
                     {POST_KIND_LABELS[p.postKind].label}
+                    {p.pinnedAt && <span className="ml-2 text-brand-soft-fg">・代表作</span>}
                   </span>
                   <p className="text-sm font-semibold text-fg">{p.headline}</p>
                 </div>
                 <div className="flex items-center gap-3">
+                  {isOfficer && p.status === 'published' && (
+                    <button
+                      type="button"
+                      aria-pressed={Boolean(p.pinnedAt)}
+                      disabled={busy === `pin-${p.id}` || (!p.pinnedAt && pinnedCount >= 4)}
+                      onClick={() => void handleTogglePin(p.id, !p.pinnedAt)}
+                      className={buttonClasses({ variant: p.pinnedAt ? 'soft' : 'secondary', size: 'sm' })}
+                    >
+                      <Pin className="h-3.5 w-3.5" aria-hidden="true" />
+                      {p.pinnedAt ? '取消代表作' : '設為代表作'}
+                    </button>
+                  )}
                   {canWrite && (
                     <label className="flex cursor-pointer items-center gap-1 text-sm font-semibold text-fg-secondary">
                       <input

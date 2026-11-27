@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, count, eq, isNotNull } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { db } from '@/db';
@@ -18,7 +18,11 @@ const patchPostSchema = z.object({
   include_in_evaluation: z.boolean().optional(),
   originality_confirmed: z.boolean().optional(),
   status: z.enum(['draft', 'published']).optional(),
+  // U-05: officers pin representative works (max MAX_PINNED per club).
+  pinned: z.boolean().optional(),
 });
+
+const MAX_PINNED = 4;
 
 const deletePostSchema = z.object({
   confirm: z.literal(true),
@@ -59,6 +63,23 @@ export async function PATCH(
     }
 
     const parsed = patchPostSchema.parse(await req.json());
+    if (parsed.pinned !== undefined) {
+      if (!isOfficer) {
+        throw new AppError(403, 'CLUB_OFFICER_REQUIRED', '只有社團幹部可以釘選代表作。');
+      }
+      if (parsed.pinned && (parsed.status ?? existing.status) !== 'published') {
+        throw new AppError(400, 'PIN_REQUIRES_PUBLISHED', '只有已發布的內容可以釘選為代表作。');
+      }
+      if (parsed.pinned && !existing.pinnedAt) {
+        const [{ total }] = await db
+          .select({ total: count() })
+          .from(posts)
+          .where(and(eq(posts.clubId, club.id), isNotNull(posts.pinnedAt)));
+        if (Number(total) >= MAX_PINNED) {
+          throw new AppError(400, 'PIN_LIMIT_REACHED', `代表作最多釘選 ${MAX_PINNED} 件，請先取消其中一件。`);
+        }
+      }
+    }
     const nextStatus = parsed.status ?? existing.status;
     const nextOriginality = parsed.originality_confirmed ?? existing.originalityConfirmed;
     if (nextStatus === 'published' && !nextOriginality) {
@@ -90,6 +111,8 @@ export async function PATCH(
         status: nextStatus,
         publishedAt: nextStatus === 'published' ? existing.publishedAt ?? now : existing.publishedAt,
         embedding: nextEmbedding,
+        pinnedAt:
+          parsed.pinned === undefined ? existing.pinnedAt : parsed.pinned ? existing.pinnedAt ?? now : null,
         updatedAt: now,
       })
       .where(eq(posts.id, existing.id))

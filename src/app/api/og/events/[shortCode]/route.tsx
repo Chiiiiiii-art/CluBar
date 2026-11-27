@@ -46,7 +46,7 @@ export async function GET(
         title = row.event.title;
         clubName = row.club.name;
         uniName = row.uniShortName;
-        locationText = row.event.locationText;
+        locationText = row.event.shareHideLocation ? '報名後查看地點' : row.event.locationText;
         timeText = row.event.startsAt
           ? formatTaipeiDateTime(row.event.startsAt)
           : row.event.scheduleMode === 'voting'

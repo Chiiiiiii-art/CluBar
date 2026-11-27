@@ -137,6 +137,7 @@ export default async function ClubManagePage({
       headline: p.headline,
       status: p.status,
       includeInEvaluation: p.includeInEvaluation,
+      pinnedAt: p.pinnedAt ? p.pinnedAt.toISOString() : null,
       publishedAt: p.publishedAt ? p.publishedAt.toISOString() : null,
     })),
     events: eventRows.map((e) => ({
