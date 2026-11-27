@@ -13,7 +13,6 @@ export function BlendClient({
   creatorName,
   partnerName,
   universityName,
-  matchScore,
   sharedDomains,
   recommendedClubs,
   recommendedEvents,
@@ -72,7 +71,9 @@ export function BlendClient({
         eyebrow={`校園興趣合拍 · ${universityName}`}
         title={
           partnerName
-            ? `${creatorName} × ${partnerName}：合拍指數 ${matchScore ?? 75}%`
+            ? sharedDomains.length > 0
+              ? `${creatorName} × ${partnerName}：你們都喜歡${sharedDomains.slice(0, 3).join('、')}`
+              : `${creatorName} × ${partnerName} 的興趣合拍`
             : `${creatorName} 邀請你做一場校園興趣合拍`
         }
       />

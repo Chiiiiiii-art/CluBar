@@ -127,8 +127,8 @@ export function FollowButton({
           onChange={(e) => toggle(e.target.value as FollowMode)}
           className={`${controlClasses} min-h-11`}
         >
-          <option value="all">只看：全動態</option>
-          <option value="events_only">只看：新活動</option>
+          <option value="all">全部動態</option>
+          <option value="events_only">只看活動</option>
         </select>
       )}
     </div>

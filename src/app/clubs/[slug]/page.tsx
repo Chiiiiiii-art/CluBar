@@ -143,6 +143,16 @@ export default async function ClubPublicPage({
   const questions = questionRows.map(serializePublicQuestion);
   const categoryMeta = CLUB_CATEGORIES[publicClub.category];
   const nrcCount = publicPosts.filter((p) => p.post_kind === 'nrc_moment').length;
+  const isUnclaimed = publicClub.verification_status === 'unclaimed_directory';
+  // Qualitative trust signals only — no counts (docs/design/04-patterns.md §2).
+  const trustSignals = isUnclaimed
+    ? []
+    : [
+        publicClub.pulse_label,
+        eventRows.some((ev) => ev.beginnerFriendly) ? '零基礎可' : null,
+        eventRows.some((ev) => ev.nonMembersWelcome) ? '非社員可' : null,
+        questions.some((q) => q.answer_text) ? '問答有回覆' : null,
+      ].filter((v): v is string => Boolean(v));
 
   return (
     <div className="space-y-6">
@@ -179,11 +189,11 @@ export default async function ClubPublicPage({
 
       <section className="space-y-6">
         {realMediaUrl(publicClub.cover_url) && (
-          <div className="h-40 w-full overflow-hidden rounded-xl bg-surface-sunken sm:h-56">
+          <div className="flex justify-center overflow-hidden rounded-xl bg-surface-sunken">
             <img
               src={publicClub.cover_url!}
               alt={`${publicClub.name} 封面`}
-              className="h-full w-full object-cover"
+              className="max-h-72 w-auto max-w-full object-contain"
             />
           </div>
         )}
@@ -212,12 +222,6 @@ export default async function ClubPublicPage({
                       <BadgeCheck className="h-4 w-4" aria-hidden="true" />
                       官方認證
                     </span>
-                    {publicClub.pulse_label && (
-                      <span className="inline-flex items-center gap-1 text-fg-subtle">
-                        <span className="h-1.5 w-1.5 rounded-full bg-success-500" aria-hidden="true" />
-                        {publicClub.pulse_label}
-                      </span>
-                    )}
                   </>
                 ) : (
                   <Badge tone="warning">待認領</Badge>
@@ -243,6 +247,22 @@ export default async function ClubPublicPage({
             {publicClub.tagline && <p className="text-lg font-medium text-fg">{publicClub.tagline}</p>}
             {publicClub.description && (
               <p className="whitespace-pre-line text-base text-fg-secondary">{publicClub.description}</p>
+            )}
+          </div>
+        )}
+
+        {(trustSignals.length > 0 || questions.length > 0) && (
+          <div className="flex flex-wrap items-center gap-2">
+            {trustSignals.map((label) => (
+              <Badge key={label}>{label}</Badge>
+            ))}
+            {questions.length > 0 && (
+              <a
+                href="#faq"
+                className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-brand-soft-fg underline-offset-4 hover:underline"
+              >
+                先看新手 FAQ
+              </a>
             )}
           </div>
         )}
@@ -301,29 +321,37 @@ export default async function ClubPublicPage({
                 <div className="flex flex-wrap gap-2 text-sm text-fg-muted">
                   <span>
                     {ev.scheduleMode === 'voting'
-                      ? 'TBD 投票喬時間中'
+                      ? '時間待定・投票中'
                       : ev.startsAt
                         ? formatTaipeiDateTime(ev.startsAt)
-                        : '時間 TBD'}
+                        : '時間待定'}
                   </span>
                   <span>· {ev.locationText}</span>
                 </div>
-                <div className="flex flex-wrap gap-1.5 pt-1 text-xs font-semibold">
-                  {ev.beginnerFriendly && (
-                    <span className="rounded-full bg-success-soft px-2.5 py-0.5 text-success-fg">
-                      零基礎可
-                    </span>
-                  )}
-                  {ev.nonMembersWelcome && (
-                    <span className="rounded-full bg-brand-soft px-2.5 py-0.5 text-accent-800">
-                      非社員可
-                    </span>
-                  )}
-                  <span className="rounded-full bg-surface-sunken px-2.5 py-0.5 text-fg-secondary">
-                    {ev.feeNtd === 0 ? '免費' : `NT$${ev.feeNtd}`}
-                  </span>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <Badge>{ev.feeNtd === 0 ? '免費' : `NT$${ev.feeNtd}`}</Badge>
+                  {ev.beginnerFriendly && <Badge>零基礎可</Badge>}
+                  {ev.nonMembersWelcome && <Badge>非社員可</Badge>}
                 </div>
               </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {questions.length > 0 && (
+        <section id="faq" className="rounded-xl border border-border-strong bg-surface p-5 sm:p-6">
+          <h2 className="text-lg font-bold text-fg">新手常問</h2>
+          <div className="mt-4 space-y-3">
+            {questions.map((q) => (
+              <div key={q.id} className="rounded-xl bg-surface-sunken p-4">
+                <p className="text-sm font-semibold text-fg">
+                  Q（{q.display_asker}）：{q.question_text}
+                </p>
+                {q.answer_text && (
+                  <p className="mt-1.5 text-sm text-fg-secondary">A：{q.answer_text}</p>
+                )}
+              </div>
             ))}
           </div>
         </section>
@@ -334,7 +362,7 @@ export default async function ClubPublicPage({
           <h2 className="text-xl font-bold text-fg">社團日常與代表作品牆</h2>
           {publicClub.verification_status === 'verified' && (
             <span className="rounded-full bg-brand-soft-hover px-3 py-1 text-sm font-semibold text-accent-900">
-              本學期共同累積 {nrcCount} 則社員日常足跡
+              本學期社員一起留下 {nrcCount} 則日常
             </span>
           )}
         </div>
@@ -351,21 +379,21 @@ export default async function ClubPublicPage({
               {publicClub.verification_status === 'unclaimed_directory' && (
                 <Link
                   href={`/clubs/apply?claim=${encodeURIComponent(publicClub.slug)}`}
-                  className={buttonClasses({ variant: 'primary', size: 'md' })}
+                  className={buttonClasses({ variant: 'secondary', size: 'md' })}
                 >
                   我是幹部，立即認領
                 </Link>
               )}
               <Link
                 href="/"
-                className="inline-flex min-h-[44px] items-center rounded-xl border border-border-strong bg-surface-sunken px-4 text-sm font-semibold text-fg-body hover:bg-brand-soft-hover"
+                className={buttonClasses({ variant: 'ghost', size: 'md' })}
               >
                 回別的聚看其他社團
               </Link>
             </div>
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="columns-1 gap-5 sm:columns-2 lg:columns-3">
             {publicPosts.map((post) => {
               const kindMeta = POST_KIND_LABELS[post.post_kind];
               const firstMedia = post.media_items[0];
@@ -373,11 +401,16 @@ export default async function ClubPublicPage({
                 <Link
                   key={post.id}
                   href={`/posts/${post.id}`}
-                  className={buttonClasses({ variant: 'secondary', size: 'md', className: 'group flex-col overflow-hidden' })}
+                  className="group mb-5 block break-inside-avoid overflow-hidden rounded-xl border border-line bg-surface transition-colors hover:border-border-strong"
                 >
                   <div
                     className="relative bg-surface-sunken"
-                    style={{ aspectRatio: clampedAspectRatio(firstMedia?.width, firstMedia?.height) }}
+                    style={{
+                      aspectRatio:
+                        firstMedia?.width && firstMedia?.height
+                          ? `${firstMedia.width} / ${firstMedia.height}`
+                          : clampedAspectRatio(firstMedia?.width, firstMedia?.height),
+                    }}
                   >
                     <img
                       src={firstMedia?.url || '/images/demo/moment-4x5.svg'}
@@ -392,7 +425,7 @@ export default async function ClubPublicPage({
                     </span>
                   </div>
                   <div className="flex flex-1 flex-col gap-2 p-4">
-                    <h3 className="line-clamp-2 text-sm font-semibold text-fg group-hover:text-brand">
+                    <h3 className="line-clamp-2 text-base font-semibold leading-snug text-fg">
                       {post.headline}
                     </h3>
                     <span className="mt-auto text-sm text-fg-subtle">
@@ -406,23 +439,6 @@ export default async function ClubPublicPage({
         )}
       </section>
 
-      {questions.length > 0 && (
-        <section className="rounded-xl border border-border-strong bg-surface p-5 sm:p-6">
-          <h2 className="text-lg font-bold text-fg">置頂新手 FAQ ＆ 公開問答箱</h2>
-          <div className="mt-4 space-y-3">
-            {questions.map((q) => (
-              <div key={q.id} className="rounded-xl bg-surface-sunken p-4">
-                <p className="text-sm font-semibold text-fg">
-                  Q（{q.display_asker}）：{q.question_text}
-                </p>
-                {q.answer_text && (
-                  <p className="mt-1.5 text-sm text-fg-secondary">A：{q.answer_text}</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
 
       <ClubDetailClient
         clubSlug={publicClub.slug}

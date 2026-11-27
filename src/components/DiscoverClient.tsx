@@ -313,6 +313,30 @@ export function DiscoverClient({
     { label: '時間投票中', active: votingOnly, onClick: () => { setVotingOnly(!votingOnly); reloadEvents({ votingOnly: !votingOnly }); } },
   ] as const;
 
+  const removeQuery = () => {
+    setQuery('');
+    setActiveNlQuery(null);
+    if (activeTab === 'stream') void loadStream({ uniId: selectedUniId, domainId: selectedDomainId });
+    else reloadEvents({});
+  };
+
+  // Applied-filter overview (Baymard): every active condition, each removable on its own.
+  const appliedFilters: { key: string; label: string; remove: () => void }[] = [
+    ...(activeNlQuery ? [{ key: 'q', label: `搜尋「${activeNlQuery}」`, remove: removeQuery }] : []),
+    ...(selectedDomainId
+      ? [
+          {
+            key: 'domain',
+            label: domains.find((d) => d.id === selectedDomainId)?.name_zh ?? '興趣領域',
+            remove: () => handleDomainSelect(selectedDomainId),
+          },
+        ]
+      : []),
+    ...(activeTab === 'events'
+      ? eventChips.filter((c) => c.active).map((c) => ({ key: c.label, label: c.label, remove: c.onClick }))
+      : []),
+  ];
+
   const hasAnyFilter = activeTab === 'events' ? hasActiveEventFilters : Boolean(selectedDomainId || activeNlQuery);
   const examplesVisible = showExamples && activeTab === 'stream' && !query.trim();
 
@@ -452,18 +476,22 @@ export function DiscoverClient({
         )}
 
         {hasAnyFilter && (
-          <div className="flex items-center justify-between gap-2 text-sm text-fg-muted">
-            <span className="min-w-0 truncate">
-              {activeNlQuery ? (
-                <>
-                  搜尋「<span className="font-medium text-fg">{activeNlQuery}</span>」的結果
-                </>
-              ) : (
-                '已套用篩選'
-              )}
-            </span>
+          <div className="flex flex-wrap items-center gap-2 text-sm" aria-label="已套用的條件">
+            <span className="text-fg-muted">已套用：</span>
+            {appliedFilters.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={f.remove}
+                aria-label={`移除條件：${f.label}`}
+                className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-full border border-line bg-surface-subtle px-3 font-medium text-fg-body transition-colors hover:border-border-strong"
+              >
+                <span className="truncate">{f.label}</span>
+                <X className="h-3.5 w-3.5 shrink-0 text-fg-muted" aria-hidden="true" />
+              </button>
+            ))}
             <Button variant="ghost" size="sm" onClick={resetAllFilters} icon={<RotateCcw className="h-4 w-4" aria-hidden="true" />}>
-              清除
+              清除全部
             </Button>
           </div>
         )}

@@ -143,6 +143,9 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
   const [eventsList, setEventsList] = useState(data.events);
   // D-12: the 4-section create form starts collapsed once the club has events.
   const [eventFormOpen, setEventFormOpen] = useState(data.events.length === 0);
+  // U-11: AI only drafts. After an AI fill the officer must confirm time and place before publishing.
+  const [aiFilledEvent, setAiFilledEvent] = useState(false);
+  const [aiFieldsConfirmed, setAiFieldsConfirmed] = useState(false);
   const [evTitle, setEvTitle] = useState('');
   const [evSummary, setEvSummary] = useState('');
   const [evDesc, setEvDesc] = useState('');
@@ -331,6 +334,8 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
       setEvSummary('');
       setEvDesc('');
       setEvCover([]);
+      setAiFilledEvent(false);
+      setAiFieldsConfirmed(false);
       setBannerMsg(`活動已發布！專屬短網址：/e/${json.event.short_code}`);
     } catch (err) {
       setBannerErr(err instanceof Error ? err.message : '建立活動失敗');
@@ -387,6 +392,8 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
     if (!d.extracted_event.starts_at_hint) setEvMode('tbd');
     setTab('events');
     setEventFormOpen(true);
+    setAiFilledEvent(true);
+    setAiFieldsConfirmed(false);
     setBannerMsg('已將海報／文案解析欄位帶入活動建立表單，請補齊正確時間後送出！');
   }
 
@@ -767,6 +774,13 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               onSubmit={handleCreateEvent}
               className="border-t border-line px-6 pb-6"
             >
+              {aiFilledEvent && (
+                <div className="mt-4">
+                  <Notice tone="warning">
+                    AI 先幫你填好了，但海報可能讀錯。請逐一確認時間、地點與費用，並加一句你自己的話再發布。
+                  </Notice>
+                </div>
+              )}
               <div className="mt-4 divide-y divide-line">
                 <fieldset className="min-w-0 space-y-4 pb-6">
                   <legend className="text-sm font-semibold text-fg">基本資訊</legend>
@@ -999,10 +1013,23 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 </fieldset>
               </div>
 
+              {aiFilledEvent && (
+                <label className="mt-2 flex min-h-11 cursor-pointer items-center gap-2.5 text-sm font-medium text-fg-body">
+                  <input
+                    type="checkbox"
+                    checked={aiFieldsConfirmed}
+                    onChange={(e) => setAiFieldsConfirmed(e.target.checked)}
+                    className="h-4 w-4 rounded accent-brand"
+                  />
+                  我已確認 AI 填入的時間、地點與費用正確
+                </label>
+              )}
               <div className="mt-6 border-t border-line pt-6">
                 <button
                   type="submit"
-                  disabled={busy === 'create-event' || evTitle.trim().length < 2}
+                  disabled={
+                    busy === 'create-event' || evTitle.trim().length < 2 || (aiFilledEvent && !aiFieldsConfirmed)
+                  }
                   className={buttonClasses({ variant: 'primary', size: 'lg', className: 'w-full sm:w-auto' })}
                 >
                   {busy === 'create-event' ? '建立中...' : '發布活動並產生專屬短網址'}

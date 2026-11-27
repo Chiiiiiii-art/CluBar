@@ -27,7 +27,6 @@ export async function GET(
   let uniName = '大專校院';
   let archetype = '跨界實作探索派';
   let domainNames: string[] = ['遊戲開發', '影像攝影', '戶外探索'];
-  let matchScore: number | null = null;
 
   if (isDatabaseConfigured()) {
     try {
@@ -38,7 +37,6 @@ export async function GET(
         .limit(1);
 
       if (session) {
-        matchScore = session.matchScore;
         const [uniRow, creatorRow, profileRow] = await Promise.all([
           db
             .select({ shortName: universities.shortName })
@@ -94,9 +92,9 @@ export async function GET(
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
-          background: 'linear-gradient(155deg, #FFF7ED 0%, #FFEDD5 48%, #DBEAFE 100%)',
+          background: 'linear-gradient(155deg, #f8f5ee 0%, #fae8d1 100%)',
           padding: '84px 72px',
-          color: '#0F172A',
+          color: '#261a12',
           fontFamily: fontData ? 'NotoSansTC, sans-serif' : 'sans-serif',
         }}
       >
@@ -114,26 +112,26 @@ export async function GET(
           >
             CluBar 社團聚 · 校園興趣 Blend
           </div>
-          <div style={{ display: 'flex', fontSize: '28px', color: '#475569', fontWeight: 700 }}>
+          <div style={{ display: 'flex', fontSize: '28px', color: '#6a5e56', fontWeight: 700 }}>
             {uniName}
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          <div style={{ display: 'flex', fontSize: '34px', color: '#C2410C', fontWeight: 700 }}>
+          <div style={{ display: 'flex', fontSize: '34px', color: '#9e5c11', fontWeight: 700 }}>
             {partnerName ? `${creatorName} × ${partnerName} 的雙人興趣頻率` : `${creatorName} 的個人校園品味卡`}
           </div>
 
           <div
             style={{
               display: 'flex',
-              fontSize: matchScore ? '84px' : '70px',
+              fontSize: '70px',
               lineHeight: 1.15,
               fontWeight: 700,
-              color: '#0F172A',
+              color: '#261a12',
             }}
           >
-            {matchScore ? `合拍指數 ${matchScore}%` : archetype}
+            {partnerName ? '我們的興趣交集' : archetype}
           </div>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '18px' }}>
@@ -145,10 +143,10 @@ export async function GET(
                   padding: '16px 32px',
                   borderRadius: '999px',
                   backgroundColor: '#FFFFFF',
-                  border: '3px solid #F6D5C3',
+                  border: '3px solid #dcd7cd',
                   fontSize: '30px',
                   fontWeight: 700,
-                  color: '#9A3412',
+                  color: '#7b470b',
                 }}
               >
                 #{name}
@@ -165,15 +163,15 @@ export async function GET(
             padding: '36px 40px',
             borderRadius: '36px',
             backgroundColor: 'rgba(255,255,255,0.88)',
-            border: '2px solid #F6D5C3',
+            border: '2px solid #dcd7cd',
           }}
         >
-          <div style={{ display: 'flex', fontSize: '30px', fontWeight: 700, color: '#0F172A' }}>
+          <div style={{ display: 'flex', fontSize: '30px', fontWeight: 700, color: '#261a12' }}>
             {partnerName
-              ? '點進連結看我們最合拍的冷門寶藏社團與近期體驗活動'
-              : '來測看看你跟我的興趣合拍幾 %，週末一起去體驗看看！'}
+              ? '點進連結，看看適合我們一起去的社團與近期體驗活動'
+              : '來看看我們有哪些共同興趣，週末一起去體驗看看！'}
           </div>
-          <div style={{ display: 'flex', fontSize: '24px', color: '#475569' }}>
+          <div style={{ display: 'flex', fontSize: '24px', color: '#6a5e56' }}>
             {`/blend/${code}`}
           </div>
         </div>
