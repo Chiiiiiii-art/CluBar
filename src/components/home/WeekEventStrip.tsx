@@ -5,12 +5,8 @@ import { Calendar } from 'lucide-react';
 import { formatTaipeiDateTime } from '@/lib/academic-year';
 import { trackAnalyticsEvent } from '@/lib/analytics-client';
 import type { DiscoverEventCardDTO } from '@/lib/serializers';
+import { EventStatusTags } from '@/components/EventStatusTags';
 
-function timeLabel(ev: DiscoverEventCardDTO) {
-  if (ev.schedule_mode === 'voting') return '時間待定・投票中';
-  if (ev.schedule_mode === 'tbd' || !ev.starts_at) return '時間待定';
-  return formatTaipeiDateTime(ev.starts_at);
-}
 
 /** Compact ticket row for the home masthead: content instead of filter shortcuts. Each card opens the event. */
 export function WeekEventStrip({ events }: { events: DiscoverEventCardDTO[] }) {
@@ -31,10 +27,14 @@ export function WeekEventStrip({ events }: { events: DiscoverEventCardDTO[] }) {
             className="tactile-card tactile-card-interactive tactile-press flex h-full flex-col overflow-hidden rounded-2xl bg-surface text-fg"
           >
             <div className="flex-1 space-y-1 px-3.5 pt-3 pb-2.5">
-              <p className="flex items-center gap-1.5 font-mono text-xs font-bold tabular-nums text-brand-soft-fg">
-                <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                {timeLabel(ev)}
-              </p>
+              {ev.schedule_mode !== 'voting' && ev.schedule_mode !== 'tbd' && ev.starts_at ? (
+                <p className="flex items-center gap-1.5 font-mono text-xs font-bold tabular-nums text-brand-soft-fg">
+                  <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  {formatTaipeiDateTime(ev.starts_at)}
+                </p>
+              ) : (
+                <EventStatusTags scheduleMode={ev.schedule_mode} startsAt={ev.starts_at} />
+              )}
               <p className="line-clamp-2 font-display text-base font-black leading-snug">{ev.title}</p>
             </div>
             <div className="ticket-stub flex items-center justify-between gap-2 bg-surface-subtle px-3.5 py-2 text-sm">

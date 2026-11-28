@@ -124,6 +124,12 @@ test('Onboarding archetype and Blend deterministic scoring stay bounded 45..100'
   });
   assert.equal(archetype, '暖心破冰派 · 影像攝影');
 
+  // The quiz no longer asks goals or vibe: no hidden default may pick the archetype.
+  assert.equal(
+    computePersonaArchetype({ goals: [], domainNames: ['音樂展演'] }),
+    '校園探索旅人 · 音樂展演'
+  );
+
   const fullMatch = computeBlendScore({
     domainsA: ['d1', 'd2'],
     goalsA: ['g1'],

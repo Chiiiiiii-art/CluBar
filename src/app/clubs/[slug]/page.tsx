@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { EventStatusTags, settledLocation } from '@/components/EventStatusTags';
 import { notFound } from 'next/navigation';
 import { and, desc, eq, gt, isNull, or, sql } from 'drizzle-orm';
 import {
@@ -326,25 +327,26 @@ export default async function ClubPublicPage({
                 className="group tactile-card tactile-card-interactive flex flex-col overflow-hidden rounded-2xl bg-surface"
               >
                 <div className="flex-1 space-y-1.5 px-4 pt-3.5 pb-4">
-                  <p className="flex items-center gap-1.5 font-mono text-xs font-bold tabular-nums text-brand-soft-fg">
-                    <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                    {ev.scheduleMode === 'voting'
-                      ? '時間投票中'
-                      : ev.startsAt
-                        ? formatTaipeiDateTime(ev.startsAt)
-                        : '時間待定'}
-                  </p>
+                  {ev.scheduleMode !== 'voting' && ev.scheduleMode !== 'tbd' && ev.startsAt && (
+                    <p className="flex items-center gap-1.5 font-mono text-xs font-bold tabular-nums text-brand-soft-fg">
+                      <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                      {formatTaipeiDateTime(ev.startsAt)}
+                    </p>
+                  )}
+                  <EventStatusTags scheduleMode={ev.scheduleMode} startsAt={ev.startsAt} locationText={ev.locationText} />
                   <h3 className="line-clamp-2 font-display text-lg font-black leading-snug text-fg group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">
                     {ev.title}
                   </h3>
-                  <p className="flex items-center gap-1.5 text-sm text-fg-muted">
-                    <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
-                    <span className="truncate">{ev.locationText}</span>
-                  </p>
+                  {settledLocation(ev.locationText) && (
+                    <p className="flex items-center gap-1.5 text-sm text-fg-muted">
+                      <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+                      <span className="truncate">{settledLocation(ev.locationText)}</span>
+                    </p>
+                  )}
                 </div>
                 <div className="ticket-stub flex flex-wrap items-center justify-between gap-2 bg-surface-subtle px-4 py-3">
                   <span className="font-mono text-sm font-bold text-fg">
-                    {ev.feeNtd === 0 ? '免費入場' : `NT$${ev.feeNtd}`}
+                    {ev.feeNtd === 0 ? '免費' : `NT$${ev.feeNtd}`}
                   </span>
                   <div className="flex flex-wrap items-center gap-1.5">
                     {ev.beginnerFriendly && <Badge tone="accent">零基礎可</Badge>}

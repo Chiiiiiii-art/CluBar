@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import { asc } from 'drizzle-orm';
 import { db, isDatabaseConfigured } from '@/db';
 import { interestDomains, universities } from '@/db/schema';
@@ -8,6 +9,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function OnboardingPage() {
   const dbReady = isDatabaseConfigured();
+  const cookieUni = (await cookies()).get('clubar_univ')?.value ?? '';
   const [user, uniRows, domainRows] = dbReady
     ? await Promise.all([
         getCurrentUser().catch(() => null),
@@ -29,6 +31,8 @@ export default async function OnboardingPage() {
       universities={uniRows}
       domains={domainRows}
       isLoggedIn={Boolean(user)}
+      userName={user?.displayName ?? ''}
+      initialUniversityId={cookieUni}
     />
   );
 }

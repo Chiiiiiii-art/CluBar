@@ -660,7 +660,7 @@ export function MeClient({
                       看看近期活動
                     </ButtonLink>
                     <ButtonLink href="/" variant="secondary" size="md">
-                      逛逛社團現場
+                      逛逛社團動態
                     </ButtonLink>
                   </>
                 }

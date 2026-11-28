@@ -192,3 +192,6 @@ export const RESERVED_SLUGS = new Set([
 
 export const DISCOVER_DEGRADED_WARNING =
   'AI 語意推薦服務暫時忙碌，已自動切換為基礎檢索結果，推薦理由暫未顯示。';
+
+/** localStorage flag: a first-time visitor chose "先隨便看看", so the home page stops offering the quiz. */
+export const ONBOARDING_DISMISSED_KEY = 'clubar_onboarding_dismissed';

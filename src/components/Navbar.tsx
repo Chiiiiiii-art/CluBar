@@ -71,9 +71,6 @@ export function Navbar({
                 className="h-8 w-8 rounded-lg border-2 border-border-ink"
               />
               <span className="font-display text-xl font-black tracking-tight text-fg">社團聚</span>
-              <span className="hidden rounded-md border-2 border-border-ink bg-spark px-2 py-0.5 font-mono text-xs font-bold text-fg sm:inline-block">
-                115-1
-              </span>
             </Link>
 
             <nav className="hidden items-center gap-1.5 md:flex" aria-label="主導覽列">
@@ -83,17 +80,13 @@ export function Navbar({
                   href={it.href}
                   aria-current={it.active ? 'page' : undefined}
                   className={cn(
-                    'inline-flex min-h-11 flex-col items-start justify-center rounded-xl border-2 px-3.5 font-display text-sm font-bold leading-tight transition-transform',
+                    'inline-flex min-h-11 items-center rounded-xl border-2 px-3.5 font-display text-sm font-bold leading-tight transition-transform',
                     it.active
                       ? 'tactile-shadow-sm border-border-ink bg-spark text-fg'
                       : 'border-transparent text-fg-secondary hover:bg-surface-subtle hover:text-fg'
                   )}
                 >
                   <span>{it.label}</span>
-                  <span className="font-sans text-xs font-medium">
-                    <span className="sr-only">：</span>
-                    {it.hint}
-                  </span>
                 </Link>
               ))}
               {user?.platformRole === 'platform_admin' && (

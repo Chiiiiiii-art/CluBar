@@ -12,7 +12,7 @@
 
 ### 1.1 v1 決策的自我矛盾
 
-[UI 改善計畫](./ui-redesign-plan.md) §2.1 引用了 Google **Material 3 Expressive** 的實證研究（46 項研究、超過 18,000 名全球受測者）：**18–24 歲受測者中有 87% 明顯偏好有表現力的設計**，表現力介面讓現代感提升 34%、次文化認同感提升 32%、創新感提升 30%，而且結構化的視覺張力能讓使用者**識別關鍵 UI 元素的速度最快提升 4 倍**。
+v1 的 UI 改善計畫（已刪除）引用了 Google **Material 3 Expressive** 的實證研究（46 項研究、超過 18,000 名全球受測者）：**18–24 歲受測者中有 87% 明顯偏好有表現力的設計**，表現力介面讓現代感提升 34%、次文化認同感提升 32%、創新感提升 30%，而且結構化的視覺張力能讓使用者**識別關鍵 UI 元素的速度最快提升 4 倍**。
 
 然而 v1 在最後決策時（`01-brand.md`、`02-tokens.md`、`tests/ui-design-tokens.test.ts`）卻走向極端保守：
 - 選定低飽和暗土琥珀 `#9e5c11` 與思源宋體 600–700，同時禁止 `font-extrabold`／`font-black` 與 `rounded-2xl`／`rounded-3xl`。
@@ -111,6 +111,5 @@
 | **邊框與陰影** | `2px` 深墨框 ＋ `3px 3px 0` 硬陰影 | `2.5–3px` 純黑框 ＋ `5px 5px 0` 硬陰影＋紙膠帶 | `3.5px` 白模切外框 ＋ `4px` 立體按壓底邊 | `1.5px` 雙線刊物框 ＋ `2px` 錯位雙色套印 |
 | **圓角策略** | `12px` 卡片 / `8px` 標籤 / 圓膠囊 | `0–4px` 銳利幾何角 | `22–28px` 超大圓角＋SVG 波浪徽章 | `2px` 印刷卡 / 鋸齒郵票邊 / 打孔票根 |
 | **實測最低文字對比** | **5.48 : 1**（全組 5.48–18.28:1） | **5.63 : 1**（全組 5.63–19.24:1） | **5.19 : 1**（全組 5.19–16.35:1） | **5.80 : 1**（全組 5.80–17.30:1） |
-| **對應互動原型** | [01-modern-tactile.html](./style-tiles-v2/01-modern-tactile.html) | [02-neo-brutal-zine.html](./style-tiles-v2/02-neo-brutal-zine.html) | [03-playful-soft-sticker.html](./style-tiles-v2/03-playful-soft-sticker.html) | [04-retro-print-riso.html](./style-tiles-v2/04-retro-print-riso.html) |
+| **對應互動原型** | 定案為 [01-modern-tactile-v2.html](./style-tiles-v2/01-modern-tactile-v2.html) | 未採用（樣稿已刪除） | 未採用（樣稿已刪除） | 未採用（樣稿已刪除） |
 
-> 開啟 [互動對照控制台（style-tiles-v2/index.html）](./style-tiles-v2/index.html) 即可並排比較 4 款新版與 v1 舊版。

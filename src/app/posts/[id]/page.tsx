@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { and, eq } from 'drizzle-orm';
@@ -17,6 +18,38 @@ import { Badge, ButtonLink, ClubMark } from '@/components/ui';
 import { realMediaUrl } from '@/lib/media/placeholder';
 
 export const dynamic = 'force-dynamic';
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  if (!isDatabaseConfigured() || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    return { title: '找不到貼文｜CluBar' };
+  }
+  const [row] = await db
+    .select({ headline: posts.headline, clubName: clubs.name, uniShortName: universities.shortName })
+    .from(posts)
+    .innerJoin(clubs, eq(posts.clubId, clubs.id))
+    .innerJoin(universities, eq(clubs.universityId, universities.id))
+    .where(and(eq(posts.id, id), eq(posts.status, 'published')))
+    .limit(1)
+    .catch(() => []);
+  if (!row) return { title: '找不到貼文｜CluBar' };
+  const description = `${row.uniShortName} ${row.clubName}的社團日常與作品`;
+  // Link previews show the post as a card (like events) instead of the site logo.
+  return {
+    title: `${row.headline}｜${row.clubName}｜CluBar`,
+    description,
+    openGraph: {
+      title: `${row.headline}｜${row.clubName}`,
+      description,
+      images: [{ url: `/api/og/posts/${id}`, width: 1200, height: 630 }],
+    },
+    twitter: { card: 'summary_large_image' },
+  };
+}
 
 export default async function PostDetailPage({
   params,

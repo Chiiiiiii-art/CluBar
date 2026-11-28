@@ -1,13 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Check, Share2 } from 'lucide-react';
+import { ArrowRight, Check, Download, Share2 } from 'lucide-react';
+import { DomainIcon } from './DomainIcon';
 import { EventCard } from './EventCard';
+import { RecipeCard } from './RecipeCard';
 import type { DiscoverEventCardDTO } from '@/lib/serializers';
+import { ONBOARDING_DISMISSED_KEY } from '@/lib/constants';
+import { MAX_TAPS, cardTitle, foodLabel, parseMaker, recipeImagePath, recipePath, toRecipe, type Food, type PaletteId } from '@/lib/recipe';
+import { downloadImage, shareInvite } from '@/lib/share';
 
-import { Button, ButtonLink, PageHeader, cn } from '@/components/ui';
+import { Button, ButtonLink, EmptyState, Input, PageHeader, cn } from '@/components/ui';
 interface RecommendResult {
   persona_archetype: string;
   clubs: {
@@ -21,19 +26,6 @@ interface RecommendResult {
   }[];
   events: DiscoverEventCardDTO[];
 }
-
-const GOALS = [
-  { id: 'make_friends', label: '想破冰交友、認識跨系同學' },
-  { id: 'learn_skill', label: '想從零學一項酷技能或創作作品' },
-  { id: 'weekend_fun', label: '想找下課或週末輕鬆參與的活動' },
-  { id: 'earn_hours', label: '想順便累積藝文／生活／服務時數' },
-];
-
-const VIBES = [
-  { id: 'hands_on', label: '動手做專案／實作派' },
-  { id: 'chill', label: '低壓力、像跟朋友聊天的氛圍' },
-  { id: 'active', label: '戶外活動或揮汗運動' },
-];
 
 /** One selected style for every step: dark border, light fill, check mark. */
 function Choice({
@@ -63,6 +55,122 @@ function Choice({
   );
 }
 
+/**
+ * Interest sticker that counts taps: each tap adds one 份 with a floating "+N";
+ * a long press (or Backspace) takes one back, so no extra minus button takes up room.
+ */
+function TapChoice({
+  count,
+  onAdd,
+  onRemove,
+  children,
+}: {
+  count: number;
+  onAdd: () => void;
+  onRemove: () => void;
+  children: React.ReactNode;
+}) {
+  const timer = useRef<number | null>(null);
+  const longPressed = useRef(false);
+  const [pops, setPops] = useState<{ id: number; text: string }[]>([]);
+
+  const pop = (text: string) => {
+    const id = Date.now() + Math.random();
+    setPops((p) => [...p, { id, text }]);
+    window.setTimeout(() => setPops((p) => p.filter((x) => x.id !== id)), 700);
+  };
+  const remove = () => {
+    if (count === 0) return;
+    onRemove();
+    pop('−1');
+  };
+  const cancel = () => {
+    if (timer.current) window.clearTimeout(timer.current);
+    timer.current = null;
+  };
+
+  return (
+    <button
+      type="button"
+      aria-pressed={count > 0}
+      onPointerDown={(e) => {
+        if (e.button !== 0) return;
+        longPressed.current = false;
+        cancel();
+        timer.current = window.setTimeout(() => {
+          longPressed.current = true;
+          remove();
+          navigator.vibrate?.(15);
+        }, 450);
+      }}
+      onPointerUp={cancel}
+      onPointerLeave={cancel}
+      onPointerCancel={cancel}
+      onContextMenu={(e) => e.preventDefault()}
+      onKeyDown={(e) => {
+        if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '-') {
+          e.preventDefault();
+          remove();
+        }
+      }}
+      onClick={() => {
+        if (longPressed.current) {
+          longPressed.current = false;
+          return;
+        }
+        if (count >= MAX_TAPS) return;
+        onAdd();
+        pop(`+${count + 1}`);
+      }}
+      style={{ WebkitTouchCallout: 'none' }}
+      className={cn(
+        'tactile-press relative flex min-h-12 w-full select-none items-center justify-between gap-2 rounded-xl border-2 border-border-ink px-4 py-2.5 text-left font-display text-sm',
+        count > 0
+          ? 'bg-spark font-bold text-fg'
+          : 'bg-surface font-medium text-fg-secondary hover:bg-surface-subtle hover:text-fg'
+      )}
+    >
+      <span className="min-w-0 break-words">{children}</span>
+      {count > 0 && (
+        <span className="flex h-7 min-w-7 shrink-0 items-center justify-center rounded-full bg-fg px-1.5 text-sm font-bold text-spark">
+          {count}
+          <span className="sr-only"> 份</span>
+        </span>
+      )}
+      {pops.map((p) => (
+        <span
+          key={p.id}
+          aria-hidden="true"
+          className="animate-tap-pop pointer-events-none absolute left-1/2 top-0 font-display text-lg font-bold text-brand"
+        >
+          {p.text}
+        </span>
+      ))}
+    </button>
+  );
+}
+
+/** Every step can be skipped: remember it so the home page stops offering the quiz. */
+function SkipLink() {
+  return (
+    <p className="text-center">
+      <Link
+        href="/"
+        onClick={() => {
+          try {
+            window.localStorage.setItem(ONBOARDING_DISMISSED_KEY, '1');
+          } catch {
+            // Ignore storage failures
+          }
+        }}
+        className="inline-flex min-h-11 items-center px-3 text-sm font-medium text-fg-muted underline-offset-4 hover:text-fg hover:underline"
+      >
+        先隨便看看
+      </Link>
+    </p>
+  );
+}
+
 function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
   return (
     <div>
@@ -89,20 +197,36 @@ export function OnboardingClient({
   universities,
   domains,
   isLoggedIn,
+  userName = '',
+  initialUniversityId = '',
 }: {
   universities: { id: string; short_name: string; name: string }[];
   domains: { id: string; slug: string; name_zh: string }[];
   isLoggedIn: boolean;
+  /** Printed on the share card; editable before sharing. */
+  userName?: string;
+  /** School already known (cookie): start on the interest step. */
+  initialUniversityId?: string;
 }) {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [universityId, setUniversityId] = useState(universities[0]?.id ?? '');
-  const [goals, setGoals] = useState<string[]>(['make_friends']);
-  const [domainIds, setDomainIds] = useState<string[]>([]);
-  const [vibe, setVibe] = useState('hands_on');
+  const knownSchool = universities.some((u) => u.id === initialUniversityId);
+  const [step, setStep] = useState<1 | 2 | 3>(knownSchool ? 2 : 1);
+  const [universityId, setUniversityId] = useState(knownSchool ? initialUniversityId : '');
+  // Taps per domain slug: more taps, bigger share of the recipe.
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [food, setFood] = useState<Food>('drink');
+  const [palette, setPalette] = useState<PaletteId>('soda');
+  const [maker, setMaker] = useState(parseMaker(userName));
+  const [shareNote, setShareNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<RecommendResult | null>(null);
   const [blendLoading, setBlendLoading] = useState(false);
+
+  const recipe = toRecipe(counts);
+  const slugToId = new Map(domains.map((d) => [d.slug, d.id]));
+  const domainIds = recipe.map((p) => slugToId.get(p.slug)).filter(Boolean) as string[];
+  const card = { parts: recipe, food, palette, maker: parseMaker(maker) };
+  const imageUrl = recipeImagePath(card);
 
   const goStep = (next: 1 | 2 | 3) => {
     setStep(next);
@@ -111,20 +235,34 @@ export function OnboardingClient({
     }
   };
 
-  const toggleGoal = (id: string) => {
-    setGoals((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < 2 ? [...prev, id] : [prev[1]!, id]
-    );
-  };
+  const bump = (slug: string, delta: 1 | -1) =>
+    setCounts((prev) => ({ ...prev, [slug]: Math.max(0, Math.min(MAX_TAPS, (prev[slug] ?? 0) + delta)) }));
 
-  const toggleDomain = (id: string) => {
-    setDomainIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < 4 ? [...prev, id] : prev
+  const handleShare = async () => {
+    const url = `${window.location.origin}${recipePath(card)}`;
+    // Desktop share sheets copy the image, not the link; there, just copy the link.
+    if (!window.matchMedia('(pointer: coarse)').matches) {
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareNote('連結已複製，貼給朋友吧');
+      } catch {
+        setShareNote('複製失敗，可以改用存成圖片');
+      }
+      return;
+    }
+    // Link only: chat apps drop the link when an image rides along, and the link preview is the card.
+    const outcome = await shareInvite({
+      title: cardTitle(card.maker, food),
+      text: `這是${cardTitle(card.maker, food)}，你也來調一份？`,
+      url,
+    });
+    setShareNote(
+      outcome === 'copied' ? '連結已複製，貼給朋友吧' : outcome === 'failed' ? '分享失敗，可以改用存成圖片' : ''
     );
   };
 
   const submitQuiz = async () => {
-    if (!universityId) return;
+    if (!universityId || domainIds.length === 0) return;
     setLoading(true);
     try {
       const res = await fetch('/api/onboarding/recommend', {
@@ -132,9 +270,7 @@ export function OnboardingClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           university_id: universityId,
-          goals,
           domain_ids: domainIds,
-          vibe,
         }),
       });
       const json = await res.json();
@@ -146,9 +282,9 @@ export function OnboardingClient({
           'clubar_onboarding',
           JSON.stringify({
             university_id: universityId,
-            goals,
+            goals: [],
             domain_ids: domainIds,
-            vibe,
+            domain_weights: counts,
             synced: false,
           })
         );
@@ -156,7 +292,7 @@ export function OnboardingClient({
           void fetch('/api/me/onboarding-sync', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ university_id: universityId, goals, domain_ids: domainIds, vibe }),
+            body: JSON.stringify({ university_id: universityId, goals: [], domain_ids: domainIds }),
           });
         }
       }
@@ -178,7 +314,7 @@ export function OnboardingClient({
         body: JSON.stringify({
           university_id: universityId,
           domain_ids: domainIds,
-          goals,
+          goals: [],
         }),
       });
       const json = await res.json();
@@ -197,113 +333,122 @@ export function OnboardingClient({
       {step === 1 && (
         <div className="space-y-6">
           <PageHeader
-            title="先選你就讀的大專校院"
-            description="不用註冊，就能瀏覽全校活躍社團與近期可參加的體驗課。"
+            title="你讀哪間學校？"
+            description="點一下就好，不用註冊。"
           />
           <div className="grid gap-2.5 sm:grid-cols-2">
             {universities.map((u) => (
-              <Choice key={u.id} selected={universityId === u.id} onClick={() => setUniversityId(u.id)}>
+              <Choice
+                key={u.id}
+                selected={universityId === u.id}
+                onClick={() => {
+                  setUniversityId(u.id);
+                  goStep(2);
+                }}
+              >
                 {u.name}
               </Choice>
             ))}
           </div>
-          <div className="flex justify-end border-t-2 border-dashed border-line pt-4">
-            <Button size="md" onClick={() => goStep(2)} icon={<ArrowRight className="h-4 w-4" aria-hidden="true" />} className="flex-row-reverse">
-              下一步
-            </Button>
-          </div>
+          <SkipLink />
         </div>
       )}
 
       {step === 2 && (
-        <div className="space-y-8">
-          <PageHeader title="這學期想怎麼探索校園？" />
-
-          <section className="space-y-3" aria-labelledby="onb-goals">
-            <h2 id="onb-goals" className="font-display text-base font-bold text-fg">
-              你現在比較在意什麼？
-              <span className="ml-2 text-sm font-normal text-fg-muted">可選 1–2 項</span>
-            </h2>
-            <div className="grid gap-2.5 sm:grid-cols-2">
-              {GOALS.map((g) => (
-                <Choice key={g.id} selected={goals.includes(g.id)} onClick={() => toggleGoal(g.id)}>
-                  {g.label}
-                </Choice>
-              ))}
-            </div>
-          </section>
-
-          <section className="space-y-3" aria-labelledby="onb-domains">
-            <h2 id="onb-domains" className="font-display text-base font-bold text-fg">
-              挑幾個你有點好奇的領域
-              <span className="ml-2 text-sm font-normal text-fg-muted">可選 1–4 個</span>
-            </h2>
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-              {domains.map((d) => (
-                <Choice key={d.id} selected={domainIds.includes(d.id)} onClick={() => toggleDomain(d.id)}>
-                  #{d.name_zh}
-                </Choice>
-              ))}
-            </div>
-          </section>
-
-          <section className="space-y-3" aria-labelledby="onb-vibe">
-            <h2 id="onb-vibe" className="font-display text-base font-bold text-fg">
-              偏好的社團氛圍
-            </h2>
-            <div className="grid gap-2.5 sm:grid-cols-2">
-              {VIBES.map((v) => (
-                <Choice key={v.id} selected={vibe === v.id} onClick={() => setVibe(v.id)}>
-                  {v.label}
-                </Choice>
-              ))}
-            </div>
-          </section>
-
+        <div className="space-y-6">
+          <PageHeader
+            title="你對哪些有點好奇？"
+            description="喜歡就點，越喜歡點越多下；點錯了長按可以減一份。"
+          />
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3" role="group" aria-label="興趣領域">
+            {domains.map((d) => (
+              <TapChoice
+                key={d.id}
+                count={counts[d.slug] ?? 0}
+                onAdd={() => bump(d.slug, 1)}
+                onRemove={() => bump(d.slug, -1)}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <DomainIcon slug={d.slug} />
+                  {d.name_zh}
+                </span>
+              </TapChoice>
+            ))}
+          </div>
           <div className="flex items-center justify-between gap-3 border-t-2 border-dashed border-line pt-4">
             <Button variant="ghost" onClick={() => goStep(1)}>
-              上一步
+              換學校
             </Button>
             <Button
-              disabled={loading}
+              disabled={loading || domainIds.length === 0}
               onClick={submitQuiz}
               icon={<ArrowRight className="h-4 w-4" aria-hidden="true" />}
               className="flex-row-reverse"
             >
-              {loading ? '配對中...' : '看結果（免註冊）'}
+              {loading ? '調配中...' : '看結果'}
             </Button>
           </div>
+          <SkipLink />
         </div>
       )}
 
       {step === 3 && result && (
         <div className="space-y-8">
           <PageHeader
-            eyebrow="你的校園探索類型"
-            title={result.persona_archetype}
-            action={
-              <>
-                <Button
-                  disabled={blendLoading}
-                  onClick={handleCreateBlend}
-                  icon={<Share2 className="h-4 w-4" aria-hidden="true" />}
-                >
-                  {isLoggedIn ? '做一張分享卡，約朋友合拍' : '登入做興趣分享卡'}
-                </Button>
-                <ButtonLink
-                  href={`/?university_id=${encodeURIComponent(universityId)}${domainIds[0] ? `&domain_id=${encodeURIComponent(domainIds[0])}` : ''}`}
-                  variant="secondary"
-                >
-                  逛逛現場動態
-                </ButtonLink>
-              </>
-            }
+            eyebrow="測驗結果"
+            title="調好了，這是你的配方"
+            description="點越多下的興趣，份量越多。想換個食物也可以。"
           />
+          <div className="space-y-3">
+            <RecipeCard
+              parts={recipe}
+              food={food}
+              palette={palette}
+              maker={card.maker}
+              onFoodChange={setFood}
+              onPaletteChange={setPalette}
+            />
+            <div className="max-w-xs">
+              <label htmlFor="onb-maker" className="mb-1 block text-sm font-semibold text-fg-secondary">
+                卡片上的名字
+              </label>
+              <Input
+                id="onb-maker"
+                value={maker}
+                maxLength={16}
+                placeholder="留空就寫「我」"
+                onChange={(e) => setMaker(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2.5">
+              <Button onClick={handleShare} icon={<Share2 className="h-4 w-4" aria-hidden="true" />}>
+                分享我的{foodLabel(food)}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => void downloadImage(imageUrl, 'clubar-mix.png')}
+                icon={<Download className="h-4 w-4" aria-hidden="true" />}
+              >
+                存成圖片
+              </Button>
+            </div>
+            <p className="min-h-5 text-sm text-fg-muted" role="status">
+              {shareNote}
+            </p>
+          </div>
+
+          {result.clubs.length === 0 && result.events.length === 0 && (
+            <EmptyState
+              title="這間學校還沒有這類社團的動態"
+              description="換幾個興趣看看，或先逛逛全校的社團動態。"
+              action={<Button variant="secondary" onClick={() => goStep(2)}>換幾個興趣</Button>}
+            />
+          )}
 
           {result.clubs.length > 0 && (
             <section className="space-y-3" aria-labelledby="onb-clubs">
               <h2 id="onb-clubs" className="font-display text-lg font-bold text-fg">
-                為你挑出的校內活躍社團
+                照你的配方，挑出這些社團
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
                 {result.clubs.map((c) => (
@@ -336,6 +481,18 @@ export function OnboardingClient({
               </div>
             </section>
           )}
+
+          <div className="flex flex-wrap gap-2.5 border-t-2 border-dashed border-line pt-4">
+            <ButtonLink
+              href={`/?university_id=${encodeURIComponent(universityId)}${domainIds.length ? `&domain_id=${encodeURIComponent(domainIds.join(','))}` : ''}`}
+              variant="secondary"
+            >
+              逛逛社團動態
+            </ButtonLink>
+            <Button variant="ghost" disabled={blendLoading} onClick={handleCreateBlend}>
+              {isLoggedIn ? '約朋友比對興趣' : '登入約朋友比對興趣'}
+            </Button>
+          </div>
         </div>
       )}
     </div>

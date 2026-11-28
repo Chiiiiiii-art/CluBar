@@ -152,6 +152,7 @@
   --color-notice-danger-fg: var(--color-danger-800);
   --color-notice-success-border: var(--color-border-ink);
   --color-notice-success-fg: var(--color-success-800);
+
 }
 
 @layer base {
@@ -323,6 +324,26 @@
 
 .animate-stamp {
   animation: stamp-in 320ms var(--ease-spring) both;
+}
+
+/* Quiz "+1" pop that floats up off a tapped sticker. */
+@keyframes tap-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -10px) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -34px) scale(1);
+  }
+}
+
+.animate-tap-pop {
+  animation: tap-pop 650ms var(--ease-out-soft) both;
 }
 
 /* Horizontal scroller that fades its right edge on small screens. */

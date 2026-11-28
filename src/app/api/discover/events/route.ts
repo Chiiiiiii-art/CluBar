@@ -5,7 +5,8 @@ import { handleApiError } from '@/lib/errors';
 
 const eventsQuerySchema = z.object({
   university_id: z.string().uuid().optional(),
-  domain_id: z.string().uuid().optional(),
+  // Comma-separated: posts/events matching any listed domain.
+  domain_id: z.string().max(300).optional(),
   date_range: z.enum(['this_week', 'this_month', 'all']).optional(),
   hours_type: z.enum(['none', 'art', 'life', 'service']).optional(),
   has_hours: z.enum(['true', 'false']).optional(),
@@ -39,7 +40,11 @@ export async function GET(req: Request) {
 
     const data = await getDiscoverEvents({
       universityId: parsed.university_id,
-      domainId: parsed.domain_id,
+      domainIds: (parsed.domain_id ?? '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => z.string().uuid().safeParse(s).success)
+        .slice(0, 12),
       dateRange: parsed.date_range,
       hoursType: parsed.hours_type,
       hasHours: parsed.has_hours === 'true',

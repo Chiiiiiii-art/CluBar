@@ -5,7 +5,8 @@ import { handleApiError } from '@/lib/errors';
 
 const querySchema = z.object({
   university_id: z.string().uuid().optional(),
-  domain_id: z.string().uuid().optional(),
+  // Comma-separated: posts/events matching any listed domain.
+  domain_id: z.string().max(300).optional(),
   exclude_ids: z.string().max(9000).optional(),
 });
 
@@ -25,7 +26,11 @@ export async function GET(req: Request) {
 
     const data = await getDiscoverStream({
       universityId: parsed.university_id,
-      domainId: parsed.domain_id,
+      domainIds: (parsed.domain_id ?? '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => z.string().uuid().safeParse(s).success)
+        .slice(0, 12),
       excludeIds,
     });
 

@@ -1,5 +1,6 @@
 import {
   and,
+  arrayOverlaps,
   count,
   desc,
   eq,
@@ -147,7 +148,8 @@ const DISCOVER_SYSTEM_PROMPT = `你是「社團聚（CluBar）」的大專社團
 
 export async function getDiscoverStream(params: {
   universityId?: string;
-  domainId?: string;
+  /** Matches posts tagged with any of these domains. */
+  domainIds?: string[];
   excludeIds?: string[];
 }): Promise<{ items: DiscoverStreamCardDTO[]; batch_meta: DiscoverBatchMeta }> {
   const excludeIds = (params.excludeIds ?? []).slice(0, 240);
@@ -164,8 +166,8 @@ export async function getDiscoverStream(params: {
     inArray(posts.postKind, ['nrc_moment', 'wip_work', 'album_highlight', 'qa_highlight']),
   ];
   if (params.universityId) conditions.push(eq(clubs.universityId, params.universityId));
-  if (params.domainId) {
-    conditions.push(sql`${posts.domainIds} @> ARRAY[${params.domainId}]::uuid[]`);
+  if (params.domainIds?.length) {
+    conditions.push(arrayOverlaps(posts.domainIds, params.domainIds));
   }
   if (excludeIds.length > 0) {
     conditions.push(notInArray(posts.id, excludeIds));
@@ -286,7 +288,8 @@ export async function getDiscoverStream(params: {
 
 export async function getDiscoverEvents(params: {
   universityId?: string;
-  domainId?: string;
+  /** Matches events tagged with any of these domains. */
+  domainIds?: string[];
   dateRange?: 'this_week' | 'this_month' | 'all';
   hoursType?: LearningHoursCategory;
   hasHours?: boolean;
@@ -312,8 +315,8 @@ export async function getDiscoverEvents(params: {
   ];
 
   if (params.universityId) conditions.push(eq(clubs.universityId, params.universityId));
-  if (params.domainId) {
-    conditions.push(sql`${clubEvents.domainIds} @> ARRAY[${params.domainId}]::uuid[]`);
+  if (params.domainIds?.length) {
+    conditions.push(arrayOverlaps(clubEvents.domainIds, params.domainIds));
   }
   if (params.hoursType && params.hoursType !== 'none') {
     conditions.push(eq(clubEvents.learningHoursCategory, params.hoursType));
