@@ -4,6 +4,7 @@ import { db, isDatabaseConfigured } from '@/db';
 import { interestDomains, universities } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { getDiscoverEvents, getDiscoverStream } from '@/lib/discovery/service';
+import { getHomeContext, type HomeContext } from '@/lib/services/home-context';
 import { DiscoverClient } from '@/components/DiscoverClient';
 
 export const dynamic = 'force-dynamic';
@@ -24,14 +25,21 @@ export default async function HomePage({
       : cookieUni && uuidRegex.test(cookieUni)
         ? cookieUni
         : '';
-  const initialDomainId =
-    sp.domain_id && uuidRegex.test(sp.domain_id) ? sp.domain_id : '';
   const initialTab = sp.tab === 'events' ? 'events' : 'stream';
 
   const dbReady = isDatabaseConfigured();
   const currentUser = dbReady ? await getCurrentUser().catch(() => null) : null;
+  const homeContext: HomeContext | null = currentUser
+    ? await getHomeContext(currentUser.id).catch(() => null)
+    : null;
 
-  const [streamData, eventData, uniRows, domainRows] = dbReady
+  // URL wins; otherwise the saved quiz interest becomes a visible, removable filter.
+  const initialDomainId =
+    sp.domain_id && uuidRegex.test(sp.domain_id) ? sp.domain_id : (homeContext?.savedDomainId ?? '');
+  // The client also checks localStorage before showing it.
+  const maybeFirstVisit = !homeContext?.known && !initialUniversityId;
+
+  const [streamData, eventData, weekData, uniRows, domainRows] = dbReady
     ? await Promise.all([
         getDiscoverStream({
           universityId: initialUniversityId || undefined,
@@ -43,6 +51,13 @@ export default async function HomePage({
         getDiscoverEvents({
           universityId: initialUniversityId || undefined,
           domainId: initialDomainId || undefined,
+        }).catch(() => ({
+          items: [],
+          batch_meta: { count: 0, cap: 12, has_more: false, next_exclude_ids: [] },
+        })),
+        getDiscoverEvents({
+          universityId: initialUniversityId || undefined,
+          dateRange: 'this_week',
         }).catch(() => ({
           items: [],
           batch_meta: { count: 0, cap: 12, has_more: false, next_exclude_ids: [] },
@@ -61,6 +76,7 @@ export default async function HomePage({
     : [
         { items: [], batch_meta: { count: 0, cap: 12, has_more: false, next_exclude_ids: [] } },
         { items: [], batch_meta: { count: 0, cap: 12, has_more: false, next_exclude_ids: [] } },
+        { items: [], batch_meta: { count: 0, cap: 12, has_more: false, next_exclude_ids: [] } },
         [],
         [],
       ];
@@ -76,6 +92,10 @@ export default async function HomePage({
       domains={domainRows}
       dbConfigured={dbReady}
       initialUniversityId={initialUniversityId}
+      initialDomainId={initialDomainId}
+      initialWeekEvents={weekData.items.slice(0, 3)}
+      maybeFirstVisit={maybeFirstVisit}
+      roleStrip={homeContext?.strip ?? null}
       isLoggedIn={Boolean(currentUser)}
     />
   );

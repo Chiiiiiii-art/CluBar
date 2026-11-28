@@ -12,6 +12,7 @@ import {
 } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { AdminClient, type AdminPageData } from '@/components/AdminClient';
+import { ButtonLink, EmptyState } from '@/components/ui';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,12 +23,28 @@ export default async function AdminPage() {
   if (!user) redirect('/login?callbackUrl=/admin');
 
   if (user.platformRole !== 'platform_admin') {
+    const isSchoolAdmin = user.platformRole === 'school_admin';
     return (
-      <div className="mx-auto max-w-lg rounded-xl border border-danger-200 bg-surface p-8 text-center">
-        <h1 className="font-sans text-lg font-bold text-fg">僅限平台管理員存取</h1>
-        <p className="mt-2 text-sm text-fg-muted">
-          您的帳號目前不是平台管理員（platform_admin）。
-        </p>
+      <div className="mx-auto max-w-lg">
+        <EmptyState
+          title={isSchoolAdmin ? '學校後台還在準備中' : '這裡是平台管理員的工作區'}
+          description={
+            isSchoolAdmin
+              ? '你是學校承辦帳號。學校專用的社團總覽與評鑑彙整正在做，完成後會從這裡進入；現在可以先到首頁看看各社團的活動與作品。'
+              : '你的帳號沒有這一頁的權限。如果你是社團幹部，管理社團請到「我的聚」。'
+          }
+          action={
+            isSchoolAdmin ? (
+              <ButtonLink href="/" variant="secondary">
+                去首頁看社團
+              </ButtonLink>
+            ) : (
+              <ButtonLink href="/my-clubs" variant="secondary">
+                去我的聚
+              </ButtonLink>
+            )
+          }
+        />
       </div>
     );
   }

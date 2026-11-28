@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Calendar, Compass, Flame, RotateCcw, Search, Sparkles, X } from 'lucide-react';
-import { Button, ButtonLink, ChipRow, EmptyState, FilterChip, Notice, Skeleton, Tabs, controlClasses, tabPanelProps } from '@/components/ui';
+import { ArrowRight, Calendar, Flame, RotateCcw, Search, Sparkles, X } from 'lucide-react';
+import { Button, ChipRow, EmptyState, FilterChip, Notice, Skeleton, Tabs, controlClasses, tabPanelProps } from '@/components/ui';
 import { DISCOVER_EXAMPLE_PROMPTS } from '@/lib/constants';
 import type { DiscoverBatchMeta } from '@/lib/discovery/service';
 import type { DiscoverEventCardDTO, DiscoverStreamCardDTO } from '@/lib/serializers';
+import type { RoleStrip } from '@/lib/services/home-context';
+import { startFlow } from '@/lib/flow';
 import { EventCard } from './EventCard';
 import { PostCard } from './PostCard';
+import { RoleStripBar } from './home/RoleStripBar';
+import { WeekEventStrip } from './home/WeekEventStrip';
 
 interface UniversityOption {
   id: string;
@@ -32,6 +36,10 @@ export function DiscoverClient({
   domains,
   dbConfigured,
   initialUniversityId = '',
+  initialDomainId = '',
+  initialWeekEvents = [],
+  maybeFirstVisit = false,
+  roleStrip = null,
   isLoggedIn = false,
 }: {
   initialTab?: 'stream' | 'events';
@@ -43,11 +51,17 @@ export function DiscoverClient({
   domains: DomainOption[];
   dbConfigured: boolean;
   initialUniversityId?: string;
+  initialDomainId?: string;
+  initialWeekEvents?: DiscoverEventCardDTO[];
+  /** Server found no quiz, membership, follow or school choice; the client still checks localStorage. */
+  maybeFirstVisit?: boolean;
+  roleStrip?: RoleStrip | null;
   isLoggedIn?: boolean;
 }) {
   const [activeTab, setActiveTab] = useState<'stream' | 'events'>(initialTab);
   const [selectedUniId, setSelectedUniId] = useState(initialUniversityId);
-  const [selectedDomainId, setSelectedDomainId] = useState('');
+  const [selectedDomainId, setSelectedDomainId] = useState(initialDomainId);
+  const [weekEvents, setWeekEvents] = useState<DiscoverEventCardDTO[]>(initialWeekEvents);
 
   // Stream tab state
   const [streamItems, setStreamItems] = useState<DiscoverStreamCardDTO[]>(initialStreamItems);
@@ -73,12 +87,19 @@ export function DiscoverClient({
   const [showExamples, setShowExamples] = useState(false);
 
   useEffect(() => {
+    startFlow('student_rsvp', 'home');
     try {
       const saved = window.localStorage.getItem('clubar_onboarding');
-      if (!saved && !initialUniversityId) {
-        setShowOnboardingPrompt(true);
-      } else if (saved && isLoggedIn) {
-        const parsed = JSON.parse(saved);
+      const parsed = saved ? JSON.parse(saved) : null;
+      if (!parsed && maybeFirstVisit) setShowOnboardingPrompt(true);
+      // No URL or server interest: apply the locally saved quiz interest as a visible, removable filter.
+      const localDomain: unknown = parsed?.domain_ids?.[0];
+      if (!initialDomainId && typeof localDomain === 'string' && domains.some((d) => d.id === localDomain)) {
+        setSelectedDomainId(localDomain);
+        if (initialTab === 'events') void loadEvents({ uniId: initialUniversityId, domainId: localDomain });
+        else void loadStream({ uniId: initialUniversityId, domainId: localDomain });
+      }
+      if (parsed && isLoggedIn) {
         if (!parsed.synced) {
           void fetch('/api/me/onboarding-sync', {
             method: 'POST',
@@ -102,7 +123,9 @@ export function DiscoverClient({
     } catch {
       // Ignore storage failures
     }
-  }, [initialUniversityId, isLoggedIn]);
+    // Mount-only: re-running would re-apply the default filter after the user removed it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const loadStream = async (opts: {
     uniId?: string;
@@ -222,6 +245,12 @@ export function DiscoverClient({
       document.cookie = 'clubar_univ=; path=/; max-age=0';
     }
     setShowOnboardingPrompt(false);
+    const weekSp = new URLSearchParams({ date_range: 'this_week' });
+    if (nextUniId) weekSp.set('university_id', nextUniId);
+    void fetch(`/api/discover/events?${weekSp.toString()}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => json && setWeekEvents((json.items ?? []).slice(0, 3)))
+      .catch(() => {});
     if (activeTab === 'stream') {
       void loadStream({ uniId: nextUniId, domainId: selectedDomainId });
     } else {
@@ -340,60 +369,11 @@ export function DiscoverClient({
   const hasAnyFilter = activeTab === 'events' ? hasActiveEventFilters : Boolean(selectedDomainId || activeNlQuery);
   const examplesVisible = showExamples && activeTab === 'stream' && !query.trim();
 
-  const featuredEvent = eventItems[0] ?? null;
+  // Quiet week: fall back to the soonest upcoming events so the panel still shows content.
+  const stripEvents = weekEvents.length > 0 ? weekEvents : initialEventItems.slice(0, 3);
+  const stripTitle = weekEvents.length > 0 ? '本週可參加' : '近期可參加';
   const selectedUniLabel =
     universities.find((u) => u.id === selectedUniId)?.short_name ?? '全部學校';
-
-  const quickEventShortcuts = [
-    {
-      label: '零基礎可',
-      active: activeTab === 'events' && beginnerOnly,
-      toneClass: 'bg-spark text-fg',
-      shape: 'rounded-full',
-      onClick: () => {
-        const next = !(activeTab === 'events' && beginnerOnly);
-        setActiveTab('events');
-        setBeginnerOnly(next);
-        reloadEvents({ beginnerOnly: next });
-      },
-    },
-    {
-      label: '非社員歡迎',
-      active: activeTab === 'events' && nonMemberOnly,
-      toneClass: 'bg-domain-arts-soft text-domain-arts',
-      shape: 'rounded-xl',
-      onClick: () => {
-        const next = !(activeTab === 'events' && nonMemberOnly);
-        setActiveTab('events');
-        setNonMemberOnly(next);
-        reloadEvents({ nonMemberOnly: next });
-      },
-    },
-    {
-      label: '本週體驗',
-      active: activeTab === 'events' && dateRange === 'this_week',
-      toneClass: 'bg-domain-service-soft text-domain-service',
-      shape: 'rounded-lg',
-      onClick: () => {
-        const next = activeTab === 'events' && dateRange === 'this_week' ? 'all' : 'this_week';
-        setActiveTab('events');
-        setDateRange(next);
-        reloadEvents({ dateRange: next });
-      },
-    },
-    {
-      label: '免費參加',
-      active: activeTab === 'events' && freeOnly,
-      toneClass: 'bg-surface text-fg',
-      shape: 'rounded-lg',
-      onClick: () => {
-        const next = !(activeTab === 'events' && freeOnly);
-        setActiveTab('events');
-        setFreeOnly(next);
-        reloadEvents({ freeOnly: next });
-      },
-    },
-  ] as const;
 
   return (
     <div className="space-y-4 sm:space-y-5">
@@ -407,7 +387,7 @@ export function DiscoverClient({
           </p>
           <Link
             href="/onboarding"
-            className="tactile-press inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg border-2 border-border-ink bg-spark px-3 font-display text-sm font-bold text-fg"
+            className="tactile-press inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg border-2 border-border-ink bg-spark px-3 font-display text-sm font-bold text-fg"
           >
             開始
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -416,7 +396,7 @@ export function DiscoverClient({
             type="button"
             onClick={() => setShowOnboardingPrompt(false)}
             aria-label="關閉提示"
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-fg-muted hover:bg-surface-subtle hover:text-fg"
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-fg-muted hover:bg-surface-subtle hover:text-fg"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
@@ -424,19 +404,22 @@ export function DiscoverClient({
       )}
 
       {/* Soft Neubrutalist Bento Masthead */}
-      <section className="grid gap-4 lg:grid-cols-[1.35fr_1fr]" aria-label="社團探索主視覺">
-        <div className="tactile-card flex min-w-0 flex-col justify-between gap-4 rounded-2xl bg-surface p-5 sm:p-6">
+      <section
+        className={`grid gap-4 ${stripEvents.length > 0 ? 'lg:grid-cols-[1.35fr_1fr]' : ''}`}
+        aria-label="社團探索主視覺"
+      >
+        <div className="tactile-card flex min-w-0 flex-col justify-between gap-3 rounded-2xl bg-surface p-4 sm:gap-4 sm:p-6">
           <div className="space-y-3">
-            <span className="tactile-shadow-sm inline-flex items-center rounded-lg border-2 border-border-ink bg-domain-academic-soft px-3 py-1 text-xs font-bold text-domain-academic">
+            <span className="tactile-shadow-sm hidden items-center rounded-lg border-2 border-border-ink bg-domain-academic-soft sm:inline-flex px-3 py-1 text-xs font-bold text-domain-academic">
               {selectedUniLabel} · 社團探索
             </span>
-            <h1 className="font-display text-2xl font-black leading-tight text-fg sm:text-3xl">
+            <h1 className="font-display text-xl font-black leading-tight text-fg sm:text-3xl">
               看作品，找到真正{' '}
-              <span className="tactile-shadow-sm inline-block rounded-lg border-2 border-border-ink bg-spark px-2.5 py-0.5 text-fg">
+              <span className="tactile-shadow-sm inline-block rounded-lg border-2 border-border-ink bg-spark px-1.5 py-0.5 text-fg sm:px-2.5">
                 想去的社團
               </span>
             </h1>
-            <p className="text-sm text-fg-secondary sm:text-base">
+            <p className="hidden text-fg-secondary sm:block sm:text-base">
               從社員日常與體驗社課開始，零基礎也能輕鬆參加。
             </p>
           </div>
@@ -492,54 +475,20 @@ export function DiscoverClient({
           </form>
         </div>
 
-        <aside className="tactile-card flex min-w-0 flex-col justify-between gap-4 rounded-2xl bg-cobalt p-5 text-on-cobalt">
-          <div className="space-y-2.5">
-            <span className="font-mono text-xs font-bold tracking-wide">點貼紙直接看活動</span>
-            <div className="flex flex-wrap gap-2">
-              {quickEventShortcuts.map((item) => (
-                <button
-                  key={item.label}
-                  type="button"
-                  aria-pressed={item.active}
-                  onClick={item.onClick}
-                  className={`tactile-press inline-flex min-h-10 items-center gap-1.5 border-2 border-border-ink px-3 py-1.5 font-display text-xs font-bold ${item.shape} ${
-                    item.active ? 'bg-fg text-spark' : item.toneClass
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {featuredEvent ? (
-            <div className="tactile-shadow-sm flex items-center justify-between gap-3 rounded-xl border-2 border-border-ink bg-surface px-3.5 py-3 text-fg">
-              <div className="min-w-0">
-                <p className="font-mono text-xs font-bold text-brand-soft-fg">本週體驗社課</p>
-                <p className="truncate font-display text-sm font-black">{featuredEvent.title}</p>
-              </div>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => handleTabSwitch('events')}
-                className="shrink-0"
-              >
-                看票根 →
-              </Button>
-            </div>
-          ) : (
-            <div className="tactile-shadow-sm flex items-center justify-between gap-3 rounded-xl border-2 border-border-ink bg-surface px-3.5 py-3 text-fg">
-              <div className="min-w-0">
-                <p className="font-mono text-xs font-bold text-brand-soft-fg">不知道從哪逛？</p>
-                <p className="truncate font-display text-sm font-black">30 秒測驗挑出適合你的社團</p>
-              </div>
-              <ButtonLink href="/onboarding" variant="secondary" size="sm" className="shrink-0">
-                開始 →
-              </ButtonLink>
-            </div>
-          )}
-        </aside>
+        {stripEvents.length > 0 && (
+          <section
+            aria-labelledby="home-week-title"
+            className="tactile-card min-w-0 space-y-2.5 rounded-2xl bg-cobalt p-4 text-on-cobalt sm:p-5"
+          >
+            <h2 id="home-week-title" className="font-display text-base font-black">
+              {stripTitle}
+            </h2>
+            <WeekEventStrip events={stripEvents} />
+          </section>
+        )}
       </section>
+
+      {roleStrip && <RoleStripBar strip={roleStrip} />}
 
       {/* Discovery controls */}
       <div className="space-y-3">
@@ -568,15 +517,6 @@ export function DiscoverClient({
                 </option>
               ))}
             </select>
-            <div className="hidden sm:block">
-              <ButtonLink
-                href="/onboarding"
-                variant="secondary"
-                icon={<Sparkles className="h-4 w-4" aria-hidden="true" />}
-              >
-                興趣測驗
-              </ButtonLink>
-            </div>
           </div>
         </div>
 

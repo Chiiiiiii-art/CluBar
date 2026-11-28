@@ -256,6 +256,8 @@ export const analyticsEventTypeEnum = pgEnum('analytics_event_type', [
   'event_share',
   'event_publish_started',
   'event_publish_channel',
+  'flow_start',
+  'flow_done',
 ]);
 
 // ── 1. 學校、興趣領域、使用者、Onboarding 與 Blend ─────────────────────────
@@ -1122,6 +1124,8 @@ export const analyticsEvents = pgTable(
     targetId: uuid('target_id'),
     sourceSurface: text('source_surface'),
     studentReachHash: text('student_reach_hash'),
+    flowId: text('flow_id'),
+    flowElapsedMs: integer('flow_elapsed_ms'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('idx_analytics_type_time').on(t.eventType, t.createdAt)]

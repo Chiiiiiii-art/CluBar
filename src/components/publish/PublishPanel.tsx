@@ -14,6 +14,7 @@ import {
   Send,
 } from 'lucide-react';
 import { Badge, Button, Notice, Skeleton, controlClasses } from '@/components/ui';
+import { completeFlow } from '@/lib/flow';
 import { downloadImage, lineShareUrl, preloadShareImage, shareImage, trackShareEvent } from '@/lib/share';
 
 // Officer "publish complete" panel (docs/one-stop-publish-solution.md §3.5, phase 1).
@@ -164,7 +165,11 @@ export function PublishPanel({
     };
   }, [shortCode, clubId, eventId]);
 
-  const setRow = (id: ChannelId, state: RowState) => setRows((prev) => ({ ...prev, [id]: state }));
+  const setRow = (id: ChannelId, state: RowState) => {
+    setRows((prev) => ({ ...prev, [id]: state }));
+    // Timing baseline (audit P0-2): the first channel that goes out ends the officer task; later calls no-op.
+    if (state.kind === 'done') completeFlow('officer_publish', { surface: `publish_${id === 'clubar' ? 'link' : id}`, clubId, targetId: eventId });
+  };
   const track = (surface: string) =>
     trackShareEvent({ type: 'event_publish_channel', clubId, targetId: eventId, surface });
 

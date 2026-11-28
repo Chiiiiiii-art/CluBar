@@ -37,6 +37,7 @@ import { uploadShortVideo } from '@/lib/media/client-upload';
 import { POST_KIND_LABELS } from '@/lib/constants';
 import { ImageUploader } from '@/components/ImageUploader';
 import { PublishPanel } from '@/components/publish/PublishPanel';
+import { startFlow } from '@/lib/flow';
 
 import {
   Badge,
@@ -155,6 +156,9 @@ const ARCHIVE_CATEGORY_LABEL: Record<string, string> = {
   evaluation_evidence: '評鑑佐證文件',
   other: '其他密件',
 };
+const MANAGE_TABS = ['events', 'posts', 'members', 'questions', 'evaluation', 'handover'] as const;
+type ManageTab = (typeof MANAGE_TABS)[number];
+
 const EVENT_STATUS_LABEL: Record<string, string> = {
   draft: '草稿',
   open: '開放報名',
@@ -169,9 +173,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
   const isOwner = data.myRole === 'owner';
   const isOfficer = isOwner || data.myRole === 'editor';
 
-  const [tab, setTab] = useState<
-    'events' | 'posts' | 'members' | 'questions' | 'evaluation' | 'handover'
-  >(isReadOnlyAlumni ? 'evaluation' : 'events');
+  const [tab, setTab] = useState<ManageTab>(isReadOnlyAlumni ? 'evaluation' : 'events');
 
   const [bannerMsg, setBannerMsg] = useState<string | null>(null);
   const [bannerErr, setBannerErr] = useState<string | null>(null);
@@ -195,6 +197,14 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
 
   useEffect(() => {
     if (!origin) setOrigin(window.location.origin);
+    // Deep links: ?tab=<tab> picks a tab; ?new=event opens the create-event form with focus.
+    const params = new URLSearchParams(window.location.search);
+    const wantedTab = params.get('tab');
+    if (canWrite && params.get('new') === 'event') {
+      openCreateEvent();
+    } else if (canWrite && wantedTab && MANAGE_TABS.includes(wantedTab as ManageTab) && wantedTab !== tab) {
+      void switchTab(wantedTab as ManageTab);
+    }
     if (!isOfficer) return;
     fetch(`/api/clubs/${data.club.slug}/publish-channels`)
       .then((res) => (res.ok ? res.json() : null))
@@ -309,6 +319,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
     }
   }
   const [aiRawText, setAiRawText] = useState('');
+  const [evAiRawText, setEvAiRawText] = useState('');
   const [aiResult, setAiResult] = useState<VisionDraftState | null>(null);
   const [postKind, setPostKind] = useState<'nrc_moment' | 'wip_work'>('wip_work');
   const [postHeadline, setPostHeadline] = useState('');
@@ -484,20 +495,36 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
     }
   }
 
-  async function handleAiDraftSubmit(file: File | null) {
-    setBusy('ai-draft');
+  // Opens the create-event form on the events tab and focuses its first field.
+  function openCreateEvent() {
+    setTab('events');
+    setEventFormOpen(true);
+    startFlow('officer_publish', 'create_form');
+    setTimeout(() => {
+      const title = document.getElementById('club-manage-evtitle');
+      title?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      title?.focus({ preventScroll: true });
+    }, 50);
+  }
+
+  // target 'event' (events-tab entry) fills the event form directly; 'post' shows the posts-tab result card.
+  async function handleAiDraftSubmit(file: File | null, target: 'post' | 'event' = 'post') {
+    const rawText = target === 'event' ? evAiRawText : aiRawText;
+    if (target === 'event') startFlow('officer_publish', 'create_form');
+    setBusy(target === 'event' ? 'ai-draft-event' : 'ai-draft');
     setBannerErr(null);
     setBannerMsg(null);
     try {
       const fd = new FormData();
       fd.append('club_id', data.club.id);
-      if (aiRawText.trim()) fd.append('raw_text', aiRawText.trim());
+      if (rawText.trim()) fd.append('raw_text', rawText.trim());
       if (file) fd.append('file', file);
 
       const res = await fetch('/api/ai/draft-from-raw', { method: 'POST', body: fd });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error?.message || 'AI 解析失敗');
-      setAiResult(json);
+      if (target === 'event') applyAiToEvent(json);
+      else setAiResult(json);
     } catch (err) {
       setBannerErr(err instanceof Error ? err.message : 'AI 解析失敗');
     } finally {
@@ -513,9 +540,9 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
     setBannerMsg('已帶入上方貼文表單，上傳圖片與確認原創後即可發布。');
   }
 
-  function applyAiToEvent() {
-    if (!aiResult) return;
-    const d = aiResult.draft;
+  function applyAiToEvent(result: VisionDraftState | null = aiResult) {
+    if (!result) return;
+    const d = result.draft;
     setEvTitle(d.title.slice(0, 80));
     setEvSummary(d.summary.slice(0, 160));
     setEvDesc(d.content_md);
@@ -530,8 +557,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
       setEvNonMember(d.extracted_event.non_members_welcome);
     }
     if (!d.extracted_event.starts_at_hint) setEvMode('tbd');
-    setTab('events');
-    setEventFormOpen(true);
+    openCreateEvent();
     setAiFilledEvent(true);
     setAiFieldsConfirmed(false);
     setBannerMsg('已將海報／文案解析欄位帶入活動建立表單，請補齊正確時間後送出！');
@@ -950,7 +976,11 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               onToggle={(e) => setEventFormOpen(e.currentTarget.open)}
               className="group tactile-card rounded-2xl bg-surface"
             >
-              <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-6 py-3 [&::-webkit-details-marker]:hidden">
+              <summary
+                onClick={() => {
+                  if (!eventFormOpen) startFlow('officer_publish', 'create_form');
+                }}
+                className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-6 py-3 [&::-webkit-details-marker]:hidden">
                 <span>
                   <span className="block font-display text-base font-bold text-fg">建立體驗活動</span>
                   <span className="block text-sm text-fg-muted">
@@ -964,8 +994,57 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               </summary>
             <form
               onSubmit={handleCreateEvent}
+              onInput={() => startFlow('officer_publish', 'create_form')}
               className="border-t-2 border-line px-6 pb-6"
             >
+              <div className="mt-4 space-y-3 rounded-xl bg-surface-subtle p-4">
+                <div className="min-w-0 space-y-1.5 *:w-full">
+                  <label htmlFor="club-manage-ev-airawtext" className="flex items-center gap-2 font-display text-sm font-bold text-fg">
+                    <Sparkles className="h-4 w-4 text-brand" aria-hidden="true" />
+                    貼上文案或海報，自動填表
+                  </label>
+                  <p className="text-sm text-fg-muted">貼 LINE 公告或上傳海報，幫你填好下面的欄位；不會自己編日期和費用。</p>
+                  <textarea
+                    id="club-manage-ev-airawtext"
+                    rows={3}
+                    value={evAiRawText}
+                    onChange={(e) => setEvAiRawText(e.target.value)}
+                    placeholder="貼上活動公告、筆記或企劃文字（至少 20 字）"
+                    className={`${controlClasses} min-h-24 w-full py-2.5 leading-relaxed`}
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    variant="secondary"
+                    loading={busy === 'ai-draft-event'}
+                    disabled={evAiRawText.trim().length < 20}
+                    onClick={() => handleAiDraftSubmit(null, 'event')}
+                  >
+                    用這段文字填表
+                  </Button>
+                  <label
+                    className={buttonClasses({
+                      variant: 'secondary',
+                      size: 'md',
+                      className: 'cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus-ring',
+                    })}
+                  >
+                    <Upload className="h-3.5 w-3.5" aria-hidden="true" />
+                    {busy === 'ai-draft-event' ? '解析中...' : '上傳海報圖／PDF'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,.pdf,.txt,.md"
+                      disabled={busy === 'ai-draft-event'}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] ?? null;
+                        e.target.value = '';
+                        if (f) handleAiDraftSubmit(f, 'event');
+                      }}
+                      className="sr-only"
+                    />
+                  </label>
+                </div>
+              </div>
               {aiFilledEvent && (
                 <div className="mt-4">
                   <Notice tone="warning">
@@ -1467,7 +1546,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                         <div className="flex flex-wrap gap-2 pt-2">
                           <Button
                             variant={preferEvent ? 'primary' : 'secondary'}
-                            onClick={applyAiToEvent}
+                            onClick={() => applyAiToEvent()}
                           >
                             帶入「建立活動」表單
                           </Button>

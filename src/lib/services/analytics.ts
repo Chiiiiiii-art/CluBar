@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { db, isDatabaseConfigured } from '@/db';
 import {
   analyticsEvents,
@@ -34,6 +34,8 @@ export async function recordAnalyticsEvent(params: {
   universityId?: string | null;
   sourceSurface?: string | null;
   userId?: string | null;
+  flowId?: string | null;
+  flowElapsedMs?: number | null;
 }): Promise<void> {
   if (!isDatabaseConfigured()) return;
 
@@ -84,7 +86,15 @@ export async function recordAnalyticsEvent(params: {
       targetId: params.targetId ?? null,
       sourceSurface: params.sourceSurface ?? null,
       studentReachHash: params.userId ? computeStudentReachHash(params.userId) : null,
+      flowId: params.flowId ?? null,
+      flowElapsedMs: params.flowElapsedMs ?? null,
     });
+    if (params.flowId && Math.random() < 0.02) {
+      // shortcut: opportunistic 90-day anonymisation; move to a scheduled job if traffic grows.
+      await db.execute(
+        sql`UPDATE analytics_events SET flow_id = NULL WHERE flow_id IS NOT NULL AND created_at < now() - interval '90 days'`
+      );
+    }
   } catch (err) {
     console.warn('[Analytics insert failed]', err instanceof Error ? err.message : err);
   }

@@ -15,6 +15,8 @@ export interface NavbarUserProp {
 interface NavItem {
   href: string;
   label: string;
+  /** Plain-words meaning of the brand label, e.g. 別的聚 = 探索. */
+  hint?: string;
   icon: LucideIcon;
   active: boolean;
 }
@@ -49,9 +51,9 @@ export function Navbar({
     pathname && pathname !== '/login' ? `/login?callbackUrl=${encodeURIComponent(pathname)}` : '/login';
 
   const items: NavItem[] = [
-    { href: '/', label: '別的聚', icon: Compass, active: isDiscover },
-    { href: '/together', label: '一起聚', icon: Users, active: isTogether },
-    { href: '/my-clubs', label: '我的聚', icon: FolderHeart, active: isMyClubs },
+    { href: '/', label: '別的聚', hint: '探索', icon: Compass, active: isDiscover },
+    { href: '/together', label: '一起聚', hint: '跨校', icon: Users, active: isTogether },
+    { href: '/my-clubs', label: '我的聚', hint: '我的社團', icon: FolderHeart, active: isMyClubs },
   ];
 
   return (
@@ -81,13 +83,17 @@ export function Navbar({
                   href={it.href}
                   aria-current={it.active ? 'page' : undefined}
                   className={cn(
-                    'inline-flex min-h-11 items-center rounded-xl border-2 px-3.5 font-display text-sm font-bold transition-transform',
+                    'inline-flex min-h-11 flex-col items-start justify-center rounded-xl border-2 px-3.5 font-display text-sm font-bold leading-tight transition-transform',
                     it.active
                       ? 'tactile-shadow-sm border-border-ink bg-spark text-fg'
                       : 'border-transparent text-fg-secondary hover:bg-surface-subtle hover:text-fg'
                   )}
                 >
-                  {it.label}
+                  <span>{it.label}</span>
+                  <span className="font-sans text-xs font-medium">
+                    <span className="sr-only">：</span>
+                    {it.hint}
+                  </span>
                 </Link>
               ))}
               {user?.platformRole === 'platform_admin' && (
@@ -158,6 +164,7 @@ export function Navbar({
               <Link
                 key={it.label}
                 href={it.href}
+                aria-label={'hint' in it && it.hint ? `${it.label}：${it.hint}` : undefined}
                 aria-current={it.active ? 'page' : undefined}
                 className={cn(
                   'relative flex min-h-14 flex-col items-center justify-center gap-0.5 font-display text-xs font-bold',

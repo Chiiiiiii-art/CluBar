@@ -291,7 +291,7 @@ export function OnboardingClient({
                   {isLoggedIn ? '做一張分享卡，約朋友合拍' : '登入做興趣分享卡'}
                 </Button>
                 <ButtonLink
-                  href={`/?university_id=${encodeURIComponent(universityId)}`}
+                  href={`/?university_id=${encodeURIComponent(universityId)}${domainIds[0] ? `&domain_id=${encodeURIComponent(domainIds[0])}` : ''}`}
                   variant="secondary"
                 >
                   逛逛現場動態

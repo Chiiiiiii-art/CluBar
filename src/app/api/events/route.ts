@@ -25,10 +25,14 @@ const eventSchema = z.object({
     'event_share',
     'event_publish_started',
     'event_publish_channel',
+    'flow_start',
+    'flow_done',
   ]),
   club_id: z.string().uuid().optional().nullable(),
   target_id: z.string().uuid().optional().nullable(),
   source_surface: z.string().trim().max(40).optional().nullable(),
+  flow_id: z.string().uuid().optional().nullable(),
+  flow_elapsed_ms: z.number().int().min(0).max(24 * 60 * 60 * 1000).optional().nullable(),
 });
 
 export async function POST(req: Request) {
@@ -40,7 +44,9 @@ export async function POST(req: Request) {
     const body = rawText ? JSON.parse(rawText) : {};
     const parsed = eventSchema.parse(body);
 
-    const user = await getCurrentUser().catch(() => null);
+    const isFlow = parsed.event_type === 'flow_start' || parsed.event_type === 'flow_done';
+    // Flow timing rows are never linked to an account.
+    const user = isFlow ? null : await getCurrentUser().catch(() => null);
 
     await recordAnalyticsEvent({
       eventType: parsed.event_type,
@@ -48,6 +54,8 @@ export async function POST(req: Request) {
       targetId: parsed.target_id ?? null,
       sourceSurface: parsed.source_surface ?? null,
       userId: user?.id ?? null,
+      flowId: isFlow ? (parsed.flow_id ?? null) : null,
+      flowElapsedMs: parsed.event_type === 'flow_done' ? (parsed.flow_elapsed_ms ?? null) : null,
     });
 
     return new NextResponse(null, { status: 204 });

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Film, KeyRound, Settings, Sparkles } from 'lucide-react';
+import { ArrowRight, CalendarPlus, Film, KeyRound, Settings, Sparkles } from 'lucide-react';
 import type { ClubMemberRole, MediaItem, PostKind } from '@/db/schema';
 import { uploadShortVideo } from '@/lib/media/client-upload';
 import { ImageUploader } from '@/components/ImageUploader';
@@ -70,6 +70,7 @@ export function MyClubsClient({
   const [videoBusy, setVideoBusy] = useState(false);
   const [postBusy, setPostBusy] = useState(false);
   const [postMsg, setPostMsg] = useState<string | null>(null);
+  const [postedId, setPostedId] = useState<string | null>(null);
   const [postErr, setPostErr] = useState<string | null>(null);
 
   async function handleRedeemCode(e: React.FormEvent) {
@@ -121,6 +122,7 @@ export function MyClubsClient({
     if (!selectedClub) return;
     setPostErr(null);
     setPostMsg(null);
+    setPostedId(null);
     if (!originalityConfirmed) {
       setPostErr('請先勾選原創與肖像授權聲明。');
       return;
@@ -155,6 +157,7 @@ export function MyClubsClient({
       setMediaItems([]);
       setOriginalityConfirmed(false);
       setPostMsg('微動態已發布登上「別的聚」現場流！');
+      setPostedId(json.post?.id ?? null);
       fetch('/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -187,25 +190,40 @@ export function MyClubsClient({
         <Card padded={false}>
           <ul className="divide-y-2 divide-line">
           {memberships.map((m) => {
-            const canManage = m.role === 'owner' || m.role === 'editor' || m.role === 'alumni';
+            const isOfficer = m.role === 'owner' || m.role === 'editor';
+            const canManage = isOfficer || m.role === 'alumni';
             return (
-              <li key={`${m.clubId}-${m.role}`} className="flex items-center gap-3 px-4 py-3 sm:px-5">
+              <li key={`${m.clubId}-${m.role}`} className="flex flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3 sm:flex-nowrap sm:px-5">
                 <ClubMark name={m.name} seed={m.slug} size="md" />
-                <Link href={`/clubs/${m.slug}`} className="min-w-0 flex-1 py-1 hover:underline">
+                <Link href={`/clubs/${m.slug}`} className="min-w-[10rem] flex-1 py-1 hover:underline">
                   <p className="truncate text-base font-semibold text-fg">{m.name}</p>
                   <p className="truncate text-sm text-fg-muted">
                     {m.universityShortName} · {m.title || ROLE_LABELS[m.role] || m.role}
                   </p>
                 </Link>
                 {canManage ? (
-                  <ButtonLink
-                    href={`/clubs/${m.slug}/manage`}
-                    variant="secondary"
-                    size="sm"
-                    icon={<Settings className="h-4 w-4" aria-hidden="true" />}
-                  >
-                    管理
-                  </ButtonLink>
+                  <div className="ml-auto flex shrink-0 gap-2">
+                    {isOfficer && (
+                      <ButtonLink
+                        href={`/clubs/${m.slug}/manage?new=event`}
+                        variant="soft"
+                        size="sm"
+                        icon={<CalendarPlus className="h-4 w-4" aria-hidden="true" />}
+                        aria-label={`幫${m.name}發活動`}
+                      >
+                        發活動
+                      </ButtonLink>
+                    )}
+                    <ButtonLink
+                      href={`/clubs/${m.slug}/manage`}
+                      variant="secondary"
+                      size="sm"
+                      icon={<Settings className="h-4 w-4" aria-hidden="true" />}
+                      aria-label={`管理${m.name}`}
+                    >
+                      管理
+                    </ButtonLink>
+                  </div>
                 ) : (
                   <ArrowRight className="h-4 w-4 shrink-0 text-fg-subtle" aria-hidden="true" />
                 )}
@@ -380,7 +398,20 @@ export function MyClubsClient({
               </label>
             </div>
 
-            {postMsg && <p className="text-sm font-semibold text-success-fg">{postMsg}</p>}
+            {postMsg && (
+              <p className="flex flex-wrap items-center gap-x-2 text-sm font-semibold text-success-fg">
+                {postMsg}
+                {postedId && (
+                  <Link
+                    href={`/posts/${postedId}`}
+                    className="inline-flex min-h-11 items-center gap-1 font-bold text-fg underline"
+                  >
+                    去看這則貼文
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                )}
+              </p>
+            )}
             {postErr && <p className="text-sm font-semibold text-danger-fg">{postErr}</p>}
 
             <Button type="submit" variant="primary" loading={postBusy} disabled={!headline.trim()}>

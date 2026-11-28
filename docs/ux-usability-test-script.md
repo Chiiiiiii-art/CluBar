@@ -64,3 +64,32 @@
 - **Major（高摩擦，優先修改）**：受測者猶豫超過 10 秒、誤認名詞意義、或 SEQ ≤ 4。
 - **Minor（微調）**：文案可更直白或間距微調，未阻礙任務完成。
 - **過關建議目標**：關鍵任務成功率 ≥ 85%、平均 SEQ ≥ 5.5 / 7、SUS ≥ 75 分、詞彙困惑率 0%。
+
+---
+
+## 6. 計時資料與兩輪比較（2026-11-28 新增）
+
+**受測者**：可以是招募的學生／幹部，也可以是開發者本人；都是真人實測，結果一律記錄並註明身分、裝置、日期。5 人結果只當方向性證據，不能單獨宣稱「快 10 倍」。
+
+**順序**：
+1. 第一輪（基準）：在首頁版面改版（審核報告 P0-3）**之前**測。已知的功能故障（P0-1）可以先修。
+2. 對照組：同一任務也用 IG／DC／Canva 做一次；一半受測者先用 CluBar、一半先用舊工具，避免練習效應。
+3. 第二輪：改版後用同一腳本、同一任務再測。
+
+**網站自動計時**（`analytics_events` 的 `flow_start`／`flow_done`）：
+- `student_rsvp`：進首頁或活動頁開始 → 報名成功結束。
+- `officer_publish`：開始建立活動 → 第一個管道發出結束。
+- 計時 ID 為任務級隨機值，只存在瀏覽器 30 分鐘，不連結帳號；90 天後自動清除 ID。
+
+查詢各流程完成耗時（秒）：
+
+```sql
+SELECT split_part(source_surface, ':', 1) AS flow,
+       count(*) AS done,
+       percentile_cont(0.5) WITHIN GROUP (ORDER BY flow_elapsed_ms) / 1000 AS median_s
+FROM analytics_events
+WHERE event_type = 'flow_done' AND created_at > now() - interval '7 days'
+GROUP BY 1;
+```
+
+自動計時只涵蓋站內；IG／DC 對照組與跳出到外部 App 的時間，仍以主持人碼表為準。

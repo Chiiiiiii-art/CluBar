@@ -8,7 +8,6 @@ import {
   Check,
   CheckCircle2,
   Clock,
-  Copy,
   Download,
   ExternalLink,
   ImagePlus,
@@ -16,7 +15,6 @@ import {
   MapPin,
   MessageSquare,
   Send,
-  Share2,
   ShieldCheck,
   Sparkles,
   Trash2,
@@ -30,6 +28,8 @@ import type { EventFullViewDTO } from '@/lib/services/events';
 import { ImageUploader } from '@/components/ImageUploader';
 import { MarkdownView } from '@/components/MarkdownView';
 import { ShareButton } from '@/components/ShareButton';
+import { PublishPanel } from '@/components/publish/PublishPanel';
+import { completeFlow, startFlow } from '@/lib/flow';
 import {
   Badge,
   Button,
@@ -137,8 +137,6 @@ export function EventPageClient({
   );
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  // U-12: per-channel promo copy, editable before copying (keyed by channel label).
-  const [promoEdits, setPromoEdits] = useState<Record<string, string>>({});
   // Bumped on a fresh RSVP so the stamp animation plays once (not on page load).
   const [stampKey, setStampKey] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -149,13 +147,8 @@ export function EventPageClient({
 
   // Officer panel states
   const [officerTab, setOfficerTab] = useState<OfficerTab>('none');
-  const [promoPack, setPromoPack] = useState<{
-    event_url: string;
-    og_story_image_url: string;
-    line_message: string;
-    discord_markdown: string;
-    ig_caption: string;
-  } | null>(null);
+  // null until the officer opens the publish tab.
+  const [discordConfigured, setDiscordConfigured] = useState<boolean | null>(null);
   const [broadcastMessage, setBroadcastMessage] = useState('');
   const [attendanceList, setAttendanceList] = useState<
     {
@@ -210,6 +203,11 @@ export function EventPageClient({
   ]
     .join('\n');
 
+  // Timing baseline (audit P0-2): a visitor from a shared link starts the RSVP task here.
+  useEffect(() => {
+    startFlow('student_rsvp', 'event_page');
+  }, []);
+
   // Back from login with ?rsvp=1: bring the RSVP card into view; the user still confirms.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -250,7 +248,10 @@ export function EventPageClient({
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error?.message || '更新報名狀態失敗');
       await refreshEvent();
-      if (nextStatus === 'going') setStampKey((k) => k + 1);
+      if (nextStatus === 'going') {
+        setStampKey((k) => k + 1);
+        completeFlow('student_rsvp', { surface: 'rsvp', clubId: detail.club.id, targetId: detail.id });
+      }
       setStatusMessage(
         nextStatus === 'going'
           ? '位子留好了！記得加入行事曆。'
@@ -462,9 +463,10 @@ export function EventPageClient({
   async function openOfficerTab(tab: typeof officerTab) {
     const next = officerTab === tab ? 'none' : tab;
     setOfficerTab(next);
-    if (next === 'promo' && !promoPack) {
-      const res = await fetch(`/api/events/${detail.short_code}/promo-pack`);
-      if (res.ok) setPromoPack(await res.json());
+    if (next === 'promo' && discordConfigured === null) {
+      const res = await fetch(`/api/clubs/${detail.club.slug}/publish-channels`).catch(() => null);
+      const json = res?.ok ? await res.json() : null;
+      setDiscordConfigured(Boolean(json?.discord_configured));
     }
     if (next === 'attendance') {
       const res = await fetch(`/api/events/${detail.short_code}/attendance`);
@@ -473,21 +475,6 @@ export function EventPageClient({
         setAttendanceList(json.attendees ?? []);
       }
     }
-  }
-
-  async function handleCopyPromoText(text: string, label: string) {
-    await navigator.clipboard.writeText(text);
-    setStatusMessage(`已複製「${label}」宣傳文案！`);
-    fetch('/api/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        event_type: 'event_promo_copy',
-        club_id: detail.club.id,
-        target_id: detail.id,
-        source_surface: 'event_promo_pack',
-      }),
-    }).catch(() => {});
   }
 
   async function handleBroadcast(e: React.FormEvent) {
@@ -1101,7 +1088,7 @@ export function EventPageClient({
                 幹部活動工具列
               </h2>
               <p className="text-sm text-fg-muted">
-                相簿策展、一鍵 LINE/IG/Discord 宣傳包、推播臨時異動與現場點名
+                相簿策展、發到 Discord／LINE／IG、推播臨時異動與現場點名
               </p>
             </div>
           </div>
@@ -1115,7 +1102,7 @@ export function EventPageClient({
             onChange={(k) => openOfficerTab(k)}
             items={[
               { id: 'curation', label: `相簿策展 (${pending_album_photos.length} 待審)` },
-              { id: 'promo', label: 'LINE / IG 宣傳包' },
+              { id: 'promo', label: '發到各平台' },
               { id: 'broadcast', label: '發送通知推播' },
               { id: 'attendance', label: '現場簽到名單' },
               { id: 'edit', label: '封面更換／取消活動' },
@@ -1173,48 +1160,19 @@ export function EventPageClient({
             </div>
           )}
 
-          {officerTab === 'promo' && promoPack && (
-            <div {...tabPanelProps('officer', 'promo')} className="mt-5 space-y-3 rounded-xl bg-surface p-4 text-sm">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="font-bold text-fg">社群導流懶人包</span>
-                <a
-                  href={promoPack.og_story_image_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={buttonClasses({ variant: 'soft', size: 'sm' })}
-                >
-                  <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
-                  開啟 9:16 限動預覽圖
-                </a>
-              </div>
-              <div className="grid gap-3 md:grid-cols-3">
-                {[
-                  { label: 'LINE 群組公告', text: promoPack.line_message },
-                  { label: 'Discord Markdown', text: promoPack.discord_markdown },
-                  { label: 'IG 貼文文案', text: promoPack.ig_caption },
-                ].map((item) => (
-                  <div key={item.label} className="rounded-xl bg-surface-subtle p-3">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-fg-body">{item.label}</span>
-                      <button
-                        type="button"
-                        onClick={() => handleCopyPromoText(promoEdits[item.label] ?? item.text, item.label)}
-                        className={buttonClasses({ variant: 'soft', size: 'sm' })}
-                      >
-                        <Copy className="h-3.5 w-3.5" aria-hidden="true" />
-                        複製
-                      </button>
-                    </div>
-                    <textarea
-                      aria-label={`${item.label}（可直接修改）`}
-                      value={promoEdits[item.label] ?? item.text}
-                      onChange={(e) => setPromoEdits((prev) => ({ ...prev, [item.label]: e.target.value }))}
-                      rows={6}
-                      className={`${controlClasses} mt-2 w-full py-2 text-sm leading-relaxed`}
-                    />
-                  </div>
-                ))}
-              </div>
+          {officerTab === 'promo' && discordConfigured !== null && (
+            <div {...tabPanelProps('officer', 'promo')} className="mt-5 rounded-xl bg-surface p-4">
+              <PublishPanel
+                shortCode={detail.short_code}
+                clubId={detail.club.id}
+                clubSlug={detail.club.slug}
+                eventId={detail.id}
+                title={detail.title}
+                discordConfigured={discordConfigured}
+                onOpenSettings={() => {
+                  window.location.href = `/clubs/${detail.club.slug}/manage?tab=events#publish-channels`;
+                }}
+              />
             </div>
           )}
 
