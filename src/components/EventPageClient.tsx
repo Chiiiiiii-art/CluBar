@@ -163,11 +163,9 @@ export function EventPageClient({
   const isFull = Boolean(detail.capacity && detail.going_count >= detail.capacity);
   // Per-event turnout (product decision, docs/design/01-brand.md): zeros are never shown.
   const turnout = [
-    detail.going_count > 0 ? `${detail.going_count} 人卡位` : '',
-    detail.interested_count > 0 ? `${detail.interested_count} 人有興趣` : '',
-  ]
-    .filter(Boolean)
-    .join('・');
+    { n: detail.going_count, label: '人卡位', tone: 'accent' as const },
+    { n: detail.interested_count, label: '人有興趣', tone: 'neutral' as const },
+  ].filter((t) => t.n > 0);
   // Ended = past ends_at, or 3h after starts_at when no end time was given.
   const endMs = detail.ends_at
     ? new Date(detail.ends_at).getTime()
@@ -788,15 +786,24 @@ export function EventPageClient({
           {/* RSVP Card */}
           <Card>
             <h2 id="rsvp-heading" tabIndex={-1} className="font-display text-lg font-bold text-fg outline-none">{hasEnded ? '活動結束了' : '報上名來！'}</h2>
-            <p className="mt-1 text-sm text-fg-muted">
-              {hasEnded
-                ? '謝謝大家來參加！把現場照片放進共享相簿，精選會回到社團頁。'
-                : isFull
-                  ? '名額已滿，可以先按「有興趣」追蹤這場活動。'
-                  : turnout
-                    ? `${turnout}，零基礎也歡迎。`
-                    : '還沒有人卡位，搶頭香吧！零基礎也歡迎。'}
-            </p>
+            {!hasEnded && !isFull && turnout.length > 0 ? (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {turnout.map((t) => (
+                  <Badge key={t.label} tone={t.tone}>
+                    <span className="font-display text-base font-black tabular-nums">{t.n}</span>
+                    {t.label}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-1 text-sm text-fg-muted">
+                {hasEnded
+                  ? '謝謝大家來參加！把現場照片放進共享相簿，精選會回到社團頁。'
+                  : isFull
+                    ? '名額已滿，可以先按「有興趣」追蹤這場活動。'
+                    : '還沒有人卡位，搶頭香吧！'}
+              </p>
+            )}
 
             {hasEnded ? (
               <div className="mt-4">
