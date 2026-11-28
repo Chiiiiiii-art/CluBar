@@ -7,9 +7,16 @@ import { users } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { LEARNING_HOURS_LABELS } from '@/lib/constants';
 import { buildUserPortfolio } from '@/lib/services/portfolio';
-import { Badge, ButtonLink, ClubMark, EmptyState, Section } from '@/components/ui';
+import { Badge, ButtonLink, Card, ClubMark, EmptyState, Section } from '@/components/ui';
 
 export const dynamic = 'force-dynamic';
+
+const ROLE_LABELS: Record<string, string> = {
+  owner: '社長',
+  editor: '幹部',
+  member: '社員',
+  alumni: '校友',
+};
 
 export default async function PublicPortfolioPage({
   params,
@@ -52,10 +59,10 @@ export default async function PublicPortfolioPage({
 
   return (
     <div className="mx-auto min-w-0 max-w-3xl space-y-10 pb-12">
-      <header className="flex items-start gap-4">
+      <Card className="flex items-start gap-4">
         <ClubMark name={portfolio.display_name} seed={portfolio.handle ?? undefined} size="lg" round />
         <div className="min-w-0 flex-1 space-y-1">
-          <h1 className="break-words text-2xl font-bold text-fg">{portfolio.display_name}</h1>
+          <h1 className="break-words font-display text-2xl font-black text-fg sm:text-3xl">{portfolio.display_name}</h1>
           <p className="break-words text-sm text-fg-muted">{metaLine}</p>
           {portfolio.alumni_expertise_tags.length > 0 && (
             <div className="flex flex-wrap gap-2 pt-1">
@@ -65,12 +72,12 @@ export default async function PublicPortfolioPage({
             </div>
           )}
         </div>
-      </header>
+      </Card>
 
       <Section
         title={
           <span className="inline-flex items-center gap-2">
-            <Award className="h-5 w-5 text-brand" aria-hidden="true" />
+            <Award className="h-5 w-5 text-brand-soft-fg" aria-hidden="true" />
             已驗證學習時數
           </span>
         }
@@ -78,9 +85,9 @@ export default async function PublicPortfolioPage({
       >
         <dl className="grid grid-cols-3 gap-3">
           {(['art', 'life', 'service'] as const).map((cat) => (
-            <div key={cat} className="min-w-0 rounded-xl border border-line bg-surface px-3 py-3">
+            <div key={cat} className="min-w-0 rounded-xl bg-surface-subtle px-3 py-3">
               <dt className="text-sm text-fg-muted">{LEARNING_HOURS_LABELS[cat]}</dt>
-              <dd className="mt-0.5 text-lg font-semibold text-fg">
+              <dd className="mt-0.5 font-mono text-lg font-bold tabular-nums text-fg">
                 {portfolio.learning_hours_by_category[cat]} h
               </dd>
             </div>
@@ -91,7 +98,7 @@ export default async function PublicPortfolioPage({
       <Section
         title={
           <span className="inline-flex items-center gap-2">
-            <Layers className="h-5 w-5 text-brand" aria-hidden="true" />
+            <Layers className="h-5 w-5 text-brand-soft-fg" aria-hidden="true" />
             社團參與與幹部經歷
           </span>
         }
@@ -102,7 +109,7 @@ export default async function PublicPortfolioPage({
             description="完成校園驗證並加入社團後，系統會自動整理為公開履歷證據。"
           />
         ) : (
-          <ul className="divide-y divide-line border-y border-line">
+          <ul className="divide-y-2 divide-line border-y-2 border-line">
             {portfolio.clubs.map((c, idx) => (
               <li key={`${c.club_id}-${idx}`}>
                 <Link
@@ -113,7 +120,7 @@ export default async function PublicPortfolioPage({
                   <span className="min-w-0 flex-1">
                     <span className="block break-words font-semibold text-fg">{c.name}</span>
                     <span className="block break-words text-sm text-fg-muted">
-                      {c.university_short_name} · {c.role.toUpperCase()}
+                      {c.university_short_name} · {ROLE_LABELS[c.role] ?? '社員'}
                       {c.title ? `（${c.title}）` : ''} · {c.is_active ? '現任' : '歷屆'}
                     </span>
                   </span>
@@ -127,7 +134,7 @@ export default async function PublicPortfolioPage({
       <Section
         title={
           <span className="inline-flex items-center gap-2">
-            <CalendarCheck className="h-5 w-5 text-brand" aria-hidden="true" />
+            <CalendarCheck className="h-5 w-5 text-brand-soft-fg" aria-hidden="true" />
             參與活動與公開成果
           </span>
         }
@@ -143,7 +150,7 @@ export default async function PublicPortfolioPage({
             }
           />
         ) : (
-          <ul className="divide-y divide-line border-y border-line">
+          <ul className="divide-y-2 divide-line border-y-2 border-line">
             {portfolio.works_and_moments.map((w) => (
               <li key={`${w.source}-${w.id}`}>
                 <Link

@@ -24,7 +24,23 @@ import type { FollowMode, PortfolioVisibility } from '@/db/schema';
 import { formatTaipeiDateTime } from '@/lib/academic-year';
 import { CLUB_CATEGORIES } from '@/lib/constants';
 import type { UserPortfolioDTO } from '@/lib/services/portfolio';
-import { Badge, Button, ButtonLink, ClubMark, EmptyState, Tabs, buttonClasses, controlClasses, tabPanelProps } from '@/components/ui';
+import {
+  Badge,
+  Button,
+  ButtonLink,
+  Card,
+  ClubMark,
+  EmptyState,
+  Field,
+  IconButton,
+  Input,
+  Notice,
+  Select,
+  Tabs,
+  controlClasses,
+  tabPanelProps,
+  useConfirm,
+} from '@/components/ui';
 
 export interface MePageData {
   user: {
@@ -124,6 +140,7 @@ export function MeClient({
   returnTo?: string;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [campusEmail, setCampusEmail] = useState('');
   const [otpSent, setOtpSent] = useState(false);
   const [otpUni, setOtpUni] = useState('');
@@ -234,7 +251,7 @@ export function MeClient({
         return;
       }
       setHandovers((prev) => prev.filter((h) => h.id !== id));
-      setHandoverMsg(action === 'accept' ? '已成功接受社長交接！' : '已婉拒此交接邀請。');
+      setHandoverMsg(action === 'accept' ? '已接受社長交接。' : '已婉拒此交接邀請。');
       router.refresh();
     } finally {
       setHandoverBusy(null);
@@ -294,7 +311,7 @@ export function MeClient({
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error?.message || '儲存設定失敗');
-      setPortMsg('1D 成長軌跡與隱私授權設定已更新！');
+      setPortMsg('成長軌跡與隱私授權設定已更新。');
       router.refresh();
     } catch (err) {
       setPortErr(err instanceof Error ? err.message : '儲存失敗');
@@ -313,23 +330,33 @@ export function MeClient({
       await navigator.clipboard.writeText(json.webcal_url).catch(() => {});
       setCalMsg(
         rotate
-          ? '已重新輪替專屬行事曆密鑰並複製最新 webcal:// 網址（舊訂閱自動作廢）。'
-          : '已複製專屬 webcal:// 行事曆訂閱網址！'
+          ? '已重設行事曆密鑰並複製新的訂閱網址，舊的訂閱網址已失效。'
+          : '已複製你的行事曆訂閱網址。'
       );
     }
+  };
+
+  const handleResetCalendar = async () => {
+    const ok = await confirm({
+      title: '重設行事曆密鑰？',
+      description: '舊的訂閱網址會立刻失效，已訂閱的行事曆需要改用新網址。',
+      confirmLabel: '重設密鑰',
+      tone: 'danger',
+    });
+    if (ok) await handleLoadWebcal(true);
   };
 
   const handleEnableWebPush = async () => {
     setPushMsg(null);
     try {
       if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        setPushMsg('目前瀏覽器不支援 Web Push，系統會自動改用站內與 Email 通知。');
+        setPushMsg('目前瀏覽器不支援推播，系統會改用站內與 Email 通知。');
         return;
       }
       const keyRes = await fetch('/api/me/push-subscriptions');
       const keyJson = await keyRes.json();
       if (!keyJson?.vapid_public_key) {
-        setPushMsg('目前伺服器未啟用 VAPID 推播，已開啟站內與 Email 雙備援通知。');
+        setPushMsg('目前尚未開放瀏覽器推播，已維持站內與 Email 通知。');
         return;
       }
       const perm = await Notification.requestPermission();
@@ -350,7 +377,7 @@ export function MeClient({
       });
       setPushMsg('瀏覽器即時推播已啟用！');
     } catch {
-      setPushMsg('啟用推播時發生問題，已切換回站內通知＋Email。');
+      setPushMsg('啟用推播時發生問題，已改用站內通知與 Email。');
     }
   };
 
@@ -387,11 +414,11 @@ export function MeClient({
   return (
     <div className="space-y-6">
       {/* Account Profile + Campus Verification */}
-      <section>
+      <Card>
         <div className="flex items-start gap-4">
           <ClubMark name={data.user.displayName} seed={data.user.email} size="lg" round />
           <div className="min-w-0 flex-1 space-y-1">
-            <h1 className="text-2xl font-bold text-fg">{data.user.displayName}</h1>
+            <h1 className="font-display text-2xl font-black text-fg sm:text-3xl">{data.user.displayName}</h1>
             <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-fg-muted">
               {data.user.campusVerifiedAt ? (
                 <span className="inline-flex items-center gap-1 text-brand-soft-fg">
@@ -404,7 +431,7 @@ export function MeClient({
               <span className="truncate">{data.user.campusEmail || data.user.email}</span>
             </p>
             {data.user.platformRole === 'platform_admin' && (
-              <Link href="/admin" className="inline-flex min-h-8 items-center text-sm font-medium text-brand-soft-fg hover:underline">
+              <Link href="/admin" className="inline-flex min-h-11 items-center text-sm font-medium text-brand-soft-fg hover:underline">
                 前往平台治理 →
               </Link>
             )}
@@ -417,24 +444,26 @@ export function MeClient({
         </div>
 
         {returnTo && (data.user.campusVerifiedAt || otpJustVerified) && (
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-success-300 bg-success-soft p-4 text-sm text-success-950">
-            <p className="font-bold">校園身分已完成驗證，可立即回到原本頁面繼續操作。</p>
-            <Link
-              href={returnTo}
-              className="inline-flex min-h-[44px] items-center rounded-xl bg-success-700 px-4 font-bold text-white hover:bg-success-800"
-            >
-              返回原本頁面 →
-            </Link>
-          </div>
+          <Notice
+            tone="success"
+            className="mt-4"
+            action={
+              <ButtonLink href={returnTo} variant="secondary" size="sm">
+                返回原本頁面 →
+              </ButtonLink>
+            }
+          >
+            校園身分已完成驗證，可立即回到原本頁面繼續操作。
+          </Notice>
         )}
 
         {!data.user.campusVerifiedAt && !otpJustVerified && (
-          <div className="mt-6 rounded-xl border border-accent-200 bg-brand-soft/70 p-4 sm:p-5">
+          <div className="mt-5 rounded-xl bg-brand-soft p-4 sm:p-5">
             <div className="flex items-start gap-2.5">
               <MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand-soft-fg" aria-hidden="true" />
               <div className="flex-1 space-y-3">
                 <div>
-                  <h2 className="text-sm font-semibold text-fg">
+                  <h2 className="font-display text-base font-bold text-fg">
                     驗證大專校院校園信箱（.edu.tw），解鎖社員認證、發問與幹部權限
                   </h2>
                   <p className="mt-0.5 text-sm text-fg-muted">
@@ -445,7 +474,8 @@ export function MeClient({
 
                 {!otpSent ? (
                   <form onSubmit={requestOtp} className="flex flex-col gap-2 sm:flex-row">
-                    <input aria-label="學校信箱（.edu.tw）"
+                    <input
+                      aria-label="學校信箱（.edu.tw）"
                       type="email"
                       required
                       value={campusEmail}
@@ -453,108 +483,97 @@ export function MeClient({
                       placeholder="輸入你的 .edu.tw 校園信箱"
                       className={`${controlClasses} min-h-11 flex-1`}
                     />
-                    <button
-                      type="submit"
-                      disabled={verifyBusy}
-                      className={buttonClasses({ variant: 'primary', size: 'md' })}
-                    >
+                    <Button type="submit" variant="primary" loading={verifyBusy}>
                       {verifyBusy ? '寄送中...' : '寄送 6 位數驗證碼'}
-                    </button>
+                    </Button>
                   </form>
                 ) : (
                   <form onSubmit={confirmOtp} className="flex flex-col gap-2 sm:flex-row">
-                    <input aria-label="驗證碼"
+                    <input
+                      aria-label="驗證碼"
                       type="text"
+                      inputMode="numeric"
                       required
                       pattern="\d{6}"
                       maxLength={6}
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value)}
                       placeholder={`輸入寄往 ${otpUni || campusEmail} 的 6 位數驗證碼`}
-                      className={`${controlClasses} min-h-11 flex-1`}
+                      className={`${controlClasses} min-h-11 flex-1 font-mono tabular-nums`}
                     />
-                    <button
-                      type="submit"
-                      disabled={verifyBusy}
-                      className={buttonClasses({ variant: 'primary', size: 'md' })}
-                    >
+                    <Button type="submit" variant="primary" loading={verifyBusy}>
                       {verifyBusy ? '驗證中...' : '確認驗證'}
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      variant="secondary"
                       onClick={() => {
                         setOtpSent(false);
                         setOtpCode('');
                       }}
-                      className={buttonClasses({ variant: 'secondary', size: 'md' })}
                     >
                       更換信箱
-                    </button>
+                    </Button>
                   </form>
                 )}
 
-                {verifyMsg && (
-                  <p className="text-sm font-semibold text-success-fg">{verifyMsg}</p>
-                )}
-                {verifyErr && (
-                  <p className="text-sm font-semibold text-danger-fg">{verifyErr}</p>
-                )}
+                {verifyMsg && <p className="text-sm font-semibold text-success-fg">{verifyMsg}</p>}
+                {verifyErr && <p className="text-sm font-semibold text-danger-fg">{verifyErr}</p>}
               </div>
             </div>
           </div>
         )}
-      </section>
+      </Card>
 
       {/* Pending Co-Club Invitations */}
       {coInvites.length > 0 && (
-        <section className="rounded-xl border border-accent-200 bg-brand-soft/70 p-5">
-          <h2 className="flex items-center gap-2 text-base font-bold text-fg">
+        <Card>
+          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-fg">
             <Sparkles className="h-4 w-4 text-brand-soft-fg" aria-hidden="true" />
-            待回應的 Co-Club 友社共辦邀請 ({coInvites.length})
+            待回應的友社共辦邀請（{coInvites.length}）
           </h2>
           <div className="mt-3 space-y-2.5">
             {coInvites.map((inv) => (
               <div
                 key={inv.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface p-4 text-sm"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-brand-soft p-4 text-sm"
               >
                 <span className="font-bold text-fg">
                   「{inv.hostClubName}」邀請貴社掛名共辦（{inv.targetType === 'event' ? '體驗活動' : '作品貼文'}）
                 </span>
                 <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
+                  <Button
+                    variant="primary"
+                    size="sm"
                     disabled={coBusy === inv.id}
                     onClick={() => respondCoClub(inv.id, 'accept', true)}
-                    className={buttonClasses({ variant: 'primary', size: 'sm' })}
                   >
                     同意共辦並納入本社評鑑
-                  </button>
-                  <button
-                    type="button"
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     disabled={coBusy === inv.id}
                     onClick={() => respondCoClub(inv.id, 'reject', false)}
-                    className="rounded-full border border-border-strong px-3 py-1.5 font-bold text-fg-secondary"
                   >
                     婉拒
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        </Card>
       )}
 
       {/* Pending Handover Invitations */}
       {(handovers.length > 0 || handoverMsg) && (
-        <section className="rounded-xl border border-accent-300 bg-brand-soft p-5">
+        <Card>
           <div className="mb-3 flex items-center gap-2">
-            <UserCheck className="h-5 w-5 text-brand" aria-hidden="true" />
-            <h2 className="text-base font-bold text-fg">待確認的社長交接邀請</h2>
+            <UserCheck className="h-5 w-5 text-brand-soft-fg" aria-hidden="true" />
+            <h2 className="font-display text-lg font-bold text-fg">待確認的社長交接邀請</h2>
           </div>
 
           {handoverMsg && (
-            <p className="mb-3 rounded-xl bg-surface px-4 py-2.5 text-sm font-semibold text-success-fg">
+            <p className="mb-3 rounded-xl bg-success-soft px-4 py-2.5 text-sm font-semibold text-success-fg">
               {handoverMsg}
             </p>
           )}
@@ -563,40 +582,39 @@ export function MeClient({
             {handovers.map((h) => (
               <div
                 key={h.id}
-                className="flex flex-col justify-between gap-3 rounded-xl border border-accent-200 bg-surface p-4 sm:flex-row sm:items-center"
+                className="flex flex-col justify-between gap-3 rounded-xl bg-brand-soft p-4 sm:flex-row sm:items-center"
               >
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-fg">
                     「{h.clubName}」現任社長 {h.fromUserName} 邀請您接任新任社長
                   </p>
                   {h.note && <p className="text-sm text-fg-muted">備註：{h.note}</p>}
-                  <p className="text-xs text-fg-subtle">
-                    邀請有效期限至：{formatTaipeiDateTime(h.expiresAt)}
+                  <p className="text-xs text-fg-muted">
+                    邀請有效期限至：
+                    <span className="font-mono tabular-nums">{formatTaipeiDateTime(h.expiresAt)}</span>
                   </p>
                 </div>
 
                 <div className="flex shrink-0 gap-2">
-                  <button
-                    type="button"
+                  <Button
+                    variant="primary"
                     disabled={handoverBusy === h.id}
                     onClick={() => void respondHandover(h.id, 'accept')}
-                    className={buttonClasses({ variant: 'primary', size: 'md' })}
                   >
                     接受交接
-                  </button>
-                  <button
-                    type="button"
+                  </Button>
+                  <Button
+                    variant="secondary"
                     disabled={handoverBusy === h.id}
                     onClick={() => void respondHandover(h.id, 'reject')}
-                    className={buttonClasses({ variant: 'secondary', size: 'md' })}
                   >
                     婉拒
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
           </div>
-        </section>
+        </Card>
       )}
 
       <Tabs
@@ -611,7 +629,7 @@ export function MeClient({
             label: '通知',
             badge:
               unreadCount > 0 ? (
-                <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-xs font-semibold text-on-brand">
+                <span className="ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 font-mono text-xs font-semibold tabular-nums text-on-brand">
                   {unreadCount > 9 ? '9+' : unreadCount}
                 </span>
               ) : undefined,
@@ -624,445 +642,413 @@ export function MeClient({
 
       {meTab === 'notifications' && (
         <div {...tabPanelProps('me', 'notifications')} className="space-y-6">
-      {/* Notifications */}
-      <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
-        <div className="mb-4 flex items-center gap-2">
-          <Bell className="h-4 w-4 text-brand" aria-hidden="true" />
-          <h2 className="text-base font-bold text-fg">站內通知</h2>
-        </div>
+          {/* Notifications */}
+          <Card>
+            <div className="mb-4 flex items-center gap-2">
+              <Bell className="h-4 w-4 text-brand-soft-fg" aria-hidden="true" />
+              <h2 className="font-display text-lg font-bold text-fg">站內通知</h2>
+            </div>
 
-        {notifs.length === 0 ? (
-          <EmptyState
-            icon={<Bell />}
-            title="目前沒有新通知"
-            description="追蹤社團或報名活動後，活動異動、問答回覆和入社審核結果都會出現在這裡。"
-            action={
-              <>
-                <ButtonLink href="/?tab=events" size="md">
-                  看看近期活動
-                </ButtonLink>
-                <ButtonLink href="/" variant="secondary" size="md">
-                  逛逛社團現場
-                </ButtonLink>
-              </>
-            }
-          />
-        ) : (
-          <div className="space-y-6">
-            {notifs.every((n) => n.readAt) && (
-              <p className="flex flex-wrap items-center gap-x-2 text-sm text-fg-muted">
-                都看完了。
-                <Link href="/?tab=events" className="font-semibold text-brand-soft-fg underline-offset-4 hover:underline">
-                  看看近期有什麼活動
-                </Link>
-              </p>
-            )}
-            {groupNotifications(notifs).map(([groupLabel, items]) => (
-              <div key={groupLabel} className="space-y-2.5">
-                <h3 className="text-sm font-semibold text-fg-muted">{groupLabel}</h3>
-                {items.map((n) => (
-                  <div
-                    key={n.id}
-                    className={`flex flex-col justify-between gap-2 rounded-xl border p-3.5 sm:flex-row sm:items-center ${
-                      n.readAt
-                        ? 'border-line bg-surface'
-                        : 'border-accent-200 bg-brand-soft/70'
-                    }`}
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        {!n.readAt && <span className="h-2 w-2 rounded-full bg-brand" />}
-                        <p className="text-sm font-semibold text-fg">{n.title}</p>
-                      </div>
-                      <p className="text-sm text-fg-secondary">{n.body}</p>
-                      <p className="text-xs text-fg-subtle">
-                        {formatTaipeiDateTime(n.createdAt)}
-                      </p>
-                    </div>
+            {notifs.length === 0 ? (
+              <EmptyState
+                icon={<Bell />}
+                title="目前沒有新通知"
+                description="追蹤社團或報名活動後，活動異動、問答回覆和入社審核結果都會出現在這裡。"
+                action={
+                  <>
+                    <ButtonLink href="/?tab=events" size="md">
+                      看看近期活動
+                    </ButtonLink>
+                    <ButtonLink href="/" variant="secondary" size="md">
+                      逛逛社團現場
+                    </ButtonLink>
+                  </>
+                }
+              />
+            ) : (
+              <div className="space-y-6">
+                {notifs.every((n) => n.readAt) && (
+                  <p className="flex flex-wrap items-center gap-x-2 text-sm text-fg-muted">
+                    都看完了。
+                    <Link href="/?tab=events" className="font-semibold text-brand-soft-fg underline-offset-4 hover:underline">
+                      看看近期有什麼活動
+                    </Link>
+                  </p>
+                )}
+                {groupNotifications(notifs).map(([groupLabel, items]) => (
+                  <div key={groupLabel}>
+                    <h3 className="font-display text-sm font-bold text-fg-muted">{groupLabel}</h3>
+                    <ul className="mt-1 divide-y-2 divide-line">
+                      {items.map((n) => (
+                        <li
+                          key={n.id}
+                          className="flex flex-col justify-between gap-2 py-3 sm:flex-row sm:items-center"
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              {!n.readAt && (
+                                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-brand" role="img" aria-label="未讀" />
+                              )}
+                              <p className={`text-sm text-fg ${n.readAt ? 'font-medium' : 'font-bold'}`}>{n.title}</p>
+                            </div>
+                            <p className="text-sm text-fg-secondary">{n.body}</p>
+                            <p className="font-mono text-xs tabular-nums text-fg-muted">
+                              {formatTaipeiDateTime(n.createdAt)}
+                            </p>
+                          </div>
 
-                    <div className="flex shrink-0 items-center gap-2">
-                      {n.linkUrl && (
-                        <Link
-                          href={n.linkUrl}
-                          className={buttonClasses({ variant: 'secondary', size: 'sm' })}
-                        >
-                          前往查看
-                        </Link>
-                      )}
-                      {!n.readAt && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => void markRead(n.id)}
-                          icon={<CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />}
-                        >
-                          已讀
-                        </Button>
-                      )}
-                    </div>
+                          <div className="flex shrink-0 items-center gap-2">
+                            {n.linkUrl && (
+                              <ButtonLink href={n.linkUrl} variant="secondary" size="sm">
+                                前往查看
+                              </ButtonLink>
+                            )}
+                            {!n.readAt && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => void markRead(n.id)}
+                                icon={<CheckCircle2 className="h-4 w-4" aria-hidden="true" />}
+                              >
+                                已讀
+                              </Button>
+                            )}
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 ))}
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            )}
+          </Card>
         </div>
       )}
 
       {meTab === 'saved' && (
         <div {...tabPanelProps('me', 'saved')} className="space-y-6">
-      {/* Bookmarks & Follows (with Follow Separation Mode selector) */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <section className="rounded-xl border border-line bg-surface p-5">
-          <div className="mb-3 flex items-center gap-2">
-            <Bookmark className="h-4 w-4 text-brand" aria-hidden="true" />
-            <h2 className="text-base font-bold text-fg">我的收藏</h2>
-          </div>
-          {data.bookmarks.length === 0 ? (
-            <div className="space-y-3 rounded-xl bg-surface-sunken/40 p-4 text-sm text-fg-muted">
-              <p>還沒收藏任何作品或活動。</p>
-              <Link
-                href="/"
-                className={buttonClasses({ variant: 'secondary', size: 'md' })}
-              >
-                去別的聚逛逛 →
-              </Link>
-            </div>
-          ) : (
-            <ul className="space-y-2.5">
-              {data.bookmarks.map((b) => (
-                <li
-                  key={b.postId}
-                  className="rounded-xl border border-line bg-surface-sunken/40 p-3"
-                >
-                  <Link
-                    href={
-                      b.clubSlug.startsWith('../e/')
-                        ? `/e/${b.clubSlug.slice(5)}`
-                        : `/posts/${b.postId}`
-                    }
-                    className="block text-sm font-semibold text-fg hover:text-brand"
-                  >
-                    {b.title}
-                  </Link>
-                  <span className="mt-1 block text-sm text-fg-muted">
-                    {b.universityShortName} · {b.clubName}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+          {/* Bookmarks & Follows (with Follow Separation Mode selector) */}
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <div className="mb-3 flex items-center gap-2">
+                <Bookmark className="h-4 w-4 text-brand-soft-fg" aria-hidden="true" />
+                <h2 className="font-display text-lg font-bold text-fg">我的收藏</h2>
+              </div>
+              {data.bookmarks.length === 0 ? (
+                <div className="space-y-3 rounded-xl bg-surface-subtle p-4 text-sm text-fg-muted">
+                  <p>還沒收藏任何作品或活動。</p>
+                  <ButtonLink href="/" variant="secondary">
+                    去別的聚逛逛 →
+                  </ButtonLink>
+                </div>
+              ) : (
+                <ul className="divide-y-2 divide-line">
+                  {data.bookmarks.map((b) => (
+                    <li key={b.postId} className="py-3">
+                      <Link
+                        href={
+                          b.clubSlug.startsWith('../e/')
+                            ? `/e/${b.clubSlug.slice(5)}`
+                            : `/posts/${b.postId}`
+                        }
+                        className="block text-sm font-semibold text-fg hover:text-brand-soft-fg hover:underline"
+                      >
+                        {b.title}
+                      </Link>
+                      <span className="mt-1 block text-sm text-fg-muted">
+                        {b.universityShortName} · {b.clubName}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
 
-        <section className="rounded-xl border border-line bg-surface p-5">
-          <div className="mb-3 flex items-center gap-2">
-            <Heart className="h-4 w-4 text-brand" aria-hidden="true" />
-            <h2 className="text-base font-bold text-fg">我追蹤的社團（通知偏好）</h2>
+            <Card>
+              <div className="mb-3 flex items-center gap-2">
+                <Heart className="h-4 w-4 text-brand-soft-fg" aria-hidden="true" />
+                <h2 className="font-display text-lg font-bold text-fg">我追蹤的社團（通知偏好）</h2>
+              </div>
+              {follows.length === 0 ? (
+                <div className="space-y-3 rounded-xl bg-surface-subtle p-4 text-sm text-fg-muted">
+                  <p>尚未追蹤任何社團，追蹤後可選擇「只收新活動」或「全部動態」。</p>
+                  <ButtonLink href="/" variant="secondary">
+                    去別的聚找社團 →
+                  </ButtonLink>
+                </div>
+              ) : (
+                <ul className="divide-y-2 divide-line">
+                  {follows.map((f) => (
+                    <li key={f.clubId} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                      <div className="min-w-0">
+                        <Link
+                          href={`/clubs/${f.slug}`}
+                          className="text-sm font-semibold text-fg hover:text-brand-soft-fg hover:underline"
+                        >
+                          {f.name}
+                        </Link>
+                        <p className="text-sm text-fg-muted">
+                          {f.universityShortName} · {CLUB_CATEGORIES[f.category].label}
+                        </p>
+                      </div>
+                      <select
+                        aria-label={`${f.name} 追蹤分流模式`}
+                        value={f.followMode}
+                        onChange={(e) => handleChangeFollowMode(f.clubId, e.target.value as FollowMode)}
+                        className={`${controlClasses} min-h-11`}
+                      >
+                        <option value="all">全部動態</option>
+                        <option value="events_only">只收新活動</option>
+                      </select>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
           </div>
-          {follows.length === 0 ? (
-            <div className="space-y-3 rounded-xl bg-surface-sunken/40 p-4 text-sm text-fg-muted">
-              <p>尚未追蹤任何社團，追蹤後可選擇「只收新活動」或「全部動態」。</p>
-              <Link
-                href="/"
-                className={buttonClasses({ variant: 'secondary', size: 'md' })}
-              >
-                去別的聚找社團 →
-              </Link>
-            </div>
-          ) : (
-            <ul className="space-y-2.5">
-              {follows.map((f) => (
-                <li
-                  key={f.clubId}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-line bg-surface-sunken/40 p-3"
-                >
-                  <div>
-                    <Link
-                      href={`/clubs/${f.slug}`}
-                      className="text-sm font-semibold text-fg hover:text-brand"
-                    >
-                      {f.name}
-                    </Link>
-                    <p className="text-sm text-fg-subtle">
-                      {f.universityShortName} · {CLUB_CATEGORIES[f.category].label}
-                    </p>
-                  </div>
-                  <select
-                    aria-label={`${f.name} 追蹤分流模式`}
-                    value={f.followMode}
-                    onChange={(e) =>
-                      handleChangeFollowMode(f.clubId, e.target.value as FollowMode)
-                    }
-                    className={`${controlClasses} min-h-11`}
-                  >
-                    <option value="all">全部動態</option>
-                    <option value="events_only">只收新活動</option>
-                  </select>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
         </div>
       )}
 
       {meTab === 'clubs' && (
         <div {...tabPanelProps('me', 'clubs')} className="space-y-6">
-      {/* Managed Clubs */}
-      <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-fg">我加入的社團</h2>
-          <Link
-            href="/clubs/apply"
-            className="text-sm font-semibold text-brand hover:underline"
-          >
-            認領或申請新社團 →
-          </Link>
-        </div>
-
-        {data.memberships.length === 0 ? (
-          <p className="text-sm text-fg-muted">
-            你目前尚未加入任何認證社團。可至{' '}
-            <Link href="/my-clubs" className="font-bold text-brand-soft-fg underline">
-              我的聚
-            </Link>{' '}
-            輸入邀請碼，或前往{' '}
-            <Link href="/clubs/apply" className="font-bold text-brand-soft-fg underline">
-              認領名錄社團
-            </Link>
-            。
-          </p>
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {data.memberships.map((m) => (
-              <div
-                key={`${m.clubId}-${m.role}`}
-                className="flex flex-col justify-between gap-3 rounded-xl border border-line bg-surface-sunken/50 p-4"
+          {/* Managed Clubs */}
+          <Card>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="font-display text-lg font-bold text-fg">我加入的社團</h2>
+              <Link
+                href="/clubs/apply"
+                className="inline-flex min-h-11 items-center text-sm font-semibold text-brand-soft-fg hover:underline"
               >
-                <div>
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="font-bold text-fg-muted">{m.universityShortName}</span>
-                    <span className="rounded-full bg-surface px-2.5 py-0.5 font-bold text-fg-body">
-                      {m.role === 'owner'
-                        ? '現任社長'
-                        : m.role === 'editor'
-                          ? '現任幹部'
-                          : m.role === 'member'
-                            ? '認證社員'
-                            : '歷屆校友（只讀）'}
-                    </span>
-                  </div>
-                  <Link
-                    href={`/clubs/${m.slug}`}
-                    className="mt-1 block text-base font-bold text-fg hover:text-brand"
-                  >
-                    {m.name}
-                  </Link>
-                </div>
+                認領或申請新社團 →
+              </Link>
+            </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {m.role !== 'member' && (
-                    <Link
-                      href={`/clubs/${m.slug}/manage`}
-                      className={buttonClasses({ variant: 'primary', size: 'sm' })}
-                    >
-                      <Settings className="h-3.5 w-3.5" aria-hidden="true" />
-                      <span>{m.role === 'alumni' ? '檢視年度成果' : '進入管理後台'}</span>
-                    </Link>
-                  )}
-                  <Link
-                    href={`/clubs/${m.slug}`}
-                    className={buttonClasses({ variant: 'secondary', size: 'sm' })}
+            {data.memberships.length === 0 ? (
+              <p className="text-sm text-fg-muted">
+                你目前尚未加入任何認證社團。可至{' '}
+                <Link href="/my-clubs" className="font-bold text-brand-soft-fg underline">
+                  我的聚
+                </Link>{' '}
+                輸入邀請碼，或前往{' '}
+                <Link href="/clubs/apply" className="font-bold text-brand-soft-fg underline">
+                  認領名錄社團
+                </Link>
+                。
+              </p>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {data.memberships.map((m) => (
+                  <div
+                    key={`${m.clubId}-${m.role}`}
+                    className="flex flex-col justify-between gap-3 rounded-xl bg-surface-subtle p-4"
                   >
-                    <span>公開主頁</span>
-                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Link>
-                </div>
+                    <div className="flex items-start gap-3">
+                      <ClubMark name={m.name} seed={m.slug} category={m.category} size="md" />
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 text-sm">
+                          <span className="font-bold text-fg-muted">{m.universityShortName}</span>
+                          <Badge tone="neutral">
+                            {m.role === 'owner'
+                              ? '現任社長'
+                              : m.role === 'editor'
+                                ? '現任幹部'
+                                : m.role === 'member'
+                                  ? '認證社員'
+                                  : '歷屆校友（只讀）'}
+                          </Badge>
+                        </div>
+                        <Link
+                          href={`/clubs/${m.slug}`}
+                          className="mt-1 block font-display text-base font-bold text-fg hover:underline"
+                        >
+                          {m.name}
+                        </Link>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {m.role !== 'member' && (
+                        <ButtonLink
+                          href={`/clubs/${m.slug}/manage`}
+                          variant="primary"
+                          size="sm"
+                          icon={<Settings className="h-4 w-4" aria-hidden="true" />}
+                        >
+                          {m.role === 'alumni' ? '檢視年度成果' : '進入管理後台'}
+                        </ButtonLink>
+                      )}
+                      <ButtonLink href={`/clubs/${m.slug}`} variant="secondary" size="sm">
+                        公開主頁
+                        <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      </ButtonLink>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            )}
+          </Card>
         </div>
       )}
 
       {meTab === 'settings' && (
         <div {...tabPanelProps('me', 'settings')} className="space-y-6">
-      {(footClubs.length > 0 || footEvents.length > 0) && (
-        <section className="rounded-xl border border-line bg-surface p-5 sm:p-6">
-          <h2 className="text-lg font-bold text-fg">足跡裡要放哪些</h2>
-          <p className="mt-1 text-sm text-fg-muted">
-            關掉的項目只有你自己看得到，別人看你的足跡頁時不會出現，也不會算進時數。
-          </p>
-          <ul className="mt-4 divide-y divide-line">
-            {footClubs.map((c) => (
-              <li key={`club-${c.club_id}`} className="flex min-h-11 items-center justify-between gap-3 py-2">
-                <span className="min-w-0 truncate text-sm text-fg-body">社團・{c.name}</span>
-                <label className="flex shrink-0 cursor-pointer items-center gap-2 text-sm text-fg-muted">
+          {(footClubs.length > 0 || footEvents.length > 0) && (
+            <Card>
+              <h2 className="font-display text-lg font-bold text-fg">足跡裡要放哪些</h2>
+              <p className="mt-1 text-sm text-fg-muted">
+                關掉的項目只有你自己看得到，別人看你的足跡頁時不會出現，也不會算進時數。
+              </p>
+              <ul className="mt-4 divide-y-2 divide-line">
+                {footClubs.map((c) => (
+                  <li key={`club-${c.club_id}`} className="flex min-h-11 items-center justify-between gap-3 py-2">
+                    <span className="min-w-0 truncate text-sm text-fg-body">社團・{c.name}</span>
+                    <label className="flex min-h-11 shrink-0 cursor-pointer items-center gap-2 text-sm text-fg-muted">
+                      <input
+                        type="checkbox"
+                        checked={!c.hidden_from_portfolio}
+                        onChange={(e) => void handleToggleFootprint('club', c.club_id, !e.target.checked)}
+                        className="h-4 w-4 rounded accent-brand"
+                      />
+                      公開
+                    </label>
+                  </li>
+                ))}
+                {footEvents.map((ev) => (
+                  <li key={`event-${ev.id}`} className="flex min-h-11 items-center justify-between gap-3 py-2">
+                    <span className="min-w-0 truncate text-sm text-fg-body">活動・{ev.title}</span>
+                    <label className="flex min-h-11 shrink-0 cursor-pointer items-center gap-2 text-sm text-fg-muted">
+                      <input
+                        type="checkbox"
+                        checked={!ev.hidden_from_portfolio}
+                        onChange={(e) => void handleToggleFootprint('event', ev.id, !e.target.checked)}
+                        className="h-4 w-4 rounded accent-brand"
+                      />
+                      公開
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
+
+          {/* Portfolio, calendar subscription & push controls */}
+          <Card>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="flex items-center gap-2 font-display text-lg font-bold text-fg">
+                  <Award className="h-5 w-5 text-brand-soft-fg" aria-hidden="true" />
+                  個人成長軌跡與訂閱授權
+                </h2>
+                <p className="text-sm text-fg-muted">
+                  累積認證時數 <span className="font-mono tabular-nums">{data.portfolio?.learning_hours_total ?? 0}</span>{' '}
+                  小時・參與場次 <span className="font-mono tabular-nums">{data.portfolio?.attended_events.length ?? 0}</span>{' '}
+                  場（預設完全私密）
+                </p>
+              </div>
+              {handleInput && (
+                <ButtonLink href={`/u/${handleInput}`} variant="secondary" size="sm">
+                  檢視我的公開足跡頁
+                </ButtonLink>
+              )}
+            </div>
+
+            <form onSubmit={handleSavePortfolioSettings} className="mt-4 space-y-3 text-sm">
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Field label="個人頁代號（選填）" hint="4–30 字小寫，例如 alex-ncu">
+                  {(p) => (
+                    <Input {...p} value={handleInput} onChange={(e) => setHandleInput(e.target.value)} />
+                  )}
+                </Field>
+                <Field label="誰能看見我的成長軌跡">
+                  {(p) => (
+                    <Select
+                      {...p}
+                      value={visibility}
+                      onChange={(e) => setVisibility(e.target.value as PortfolioVisibility)}
+                    >
+                      <option value="campus_only">僅限同校已驗證同學（預設）</option>
+                      <option value="public">公開，任何人有網址都能看</option>
+                      <option value="private">只有我自己看得到</option>
+                    </Select>
+                  )}
+                </Field>
+                <Field label="前輩經驗專長標籤（選填）" hint="用逗號分隔，最多 3 個">
+                  {(p) => (
+                    <Input
+                      {...p}
+                      value={alumniTagsStr}
+                      onChange={(e) => setAlumniTagsStr(e.target.value)}
+                      placeholder="如 評鑑核銷, 攝影暗房, 場控"
+                    />
+                  )}
+                </Field>
+              </div>
+
+              <div className="flex flex-col gap-0 pt-1">
+                <label className="flex min-h-11 cursor-pointer items-center gap-2 font-semibold text-fg-secondary">
                   <input
                     type="checkbox"
-                    checked={!c.hidden_from_portfolio}
-                    onChange={(e) => void handleToggleFootprint('club', c.club_id, !e.target.checked)}
-                    className="h-4 w-4 rounded accent-brand"
+                    className="h-4 w-4 accent-brand"
+                    checked={alumniPing}
+                    onChange={(e) => setAlumniPing(e.target.checked)}
                   />
-                  公開
+                  開放「一起聚 → 前輩請益牆」接受學弟妹禮貌發問
                 </label>
-              </li>
-            ))}
-            {footEvents.map((ev) => (
-              <li key={`event-${ev.id}`} className="flex min-h-11 items-center justify-between gap-3 py-2">
-                <span className="min-w-0 truncate text-sm text-fg-body">活動・{ev.title}</span>
-                <label className="flex shrink-0 cursor-pointer items-center gap-2 text-sm text-fg-muted">
+                <label className="flex min-h-11 cursor-pointer items-center gap-2 text-fg-secondary">
                   <input
                     type="checkbox"
-                    checked={!ev.hidden_from_portfolio}
-                    onChange={(e) => void handleToggleFootprint('event', ev.id, !e.target.checked)}
-                    className="h-4 w-4 rounded accent-brand"
+                    className="h-4 w-4 accent-brand"
+                    checked={talentOptIn}
+                    onChange={(e) => setTalentOptIn(e.target.checked)}
                   />
-                  公開
+                  授權將這份歷練納入未來實習、產學合作的人才推薦（預設關閉）
                 </label>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+              </div>
 
-      {/* 1D Portfolio, Webcal Subscription & Push Controls */}
-      <section className="rounded-xl border border-border-strong bg-surface p-5 sm:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="flex items-center gap-2 text-lg font-bold text-fg">
-              <Award className="h-5 w-5 text-brand" aria-hidden="true" />
-              個人社團成長軌跡 (1D Portfolio) 與訂閱授權
-            </h2>
-            <p className="text-sm text-fg-muted">
-              累積認證時數 {data.portfolio?.learning_hours_total ?? 0} 小時・參與場次{' '}
-              {data.portfolio?.attended_events.length ?? 0} 場（預設完全私密，無追蹤人數虛榮排行）
-            </p>
-          </div>
-          {handleInput && (
-            <Link
-              href={`/u/${handleInput}`}
-              className="rounded-full border border-border-strong px-3.5 py-1.5 text-sm font-semibold text-brand-soft-fg hover:bg-brand-soft"
-            >
-              檢視我的公開足跡頁 /u/{handleInput}
-            </Link>
-          )}
-        </div>
+              {portMsg && <p className="font-bold text-success-fg">{portMsg}</p>}
+              {portErr && <p className="font-bold text-danger-fg">{portErr}</p>}
 
-        <form onSubmit={handleSavePortfolioSettings} className="mt-4 space-y-3 text-sm">
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div>
-              <label htmlFor="me-handleinput" className="mb-1 block font-bold text-fg-secondary">個人頁代號 (handle)</label>
-              <input id="me-handleinput"
-                value={handleInput}
-                onChange={(e) => setHandleInput(e.target.value)}
-                placeholder="如 alex-ncu (4-30字小寫)"
-                className={`${controlClasses} min-h-11 w-full`}
-              />
-            </div>
-            <div>
-              <label htmlFor="me-visibility" className="mb-1 block font-bold text-fg-secondary">誰能看見我的成長軌跡</label>
-              <select id="me-visibility"
-                value={visibility}
-                onChange={(e) => setVisibility(e.target.value as PortfolioVisibility)}
-                className={`${controlClasses} min-h-11 w-full`}
-              >
-                <option value="campus_only">僅限同校已驗證同學 (預設)</option>
-                <option value="public">公開網際網路分享網址</option>
-                <option value="private">完全僅限本人檢視</option>
-              </select>
-            </div>
-            <div>
-              <label htmlFor="me-alumnitagsstr" className="mb-1 block font-bold text-fg-secondary">
-                前輩經驗專長標籤（逗號分隔，最多 3 個）
-              </label>
-              <input id="me-alumnitagsstr"
-                value={alumniTagsStr}
-                onChange={(e) => setAlumniTagsStr(e.target.value)}
-                placeholder="如 評鑑核銷, 攝影暗房, 場控"
-                className={`${controlClasses} min-h-11 w-full`}
-              />
-            </div>
-          </div>
+              <div className="flex flex-wrap items-center gap-3 border-t-2 border-line pt-4">
+                <Button type="submit" variant="primary" loading={portBusy}>
+                  儲存軌跡與授權設定
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => handleLoadWebcal(false)}
+                  icon={<CalendarSync className="h-4 w-4" aria-hidden="true" />}
+                >
+                  複製行事曆訂閱網址
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => void handleResetCalendar()}
+                  icon={<RefreshCw className="h-4 w-4" aria-hidden="true" />}
+                >
+                  重設行事曆密鑰
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={handleEnableWebPush}
+                  icon={<Bell className="h-4 w-4" aria-hidden="true" />}
+                >
+                  啟用瀏覽器推播
+                </Button>
+              </div>
 
-          <div className="flex flex-wrap gap-4 pt-1">
-            <label className="flex cursor-pointer items-center gap-2 font-semibold text-fg-secondary">
-              <input
-                type="checkbox"
-                checked={alumniPing}
-                onChange={(e) => setAlumniPing(e.target.checked)}
-              />
-              開放「一起聚 → 前輩請益牆」接受學弟妹禮貌發問
-            </label>
-            <label className="flex cursor-pointer items-center gap-2 text-fg-secondary">
-              <input
-                type="checkbox"
-                checked={talentOptIn}
-                onChange={(e) => setTalentOptIn(e.target.checked)}
-              />
-              授權將本歷練納入未來實習／產學人才推薦 (Talent Opt-in，預設關閉)
-            </label>
-          </div>
-
-          {portMsg && <p className="font-bold text-success-700">{portMsg}</p>}
-          {portErr && <p className="font-bold text-danger-fg">{portErr}</p>}
-
-          <div className="flex flex-wrap items-center gap-3 pt-1">
-            <button
-              type="submit"
-              disabled={portBusy}
-              className={buttonClasses({ variant: 'primary', size: 'md' })}
-            >
-              儲存軌跡與授權設定
-            </button>
-            <button
-              type="button"
-              onClick={() => handleLoadWebcal(false)}
-              className="inline-flex items-center gap-1 rounded-full border border-border-strong px-3.5 py-2 font-bold text-fg-body"
-            >
-              <CalendarSync className="h-3.5 w-3.5 text-brand" />
-              複製個人 webcal:// 行事曆
-            </button>
-            <button
-              type="button"
-              onClick={() => handleLoadWebcal(true)}
-              className="inline-flex items-center gap-1 rounded-full border border-line px-3 py-2 text-fg-muted"
-            >
-              <RefreshCw className="h-3 w-3" />
-              重設行事曆密鑰
-            </button>
-            <button
-              type="button"
-              onClick={handleEnableWebPush}
-              className="inline-flex items-center gap-1 rounded-full border border-line px-3.5 py-2 font-bold text-fg-secondary"
-            >
-              <Bell className="h-3.5 w-3.5" />
-              啟用瀏覽器 Push 推播
-            </button>
-          </div>
-
-          {calUrl && (
-            <div className="mt-2 flex items-center gap-2 rounded-xl bg-surface-subtle p-2.5 font-mono text-xs text-fg-secondary">
-              <span className="truncate">{calUrl}</span>
-              <button
-                type="button"
-                onClick={() => navigator.clipboard.writeText(calUrl)}
-                className="shrink-0 font-bold text-brand"
-              >
-                <Copy className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          )}
-          {calMsg && <p className="font-semibold text-success-700">{calMsg}</p>}
-          {pushMsg && <p className="font-semibold text-brand-soft-fg">{pushMsg}</p>}
-        </form>
-      </section>
+              {calUrl && (
+                <div className="mt-2 flex items-center gap-2 rounded-xl bg-surface-subtle p-2.5 font-mono text-xs text-fg-secondary">
+                  <span className="truncate">{calUrl}</span>
+                  <IconButton aria-label="複製網址" onClick={() => navigator.clipboard.writeText(calUrl)}>
+                    <Copy className="h-4 w-4" aria-hidden="true" />
+                  </IconButton>
+                </div>
+              )}
+              {calMsg && <p className="font-semibold text-success-fg">{calMsg}</p>}
+              {pushMsg && <p className="font-semibold text-brand-soft-fg">{pushMsg}</p>}
+            </form>
+          </Card>
         </div>
       )}
-
     </div>
   );
 }

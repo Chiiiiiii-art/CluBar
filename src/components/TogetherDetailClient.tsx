@@ -170,7 +170,7 @@ export function TogetherDetailClient({
             <Badge tone="accent">#{item.domain_name}</Badge>
             <Badge>{TOGETHER_ITEM_TYPE_LABELS[item.item_type]}</Badge>
           </div>
-          <h1 className="break-words text-2xl font-bold leading-snug text-fg sm:text-3xl">
+          <h1 className="break-words font-display text-2xl font-black leading-snug text-fg sm:text-3xl">
             {item.title}
           </h1>
           <p className="text-sm text-fg-muted">
@@ -188,7 +188,7 @@ export function TogetherDetailClient({
         </p>
 
         {iframeSrc && (
-          <div className="overflow-hidden rounded-xl border border-line bg-surface-sunken">
+          <div className="overflow-hidden rounded-2xl border-2 border-line bg-surface-sunken">
             <iframe
               src={iframeSrc}
               title={item.title}
@@ -232,7 +232,7 @@ export function TogetherDetailClient({
       {showRebound && myClubs.length > 0 && (
         <Card>
           <form onSubmit={handleCreateRebound} className="space-y-4">
-            <h2 className="text-lg font-semibold text-fg">代表社團發布接力回應</h2>
+            <h2 className="font-display text-lg font-bold text-fg">代表社團發布接力回應</h2>
             <div className="min-w-0 space-y-1.5">
               <label htmlFor="together-detail-replyclubid" className="block text-sm font-medium text-fg-body">
                 代表社團
@@ -294,7 +294,7 @@ export function TogetherDetailClient({
       )}
 
       {rebounds.length > 0 && (
-        <Section title={`接力回應作品 (${rebounds.length})`}>
+        <Section title="接力回應作品">
           <ul className="divide-y divide-line border-y border-line">
             {rebounds.map((rb) => (
               <li key={rb.id}>
@@ -316,7 +316,7 @@ export function TogetherDetailClient({
         title={
           <span className="inline-flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-brand" aria-hidden="true" />
-            跨校交流討論串 ({replies.length})
+            跨校交流討論串
           </span>
         }
       >

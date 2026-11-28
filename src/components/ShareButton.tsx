@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Check, Share2 } from 'lucide-react';
 
-import { buttonClasses } from '@/components/ui';
+import { Button } from '@/components/ui';
+
 export function ShareButton({ label = '分享連結' }: { label?: string }) {
   const [copied, setCopied] = useState(false);
 
@@ -18,22 +19,18 @@ export function ShareButton({ label = '分享連結' }: { label?: string }) {
   };
 
   return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className={buttonClasses({ variant: 'secondary', size: 'md' })}
-    >
+    <Button variant="secondary" onClick={handleCopy} aria-live="polite">
       {copied ? (
         <>
-          <Check className="h-3.5 w-3.5 text-success-700" aria-hidden="true" />
-          <span className="text-success-700">已複製連結</span>
+          <Check className="h-4 w-4 text-success-fg" aria-hidden="true" />
+          <span className="text-success-fg">已複製連結</span>
         </>
       ) : (
         <>
-          <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
+          <Share2 className="h-4 w-4" aria-hidden="true" />
           <span>{label}</span>
         </>
       )}
-    </button>
+    </Button>
   );
 }

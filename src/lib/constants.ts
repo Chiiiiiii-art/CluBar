@@ -78,10 +78,10 @@ export const DEFAULT_FAQ_TEMPLATES = [
 ] as const;
 
 export const POST_KIND_LABELS: Record<PostKind, { label: string; badgeClass: string }> = {
-  nrc_moment: { label: '社員日常', badgeClass: 'bg-accent-50 text-accent-800' },
-  wip_work: { label: '實作作品', badgeClass: 'bg-warning-50 text-warning-900' },
-  album_highlight: { label: '活動精選', badgeClass: 'bg-accent-50 text-accent-800' },
-  qa_highlight: { label: '問答精華', badgeClass: 'bg-success-50 text-success-800' },
+  nrc_moment: { label: '社員日常', badgeClass: 'bg-brand-soft text-brand-soft-fg' },
+  wip_work: { label: '實作作品', badgeClass: 'bg-warning-soft text-warning-fg' },
+  album_highlight: { label: '活動精選', badgeClass: 'bg-brand-soft text-brand-soft-fg' },
+  qa_highlight: { label: '問答精華', badgeClass: 'bg-success-soft text-success-fg' },
 };
 
 export const LEARNING_HOURS_LABELS: Record<LearningHoursCategory, string> = {

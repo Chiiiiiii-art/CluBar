@@ -1,4 +1,7 @@
-# CluBar 設計參考分析（依功能）
+# CluBar 設計參考分析（依功能，v1 歷史檔）
+
+> [!WARNING]
+> **已棄置（DEPRECATED — v1 舊版）**：本頁為 v1 參考研究，已被 v2.5 研究報告 [../../ui-redesign/v2-tactile-research.md](../../ui-redesign/v2-tactile-research.md) 取代；最新設計規範請見 [../README.md](../README.md)。
 
 > 2026-11-27｜依據：[價值主張對齊](./00-value-proposition-alignment.md)、[UI 改善計畫](../../ui-redesign-plan.md)、[PRD v2](../../clubar-prd-v2.md)。
 > 方法：四組研究並行，每個參考都以官方頁面、得獎紀錄或權威 UX 研究（NN/g、Baymard、W3C、Apple、Google）驗證；無法驗證的項目已標注 ⚠️，不作為規則依據。

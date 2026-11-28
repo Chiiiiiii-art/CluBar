@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+  <!-- [DEPRECATED — 未採用候選方案 4] 最終定案為整合版 ./01-modern-tactile-v2.html (v2.5)。 -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CluBar v2｜方案 4：復古印刷潮牌風（Retro Print / Risograph Zine）</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet" />
+  <script>
+    if (new URLSearchParams(location.search).get('embed') === 'mobile') {
+      document.documentElement.classList.add('embed-mobile');
+    }
+  </script>
+  <style>
+    :root {
+      --canvas: oklch(95.5% 0.018 82);
+      --surface: oklch(98.5% 0.01 82);
+      --surface-subtle: oklch(91.5% 0.022 80);
+      --fg: oklch(20% 0.035 255);
+      --fg-secondary: oklch(34% 0.03 255);
+      --fg-muted: oklch(45% 0.025 255);
+      --brand: oklch(51% 0.195 27);
+      --brand-hover: oklch(45% 0.175 27);
+      --on-brand: oklch(99% 0.005 85);
+      --cobalt: oklch(46% 0.185 262);
+      --mustard: oklch(89% 0.131 88);
+      --peacock: oklch(45% 0.097 162);
+      --line-input: oklch(51% 0.025 255);
+
+      --acad-bg: oklch(91.5% 0.038 258); --acad-fg: oklch(33% 0.115 258);
+      --arts-bg: oklch(91% 0.055 340);  --arts-fg: oklch(34% 0.145 340);
+      --rec-bg:  oklch(91% 0.095 88);   --rec-fg:  oklch(31% 0.063 75);
+      --sport-bg:oklch(91.5% 0.04 28);  --sport-fg:oklch(35% 0.135 28);
+      --serv-bg: oklch(91% 0.055 160);  --serv-fg: oklch(31% 0.071 160);
+      --soc-bg:  oklch(91.5% 0.042 205);--soc-fg:  oklch(31% 0.051 205);
+
+      --font-display: "Noto Serif TC", serif;
+      --font-sans: "Noto Sans TC", sans-serif;
+      --font-mono: "JetBrains Mono", monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html {
+      background-color: var(--canvas);
+      background-image: radial-gradient(rgba(11, 23, 38, 0.08) 0.75px, transparent 0.75px);
+      background-size: 10px 10px;
+      color: var(--fg);
+      font-family: var(--font-sans);
+      line-height: 1.65;
+      overflow-x: hidden;
+    }
+    body { margin: 0; padding: 24px 20px 72px; overflow-x: hidden; }
+    button, a, input { font: inherit; color: inherit; }
+    button, a { cursor: pointer; text-decoration: none; }
+    :focus-visible { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+    .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .serif { font-family: var(--font-display); }
+
+    .wrap { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 36px; }
+
+    .spec-banner {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+      padding: 14px 18px; background: var(--surface); border: 2px solid var(--fg);
+      box-shadow: 4px 4px 0 var(--cobalt);
+    }
+    .spec-banner h1 { margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 900; }
+
+    .riso-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex-shrink: 0;
+      min-height: 44px; padding: 0 16px; border: 1.5px solid var(--fg); background: var(--surface);
+      font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+      box-shadow: 2px 2px 0 var(--fg); transition: transform 120ms ease;
+    }
+    .riso-btn:hover { transform: translate(-1px, -1px); }
+    .riso-btn.vermilion { background: var(--brand); color: var(--on-brand); box-shadow: 3px 3px 0 var(--cobalt); }
+    .riso-btn.cobalt { background: var(--cobalt); color: var(--on-brand); }
+
+    .section-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+    .section-head h2 { margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; }
+    .section-head span { font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted); font-weight: 700; }
+
+    /* ============================================================
+       1. DESKTOP STAGE (Broadsheet Editorial Spread)
+       ============================================================ */
+    .desktop-stage {
+      background: var(--canvas); border: 2px solid var(--fg);
+      box-shadow: 6px 6px 0 var(--fg); overflow: hidden;
+    }
+    .broadsheet-strip {
+      display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px;
+      padding: 7px 22px; border-bottom: 1.5px solid var(--fg); background: var(--surface-subtle);
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+    }
+    /* Centered Broadsheet Masthead (Distinct from 01/02/03!) */
+    .broadsheet-masthead {
+      display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px;
+      padding: 16px 24px; background: var(--surface); border-bottom: 4px double var(--fg);
+    }
+    .idx-nav { display: flex; gap: 4px; flex-wrap: wrap; }
+    .idx-link {
+      min-height: 44px; padding: 0 12px; display: inline-flex; align-items: center; gap: 5px;
+      border: 1.5px solid transparent; font-size: 13px; font-weight: 700;
+    }
+    .idx-link.active { border-color: var(--fg); background: var(--mustard); }
+    .riso-wordmark {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: var(--font-display); font-size: 28px; font-weight: 900;
+      text-shadow: 2px 1px 0 rgba(20, 77, 189, 0.3);
+    }
+    .masthead-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+
+    .stage-body { padding: 24px; }
+
+    /* Editorial Spread */
+    .riso-spread {
+      display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px;
+      padding-bottom: 22px; margin-bottom: 20px; border-bottom: 2px solid var(--fg);
+    }
+    .riso-h1 {
+      margin: 0 0 10px; font-family: var(--font-display); font-size: 38px; font-weight: 900; line-height: 1.18;
+      text-shadow: 2px 2px 0 rgba(188, 25, 29, 0.2);
+    }
+    .spec-box {
+      background: var(--surface); border: 1.5px solid var(--fg); padding: 18px;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 12px;
+      box-shadow: 4px 4px 0 var(--brand);
+    }
+    .spec-row {
+      display: flex; justify-content: space-between; gap: 8px; border-bottom: 1px dashed var(--line-input);
+      padding-bottom: 6px; font-family: var(--font-mono); font-size: 12px;
+    }
+    .riso-search {
+      display: flex; border: 2px solid var(--fg); background: var(--surface);
+      box-shadow: 3px 3px 0 var(--cobalt); min-width: 0;
+    }
+    .riso-search input {
+      flex: 1; min-width: 0; width: 100%; min-height: 46px; border: 0; padding: 0 14px; background: transparent; outline: none; font-size: 15px;
+    }
+
+    /* Catalog Domain Swatches */
+    .controls-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .print-tabs { display: inline-flex; border: 1.5px solid var(--fg); background: var(--surface); }
+    .print-tab {
+      min-height: 44px; padding: 0 18px; border: 0; border-right: 1.5px solid var(--fg);
+      background: transparent; font-family: var(--font-display); font-size: 15px; font-weight: 900;
+    }
+    .print-tab:last-child { border-right: 0; }
+    .print-tab[aria-selected="true"] { background: var(--cobalt); color: var(--on-brand); }
+
+    .catalog-filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .swatch-tab {
+      min-height: 44px; padding: 0 14px; border: 1.5px solid var(--fg);
+      display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13px;
+      box-shadow: 2px 2px 0 var(--fg);
+    }
+    .swatch-tab[aria-pressed="true"] {
+      background: var(--fg) !important; color: var(--mustard) !important; box-shadow: none; transform: translate(2px, 2px);
+    }
+
+    .applied-bar {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px;
+      padding: 8px 14px; border: 1.5px dashed var(--fg); background: var(--surface); font-size: 13px;
+    }
+    .applied-bar[hidden] { display: none; }
+
+    /* Left-to-Right Editorial CSS Grid (FIG.01 -> FIG.02 -> FIG.03!) */
+    .plates-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: start; }
+    .plates-grid[hidden], .events-grid[hidden] { display: none; }
+    .plate-card {
+      background: var(--surface); border: 1.5px solid var(--fg); padding: 12px;
+      box-shadow: 3px 3px 0 rgba(11, 23, 38, 0.16);
+    }
+    .plate-head {
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+      font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--fg-secondary);
+    }
+    .plate-img { position: relative; border: 1px solid var(--fg); padding: 4px; background: var(--canvas); }
+    .plate-img img { width: 100%; height: auto; display: block; }
+    .plate-title { margin: 10px 0 4px; font-family: var(--font-display); font-size: 18px; font-weight: 900; line-height: 1.3; }
+    .stamp-coaster {
+      width: 34px; height: 34px; border-radius: 999px; border: 1.5px solid var(--fg);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-family: var(--font-display); font-weight: 900; font-size: 14px;
+      box-shadow: inset 0 0 0 2px var(--surface); flex-shrink: 0;
+    }
+    /* Perforated ticket CTA button */
+    .plate-link {
+      position: relative; margin-top: 8px; min-height: 44px; padding: 6px 14px; border: 1.5px solid var(--fg);
+      background: var(--mustard); display: flex; align-items: center; justify-content: space-between;
+      font-weight: 700; font-size: 13px;
+    }
+    .plate-link::before, .plate-link::after {
+      content: ""; position: absolute; top: 50%; transform: translateY(-50%); width: 10px; height: 10px;
+      border-radius: 999px; background: var(--surface); border: 1.5px solid var(--fg);
+    }
+    .plate-link::before { left: -6px; }
+    .plate-link::after { right: -6px; }
+
+    /* Perforated Stamp Tickets */
+    .events-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+    .stamp-ticket {
+      position: relative; background: var(--surface); border: 1.5px solid var(--fg);
+      display: flex; flex-direction: column; box-shadow: 4px 4px 0 var(--cobalt);
+    }
+    .stamp-ticket img { width: 100%; height: auto; display: block; border-bottom: 1.5px solid var(--fg); }
+    .ticket-date-strip {
+      display: flex; border-bottom: 1.5px solid var(--fg); font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    }
+    .date-cell { padding: 6px 12px; background: var(--cobalt); color: var(--on-brand); }
+    .serial-cell { padding: 6px 12px; flex: 1; background: var(--surface-subtle); }
+    .ticket-perforated {
+      position: relative; border-top: 2px dotted var(--fg); padding: 12px 14px;
+      background: var(--canvas); display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .ticket-perforated::before, .ticket-perforated::after {
+      content: ""; position: absolute; top: -10px; width: 18px; height: 18px; border-radius: 999px;
+      background: var(--canvas); border: 1.5px solid var(--fg);
+    }
+    .ticket-perforated::before { left: -10px; }
+    .ticket-perforated::after { right: -10px; }
+    .cancel-stamp.stamped { background: var(--peacock); color: var(--on-brand); transform: rotate(-2deg); }
+
+    .end-strip {
+      margin-top: 20px; padding: 14px 18px; border-top: 4px double var(--fg); border-bottom: 1.5px solid var(--fg);
+      background: var(--surface); display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+    }
+
+    /* ============================================================
+       2. MOBILE 390px DUAL
+       ============================================================ */
+    .mobile-stage { display: flex; flex-wrap: wrap; gap: 28px; justify-content: center; }
+    .phone-wrap { width: 390px; max-width: 100%; display: flex; flex-direction: column; gap: 8px; }
+    .phone-cap { font-family: var(--font-mono); font-size: 12px; color: var(--fg-muted); }
+    .phone-frame {
+      width: 390px; max-width: 100%; border: 2px solid var(--fg); background: var(--canvas);
+      box-shadow: 6px 6px 0 var(--fg); overflow: hidden; display: flex; flex-direction: column;
+    }
+    .m-body { padding: 12px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+    .m-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
+    .m-plate { background: var(--surface); border: 1.5px solid var(--fg); padding: 6px; }
+    .m-plate img { width: 100%; height: auto; display: block; border: 1px solid var(--fg); }
+    .m-plate h4 { margin: 6px 0 2px; font-family: var(--font-display); font-size: 13px; font-weight: 900; line-height: 1.3; }
+    .m-plate p { margin: 0; font-size: 12px; color: var(--fg-muted); }
+    .m-nav { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 2px solid var(--fg); background: var(--surface); }
+    .m-nav span { min-height: 48px; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 12px; font-weight: 700; border-right: 1px solid var(--fg); }
+    .m-nav span:last-child { border-right: 0; }
+    .m-nav span.active { background: var(--mustard); }
+
+    /* ============================================================
+       3. PARTS & TOKENS
+       ============================================================ */
+    .parts-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px; }
+    .riso-panel { background: var(--surface); border: 1.5px solid var(--fg); padding: 20px; box-shadow: 4px 4px 0 var(--fg); }
+    .empty-press {
+      border: 1.5px dashed var(--fg); background: var(--canvas); padding: 22px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .token-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+    .swatch { background: var(--surface); border: 1.5px solid var(--fg); padding: 10px; display: flex; align-items: center; gap: 10px; }
+    .swatch-box { width: 40px; height: 40px; border: 1.5px solid var(--fg); flex-shrink: 0; }
+    .wcag-table { width: 100%; border-collapse: collapse; margin-top: 14px; background: var(--surface); border: 1.5px solid var(--fg); font-size: 13px; }
+    .wcag-table th, .wcag-table td { padding: 9px 12px; border-bottom: 1px solid var(--fg); text-align: left; }
+    .wcag-table th { background: var(--surface-subtle); font-family: var(--font-mono); }
+
+    /* Clean Embed Mobile Mode */
+    html.embed-mobile body { padding: 0; max-width: 390px; }
+    html.embed-mobile .wrap { max-width: 390px; gap: 0; }
+    html.embed-mobile .spec-banner,
+    html.embed-mobile .desktop-section,
+    html.embed-mobile .parts-section,
+    html.embed-mobile .tokens-section,
+    html.embed-mobile .section-head,
+    html.embed-mobile .phone-cap,
+    html.embed-mobile .phone-wrap:nth-child(2) { display: none !important; }
+    html.embed-mobile .mobile-stage { display: block; }
+    html.embed-mobile .phone-wrap { width: 100%; max-width: 390px; }
+    html.embed-mobile .phone-frame { width: 100%; max-width: 390px; border: 0; box-shadow: none; min-height: 100vh; }
+
+    @media (max-width: 960px) {
+      .broadsheet-masthead { grid-template-columns: 1fr; text-align: left; }
+      .masthead-actions { justify-content: flex-start; }
+      .riso-spread, .parts-grid { grid-template-columns: 1fr; }
+      .plates-grid, .events-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      .spec-banner { padding: 12px; }
+      .desktop-section .section-head, .idx-nav, .secondary-cta { display: none; }
+      .broadsheet-masthead { padding: 12px; }
+      .stage-body { padding: 12px; }
+      .riso-h1 { font-size: 26px; }
+      .plates-grid, .events-grid { grid-template-columns: 1fr; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="spec-banner">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <span class="mono" style="padding:3px 9px;background:var(--cobalt);color:var(--on-brand);font-size:12px;font-weight:700;">方案 4 · RETRO RISO</span>
+        <h1>復古印刷潮牌風（Risograph × 獨立刊物 × Teenage Engineering）</h1>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="riso-btn" href="./index.html">← 回比較控制台</a>
+        <a class="riso-btn" href="./01-modern-tactile.html">看方案 1：潮流貼紙</a>
+        <a class="riso-btn vermilion" href="#tokens">WCAG 最低對比 5.80:1</a>
+      </div>
+    </header>
+
+    <!-- SECTION 1: DESKTOP STAGE -->
+    <section class="desktop-section" aria-label="桌機版獨立刊物舞台">
+      <div class="section-head">
+        <h2>01｜桌機版首頁實景（1280px 對開印刷刊物版型）</h2>
+        <span>雙線報頭 ＋ 雙色錯位套印 ＋ 由左至右圖版編號（FIG.01 → FIG.06）</span>
+      </div>
+
+      <div class="desktop-stage">
+        <div class="broadsheet-strip">
+          <span>CLUBAR PRESS · VOL.115</span>
+          <span>INK: VERMILION + COBALT</span>
+          <span>FAIR INDEX · NO LIKES</span>
+        </div>
+
+        <div class="broadsheet-masthead">
+          <nav class="idx-nav" aria-label="刊物導覽">
+            <a href="#" class="idx-link active" aria-current="page">01 別的聚</a>
+            <a href="#" class="idx-link">02 一起聚</a>
+            <a href="#" class="idx-link">03 我的聚</a>
+          </nav>
+
+          <a href="#" class="riso-wordmark">
+            <svg width="32" height="32" viewBox="0 0 34 34" fill="none" aria-hidden="true">
+              <circle cx="15" cy="17" r="11" stroke="#0e47b6" stroke-width="2.4"/>
+              <circle cx="19" cy="17" r="11" stroke="#bc191d" stroke-width="2.4"/>
+              <path d="M17 4v26M4 17h26" stroke="#0b1726" stroke-width="1.5"/>
+            </svg>
+            <span>社團聚</span>
+          </a>
+
+          <div class="masthead-actions">
+            <a href="#" class="riso-btn secondary-cta">30 秒測驗</a>
+            <a href="#" class="riso-btn vermilion">登入</a>
+          </div>
+        </div>
+
+        <div class="stage-body">
+          <div class="riso-spread">
+            <div>
+              <span class="mono" style="display:inline-block;padding:3px 9px;background:var(--mustard);border:1.5px solid var(--fg);font-size:12px;font-weight:700;margin-bottom:10px;">
+                EDITION 115 · 中央大學示範刊
+              </span>
+              <h2 class="riso-h1">把大學社團的日常，<br />印成一本不散場的刊物。</h2>
+              <p style="margin:0 0 14px;color:var(--fg-secondary);font-size:15px;">看作品、看社課票根、直接走進現場。沒有流量榜單，每個社團都用自己的版面說話。</p>
+              <form class="riso-search" role="search" onsubmit="event.preventDefault();">
+                <input type="search" aria-label="檢索社團或活動" placeholder="檢索關鍵詞：週四晚上、零基礎、不用買器材" />
+                <button type="submit" class="riso-btn vermilion" style="border:0;border-left:2px solid var(--fg);box-shadow:none;">檢索</button>
+              </form>
+            </div>
+
+            <div class="spec-box">
+              <div class="mono" style="font-size:12px;font-weight:700;color:var(--cobalt);">PRINTING SPEC // 平台規則</div>
+              <div>
+                <div class="spec-row"><span>CROP / 作品裁切</span><strong>NONE (原圖比例)</strong></div>
+                <div class="spec-row"><span>RANKING / 人氣排名</span><strong>DISABLED (公平流)</strong></div>
+                <div class="spec-row"><span>GUESTS / 非社員參與</span><strong>OPEN ACCESS</strong></div>
+                <div class="spec-row" style="border:0;"><span>CONTRAST / 對比下限</span><strong>5.80 : 1 (AA)</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls-row">
+            <div class="print-tabs" role="tablist" aria-label="刊物版面切換">
+              <button type="button" class="print-tab" role="tab" aria-selected="true" data-tab="stream">圖版 · 社團現場</button>
+              <button type="button" class="print-tab" role="tab" aria-selected="false" data-tab="events">票券 · 近期活動</button>
+            </div>
+            <span class="mono" style="font-size:12px;color:var(--fg-secondary);font-weight:700;">INDEX BY DOMAIN</span>
+          </div>
+
+          <div class="catalog-filters" role="group" aria-label="領域目錄篩選">
+            <button type="button" class="swatch-tab" data-domain="academic" aria-pressed="false" style="background:var(--acad-bg);color:var(--acad-fg);"><span class="mono">A-01</span>學術</button>
+            <button type="button" class="swatch-tab" data-domain="arts" aria-pressed="false" style="background:var(--arts-bg);color:var(--arts-fg);"><span class="mono">B-02</span>藝文</button>
+            <button type="button" class="swatch-tab" data-domain="recreation" aria-pressed="false" style="background:var(--rec-bg);color:var(--rec-fg);"><span class="mono">C-03</span>康樂</button>
+            <button type="button" class="swatch-tab" data-domain="sports" aria-pressed="false" style="background:var(--sport-bg);color:var(--sport-fg);"><span class="mono">D-04</span>體育</button>
+            <button type="button" class="swatch-tab" data-domain="service" aria-pressed="false" style="background:var(--serv-bg);color:var(--serv-fg);"><span class="mono">E-05</span>服務</button>
+            <button type="button" class="swatch-tab" data-domain="social" aria-pressed="false" style="background:var(--soc-bg);color:var(--soc-fg);"><span class="mono">F-06</span>聯誼</button>
+          </div>
+
+          <div class="applied-bar" id="appliedBar" hidden>
+            <strong class="mono">FILTER:</strong>
+            <span id="appliedLabel" class="mono" style="font-weight:700;"></span>
+            <button type="button" class="riso-btn" id="clearFilterBtn" style="min-height:34px;padding:0 10px;">重置目錄</button>
+          </div>
+
+          <!-- Left-to-right Sequential Grid (FIG.01 -> FIG.06) -->
+          <div class="plates-grid" id="streamPanel">
+            <article class="plate-card" data-domain="sports">
+              <div class="plate-head"><span>FIG.01 · SPORT</span><span>近 7 天活躍</span></div>
+              <div class="plate-img"><img src="../../../public/images/examples/dance-euphoria-4x5.webp" alt="熱舞社成果展演" /></div>
+              <h3 class="plate-title">秋季成發《Euphoria》排練紀錄</h3>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-secondary);">
+                <span class="stamp-coaster" style="background:var(--sport-bg);color:var(--sport-fg);">舞</span>
+                <span>中央大學熱舞社</span>
+              </div>
+              <a href="#" class="plate-link" onclick="event.preventDefault();switchTab('events');"><span>開放體驗：週四 HipHop 社課</span><span>→</span></a>
+            </article>
+
+            <article class="plate-card" data-domain="arts">
+              <div class="plate-head"><span>FIG.02 · ARTS</span><span>ORIGINAL RATIO</span></div>
+              <div class="plate-img"><img src="../../../public/images/examples/art-work-3x4.webp" alt="美術社作品" /></div>
+              <h3 class="plate-title">社辦自由畫會：水彩混色與電繪練習本</h3>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-secondary);">
+                <span class="stamp-coaster" style="background:var(--arts-bg);color:var(--arts-fg);">美</span>
+                <span>中央大學美術社</span>
+              </div>
+            </article>
+
+            <article class="plate-card" data-domain="recreation">
+              <div class="plate-head"><span>FIG.03 · REC</span><span>近 7 天活躍</span></div>
+              <div class="plate-img"><img src="../../../public/images/examples/coffee-roast-4x5.webp" alt="咖啡社烘豆" /></div>
+              <h3 class="plate-title">週五下午烘豆實測：耶加雪菲曲線</h3>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-secondary);">
+                <span class="stamp-coaster" style="background:var(--rec-bg);color:var(--rec-fg);">咖</span>
+                <span>中央大學咖啡社</span>
+              </div>
+            </article>
+
+            <article class="plate-card" data-domain="academic">
+              <div class="plate-head"><span>FIG.04 · ACAD</span><span>問答有回覆</span></div>
+              <div class="plate-img"><img src="../../../public/images/examples/gamedev-estella-wide.webp" alt="創遊社 Estella" /></div>
+              <h3 class="plate-title">從 0.5 推到 1：獨立音遊《Estella》實戰</h3>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-secondary);">
+                <span class="stamp-coaster" style="background:var(--acad-bg);color:var(--acad-fg);">創</span>
+                <span>中央創遊社 × 音遊社</span>
+              </div>
+              <div style="margin-top:10px;padding:12px;border:1.5px dashed var(--fg);background:var(--mustard);">
+                <div class="mono" style="font-size:11px;font-weight:700;">SIDEBAR NOTE · 天文社</div>
+                <strong class="serif" style="font-size:15px;">為什麼大型望遠鏡不用赤道儀？載台與經緯儀現場拆解</strong>
+              </div>
+            </article>
+
+            <article class="plate-card" data-domain="recreation">
+              <div class="plate-head"><span>FIG.05 · OUTDOOR</span><span>新手可跟隊</span></div>
+              <div class="plate-img"><img src="../../../public/images/examples/mountain-patrol-4x5.webp" alt="登山社巡山" /></div>
+              <h3 class="plate-title">秋末郊山巡山：一日輕裝打包清單</h3>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-secondary);">
+                <span class="stamp-coaster" style="background:var(--rec-bg);color:var(--rec-fg);">山</span>
+                <span>中央大學登山社</span>
+              </div>
+            </article>
+
+            <article class="plate-card" data-domain="service">
+              <div class="plate-head"><span>FIG.06 · SERV</span><span>非社員可</span></div>
+              <div class="plate-img"><img src="../../../public/images/examples/cat-adoption-4x5.webp" alt="喵喵社校浪" /></div>
+              <h3 class="plate-title">松果屋親訓日記：給怕生小橘一個家</h3>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg-secondary);">
+                <span class="stamp-coaster" style="background:var(--serv-bg);color:var(--serv-fg);">喵</span>
+                <span>中央大學喵喵社</span>
+              </div>
+            </article>
+          </div>
+
+          <div class="events-grid" id="eventsPanel" hidden>
+            <article class="stamp-ticket" data-domain="sports">
+              <div class="ticket-date-strip"><span class="date-cell">11/28 THU 19:00</span><span class="serial-cell">NO.041 · FREE</span></div>
+              <img src="../../../public/images/examples/event-dance-trial.webp" alt="熱舞社體驗社課" />
+              <div style="padding:14px;flex:1;">
+                <h3 class="plate-title" style="margin-top:0;">HipHop 零基礎體驗社課</h3>
+                <p style="margin:4px 0 0;font-size:13px;color:var(--fg-secondary);">游藝館二樓排練室 · 零基礎可 · 非社員可</p>
+              </div>
+              <div class="ticket-perforated">
+                <span class="mono" style="font-size:12px;font-weight:700;">FREE · 免費</span>
+                <button type="button" class="riso-btn cancel-stamp" onclick="stampRiso(this)">登記入場</button>
+              </div>
+            </article>
+
+            <article class="stamp-ticket" data-domain="recreation">
+              <div class="ticket-date-strip"><span class="date-cell">11/30 SAT 14:30</span><span class="serial-cell">NO.042 · NT$50</span></div>
+              <img src="../../../public/images/examples/event-coffee-welcome.webp" alt="咖啡社手沖" />
+              <div style="padding:14px;flex:1;">
+                <h3 class="plate-title" style="margin-top:0;">午後手沖入門：三支產區風味</h3>
+                <p style="margin:4px 0 0;font-size:13px;color:var(--fg-secondary);">志希館 103 室 · 不用帶器材</p>
+              </div>
+              <div class="ticket-perforated">
+                <span class="mono" style="font-size:12px;font-weight:700;">NT$50 材料費</span>
+                <button type="button" class="riso-btn cancel-stamp" onclick="stampRiso(this)">登記入場</button>
+              </div>
+            </article>
+
+            <article class="stamp-ticket" data-domain="academic">
+              <div class="ticket-date-strip"><span class="date-cell">12/02 MON 19:30</span><span class="serial-cell">NO.043 · 2H 時數</span></div>
+              <img src="../../../public/images/examples/event-astro-mount.webp" alt="天文社觀測" />
+              <div style="padding:14px;flex:1;">
+                <h3 class="plate-title" style="margin-top:0;">路邊天文 × 太極草皮月面觀測</h3>
+                <p style="margin:4px 0 0;font-size:13px;color:var(--fg-secondary);">太極草皮 · 遇雨改室內</p>
+              </div>
+              <div class="ticket-perforated">
+                <span class="mono" style="font-size:12px;font-weight:700;">FREE · 附時數</span>
+                <button type="button" class="riso-btn cancel-stamp" onclick="stampRiso(this)">登記入場</button>
+              </div>
+            </article>
+          </div>
+
+          <div class="end-strip">
+            <span class="mono" style="font-size:13px;font-weight:700;">END OF ISSUE // 每個社團最多 2 則 · 不依讚數排序</span>
+            <button type="button" class="riso-btn cobalt" onclick="switchTab('events')">翻到活動票券頁 →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2: MOBILE DUAL -->
+    <section class="mobile-stage" aria-label="手機版雙機">
+      <div class="phone-wrap">
+        <span class="phone-cap">MOBILE 390px · 刊物圖版流</span>
+        <div class="phone-frame">
+          <div class="broadsheet-strip" style="padding:6px 12px;"><span>CLU·BAR PRESS</span><span>VOL.115</span></div>
+          <div class="m-body">
+            <h3 class="serif" style="margin:0;font-size:21px;font-weight:900;">本期社團圖版一覽</h3>
+            <div style="display:flex;gap:6px;overflow-x:auto;">
+              <span class="swatch-tab" style="background:var(--acad-bg);color:var(--acad-fg);min-height:44px;flex-shrink:0;">學術</span>
+              <span class="swatch-tab" style="background:var(--arts-bg);color:var(--arts-fg);min-height:44px;flex-shrink:0;">藝文</span>
+              <span class="swatch-tab" style="background:var(--rec-bg);color:var(--rec-fg);min-height:44px;flex-shrink:0;">康樂</span>
+              <span class="swatch-tab" style="background:var(--sport-bg);color:var(--sport-fg);min-height:44px;flex-shrink:0;">體育</span>
+            </div>
+            <div class="m-grid">
+              <div class="m-plate">
+                <img src="../../../public/images/examples/art-work-3x4.webp" alt="美術社" />
+                <h4>水彩厚塗練習本</h4><p>中央美術社</p>
+              </div>
+              <div class="m-plate">
+                <img src="../../../public/images/examples/astro-sidewalk-1x1.webp" alt="天文社" />
+                <h4>草皮望遠鏡夜</h4><p>中央天文社</p>
+              </div>
+              <div class="m-plate" style="background:var(--mustard);">
+                <h4>週五烘豆焦糖曲線</h4><p>中央咖啡社</p>
+              </div>
+              <div class="m-plate">
+                <img src="../../../public/images/examples/mountain-patrol-4x5.webp" alt="登山社" />
+                <h4>秋末郊山巡山</h4><p>中央登山社</p>
+              </div>
+            </div>
+          </div>
+          <div class="m-nav">
+            <span class="active">01 別的聚</span><span>02 一起</span><span>03 我的</span><span>ME</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="phone-wrap">
+        <span class="phone-cap">MOBILE 390px · 郵戳票券＋蓋章（可點）</span>
+        <div class="phone-frame">
+          <div class="broadsheet-strip" style="padding:6px 12px;"><span>← 回票券目錄</span><span>TICKET NO.041</span></div>
+          <div class="m-body">
+            <div class="plate-img"><img src="../../../public/images/examples/event-dance-trial.webp" alt="熱舞社" /></div>
+            <h3 class="serif" style="margin:0;font-size:21px;font-weight:900;">HipHop 零基礎體驗社課</h3>
+            <div style="border:1.5px solid var(--fg);background:var(--surface);padding:10px;font-size:13px;">
+              <div class="mono" style="font-weight:700;">11/28（四）19:00–21:00</div>
+              <div>游藝館二樓排練室 · 零基礎可 · 非社員可</div>
+            </div>
+            <div id="mConfirm" hidden style="border:2px solid var(--peacock);background:var(--serv-bg);color:var(--serv-fg);padding:10px;font-size:13px;font-weight:700;">
+              <div>✓ RESERVED · 郵戳已蓋上</div>
+              <div>HipHop 零基礎體驗社課｜11/28 19:00｜游藝館二樓</div>
+              <div>確認信已寄出 · 支援加入行事曆（.ics）</div>
+            </div>
+          </div>
+          <div class="ticket-perforated" style="border-top:2px solid var(--fg);background:var(--surface);">
+            <span class="mono" style="font-size:12px;font-weight:700;">FREE · 不顯示人數</span>
+            <button type="button" class="riso-btn vermilion" id="mBtn" onclick="toggleRisoRsvp()">登記入場</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3: PARTS & EMPTY -->
+    <section class="parts-section" aria-label="印務零件與空狀態">
+      <div class="section-head">
+        <h2>03｜雙色郵戳杯墊 × 空白印版</h2>
+        <span>孔版印刷專色疊印與檢核線</span>
+      </div>
+      <div class="parts-grid">
+        <div class="riso-panel">
+          <h3 class="serif" style="margin:0 0 12px;font-size:18px;font-weight:900;">Riso 目錄色票 × 雙圈郵戳杯墊</h3>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+            <span class="stamp-coaster" style="width:52px;height:52px;font-size:20px;background:var(--acad-bg);color:var(--acad-fg);">創</span>
+            <span class="stamp-coaster" style="width:52px;height:52px;font-size:20px;background:var(--arts-bg);color:var(--arts-fg);">美</span>
+            <span class="stamp-coaster" style="width:52px;height:52px;font-size:20px;background:var(--rec-bg);color:var(--rec-fg);">咖</span>
+            <span class="stamp-coaster" style="width:52px;height:52px;font-size:20px;background:var(--sport-bg);color:var(--sport-fg);">舞</span>
+            <span class="stamp-coaster" style="width:52px;height:52px;font-size:20px;background:var(--serv-bg);color:var(--serv-fg);">喵</span>
+            <span class="stamp-coaster" style="width:52px;height:52px;font-size:20px;background:var(--soc-bg);color:var(--soc-fg);">友</span>
+          </div>
+          <p class="mono" style="margin:0;font-size:12px;color:var(--fg-muted);">雙色套印：朱紅 #bc191d × 群青 #144dbd × 芥末 #ffd66d</p>
+        </div>
+        <div class="riso-panel">
+          <div class="empty-press">
+            <svg width="78" height="78" viewBox="0 0 78 78" fill="none" aria-hidden="true">
+              <rect x="14" y="16" width="50" height="48" fill="#fdfaf3" stroke="#0b1726" stroke-width="2.5"/>
+              <rect x="20" y="24" width="38" height="16" fill="#ffd66d" stroke="#0b1726" stroke-width="2"/>
+              <path d="M20 48h26M20 55h18" stroke="#0b1726" stroke-width="2.2"/>
+              <circle cx="54" cy="52" r="10" fill="#bc191d" stroke="#0b1726" stroke-width="2"/>
+            </svg>
+            <strong class="serif" style="font-size:18px;font-weight:900;">這頁印版還空著</strong>
+            <span style="font-size:13px;color:var(--fg-muted);">換個領域目錄，把喜歡的社團作品印上來。</span>
+            <a href="#" class="riso-btn vermilion">回到全部目錄</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: TOKENS -->
+    <section class="tokens-section" id="tokens" aria-label="設計 Token 與對比">
+      <div class="section-head">
+        <h2>04｜Design Tokens & WCAG 2.2 AA 實測</h2>
+        <span>100% sRGB 色域內 OKLCH｜最低文字對比 5.80:1</span>
+      </div>
+      <div class="token-grid">
+        <div class="swatch"><span class="swatch-box" style="background:var(--canvas);"></span><div><strong class="mono">canvas</strong><div class="mono" style="font-size:12px;">oklch(95.5% 0.018 82)</div></div></div>
+        <div class="swatch"><span class="swatch-box" style="background:var(--brand);"></span><div><strong class="mono">brand</strong><div class="mono" style="font-size:12px;">oklch(51% 0.195 27)</div></div></div>
+        <div class="swatch"><span class="swatch-box" style="background:var(--cobalt);"></span><div><strong class="mono">cobalt</strong><div class="mono" style="font-size:12px;">oklch(46% 0.185 262)</div></div></div>
+        <div class="swatch"><span class="swatch-box" style="background:var(--mustard);"></span><div><strong class="mono">mustard</strong><div class="mono" style="font-size:12px;">oklch(89% 0.131 88)</div></div></div>
+      </div>
+      <table class="wcag-table">
+        <thead><tr><th>配對組合</th><th>用途</th><th>實測對比度</th><th>WCAG 2.2 AA</th></tr></thead>
+        <tbody>
+          <tr><td>fg (#0b1726) on canvas (#f6efe3)</td><td>新聞紙底＋墨藍黑</td><td class="mono">15.78 : 1</td><td>PASS</td></tr>
+          <tr><td>onBrand on brand (#bc191d)</td><td>朱紅主按鈕</td><td class="mono">6.21 : 1</td><td>PASS</td></tr>
+          <tr><td>onBrand on cobalt (#144dbd)</td><td>群青藍分頁／邊框</td><td class="mono">7.24 : 1</td><td>PASS</td></tr>
+          <tr><td>fg on mustard (#ffd66d)</td><td>芥末黃寬幅標籤</td><td class="mono">12.96 : 1</td><td>PASS</td></tr>
+          <tr><td>6 大領域 fg on bg（全組）</td><td>目錄色票與郵戳</td><td class="mono">9.26 – 10.14 : 1</td><td>PASS</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <script>
+    const names = { academic:'A-01 學術', arts:'B-02 藝文', recreation:'C-03 康樂', sports:'D-04 體育', service:'E-05 服務', social:'F-06 聯誼' };
+    let cur = '';
+    function switchTab(t) {
+      document.querySelectorAll('.print-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+      document.getElementById('streamPanel').hidden = t !== 'stream';
+      document.getElementById('eventsPanel').hidden = t !== 'events';
+    }
+    document.querySelectorAll('.print-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+    function toggleFilter(d) {
+      cur = cur === d ? '' : d;
+      document.querySelectorAll('.catalog-filters .swatch-tab').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.domain === cur)));
+      document.querySelectorAll('#streamPanel .plate-card, #eventsPanel .stamp-ticket').forEach(el => {
+        el.style.display = !cur || el.dataset.domain === cur ? '' : 'none';
+      });
+      const bar = document.getElementById('appliedBar');
+      if (cur) { document.getElementById('appliedLabel').textContent = names[cur]; bar.hidden = false; }
+      else { bar.hidden = true; }
+    }
+    document.querySelectorAll('.catalog-filters .swatch-tab').forEach(b => b.addEventListener('click', () => toggleFilter(b.dataset.domain)));
+    document.getElementById('clearFilterBtn').addEventListener('click', () => toggleFilter(cur));
+
+    function stampRiso(btn) {
+      const s = btn.classList.toggle('stamped');
+      btn.textContent = s ? '✓ RESERVED' : '登記入場';
+    }
+    function toggleRisoRsvp() {
+      const box = document.getElementById('mConfirm');
+      const btn = document.getElementById('mBtn');
+      const show = box.hidden;
+      box.hidden = !show;
+      btn.textContent = show ? '✓ RESERVED' : '登記入場';
+      btn.classList.toggle('cobalt', show);
+      btn.classList.toggle('vermilion', !show);
+    }
+  </script>
+</body>
+</html>

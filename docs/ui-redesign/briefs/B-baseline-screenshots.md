@@ -1,3 +1,5 @@
+> **[DEPRECATED — v1 Historical Brief]** Superseded by v2.5 (`docs/design/README.md`).
+
 # Task B — Phase 0.3: Visual baseline screenshots
 
 Goal: capture the CURRENT look of key pages before any redesign, for before/after comparison and regression checks.

@@ -15,7 +15,19 @@ import {
 import { TOGETHER_ITEM_TYPE_LABELS } from '@/lib/constants';
 import type { PublicTogetherItemDTO } from '@/lib/serializers';
 
-import { ChipRow, FilterChip, Notice, PageHeader, Tabs, buttonClasses, controlClasses } from '@/components/ui';
+import {
+  Badge,
+  Button,
+  ChipRow,
+  EmptyState,
+  FilterChip,
+  Notice,
+  PageHeader,
+  Tabs,
+  buttonClasses,
+  controlClasses,
+} from '@/components/ui';
+
 export interface TogetherJamDTO {
   id: string;
   title: string;
@@ -52,6 +64,15 @@ export interface AlumniMentorDTO {
   expertise_tags: string[];
   clubs: { slug: string; name: string; title: string | null; role: string }[];
 }
+
+const DOMAIN_TINTS = [
+  'bg-domain-academic-soft',
+  'bg-domain-arts-soft',
+  'bg-domain-recreation-soft',
+  'bg-domain-sports-soft',
+  'bg-domain-service-soft',
+  'bg-domain-social-soft',
+];
 
 export function TogetherClient({
   domains,
@@ -288,8 +309,14 @@ export function TogetherClient({
           <FilterChip selected={!selectedDomain} onClick={() => setSelectedDomain('')}>
             全部
           </FilterChip>
-          {domains.map((d) => (
-            <FilterChip key={d.id} selected={selectedDomain === d.id} onClick={() => setSelectedDomain(d.id)}>
+          {domains.map((d, idx) => (
+            <FilterChip
+              key={d.id}
+              shapeIndex={idx + 1}
+              tintClass={`${DOMAIN_TINTS[idx % DOMAIN_TINTS.length]} hover:bg-spark/60`}
+              selected={selectedDomain === d.id}
+              onClick={() => setSelectedDomain(d.id)}
+            >
               {d.name_zh}
             </FilterChip>
           ))}
@@ -311,7 +338,7 @@ export function TogetherClient({
               <button
                 type="button"
                 onClick={() => setShowStageForm((v) => !v)}
-                className={buttonClasses({ variant: 'primary', size: 'md' })}
+                className={buttonClasses({ variant: showStageForm ? 'secondary' : 'primary', size: 'md' })}
               >
                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                 {showStageForm ? '收合發表表單' : '代表社團發表作品／觀點'}
@@ -322,7 +349,7 @@ export function TogetherClient({
           {showStageForm && myMemberships.length > 0 && (
             <form
               onSubmit={handleCreateItem}
-              className="space-y-3 rounded-xl border border-border-strong bg-surface p-6"
+              className="space-y-3 rounded-2xl border-2 border-line bg-surface p-5 sm:p-6"
             >
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
@@ -412,59 +439,43 @@ export function TogetherClient({
                   className={`${controlClasses} min-h-11 w-full`}
                 />
               </div>
-              <button
-                type="submit"
-                disabled={busy === 'create-item'}
-                className="rounded-full bg-ink-900 px-5 py-2 text-sm font-semibold text-white"
-              >
+              <Button type="submit" loading={busy === 'create-item'}>
                 送出發布
-              </button>
+              </Button>
             </form>
           )}
 
           {filteredItems.length === 0 ? (
-            <div className="space-y-3 rounded-xl border border-dashed border-line bg-surface p-8 text-center text-sm text-fg-subtle">
-              <p>目前沒有符合此領域的作品試玩或徵集。</p>
-              {selectedDomain && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedDomain('')}
-                  className={buttonClasses({ variant: 'secondary', size: 'md' })}
-                >
-                  查看全部領域
-                </button>
-              )}
-            </div>
+            <EmptyState
+              title="目前沒有符合此領域的作品或徵集"
+              action={
+                selectedDomain ? (
+                  <Button variant="secondary" onClick={() => setSelectedDomain('')}>
+                    查看全部領域
+                  </Button>
+                ) : undefined
+              }
+            />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {filteredItems.map((item) => (
                 <Link
                   key={item.id}
                   href={`/together/${item.id}`}
-                  className={buttonClasses({ variant: 'secondary', size: 'md', className: 'flex-col' })}
+                  className="tactile-card tactile-card-interactive tactile-press flex min-w-0 flex-col gap-3 rounded-2xl bg-surface p-5 text-left"
                 >
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="rounded-full bg-brand-soft-hover px-2.5 py-0.5 font-bold text-accent-900">
-                      #{item.domain_name}
-                    </span>
-                    <span className="rounded-full bg-surface-sunken px-2.5 py-0.5 font-semibold text-fg-secondary">
-                      {TOGETHER_ITEM_TYPE_LABELS[item.item_type]}
-                    </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge tone="accent">#{item.domain_name}</Badge>
+                    <Badge>{TOGETHER_ITEM_TYPE_LABELS[item.item_type]}</Badge>
                     {item.embed_url && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 font-semibold text-brand-soft-fg">
-                        <Link2 className="h-3 w-3" aria-hidden="true" />
-                        可試玩／預覽
-                      </span>
+                      <Badge icon={<Link2 className="h-3 w-3" aria-hidden="true" />}>可試玩／預覽</Badge>
                     )}
                   </div>
-                  <h2 className="text-base font-bold text-fg">{item.title}</h2>
+                  <h2 className="font-display text-base font-bold text-fg">{item.title}</h2>
                   <p className="line-clamp-3 text-sm text-fg-muted">{item.content_md}</p>
-                  <div className="mt-auto flex items-center justify-between border-t border-line pt-3 text-sm">
-                    <span className="font-semibold text-brand-soft-fg">
-                      {item.club.university_short_name} · {item.club.name}
-                    </span>
-                    <span className="text-fg-subtle">回覆 {item.reply_count}</span>
-                  </div>
+                  <p className="mt-auto border-t-2 border-line pt-3 text-sm font-semibold text-brand-soft-fg">
+                    {item.club.university_short_name} · {item.club.name}
+                  </p>
                 </Link>
               ))}
             </div>
@@ -480,7 +491,7 @@ export function TogetherClient({
               <button
                 type="button"
                 onClick={() => setShowJamForm((v) => !v)}
-                className={buttonClasses({ variant: 'primary', size: 'md' })}
+                className={buttonClasses({ variant: showJamForm ? 'secondary' : 'primary', size: 'md' })}
               >
                 <Plus className="h-3.5 w-3.5" aria-hidden="true" />
                 {showJamForm ? '收合徵集表單' : '發起跨校共作企劃'}
@@ -491,7 +502,7 @@ export function TogetherClient({
           {showJamForm && officerClubs.length > 0 && (
             <form
               onSubmit={handleCreateJam}
-              className="space-y-3 rounded-xl border border-border-strong bg-surface p-6"
+              className="space-y-3 rounded-2xl border-2 border-line bg-surface p-5 sm:p-6"
             >
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
@@ -576,64 +587,49 @@ export function TogetherClient({
                   />
                 </div>
               </div>
-              <button
-                type="submit"
-                disabled={busy === 'create-jam'}
-                className="rounded-full bg-ink-900 px-5 py-2 text-sm font-semibold text-white"
-              >
+              <Button type="submit" loading={busy === 'create-jam'}>
                 發布跨校共作徵集
-              </button>
+              </Button>
             </form>
           )}
 
           {filteredJams.length === 0 ? (
-            <div className="space-y-3 rounded-xl border border-dashed border-line bg-surface p-8 text-center text-sm text-fg-subtle">
-              <p>此領域目前沒有開放中的跨校共創徵集。</p>
-              {selectedDomain && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedDomain('')}
-                  className={buttonClasses({ variant: 'secondary', size: 'md' })}
-                >
-                  查看全部領域
-                </button>
-              )}
-            </div>
+            <EmptyState
+              title="此領域目前沒有開放中的跨校共創徵集"
+              action={
+                selectedDomain ? (
+                  <Button variant="secondary" onClick={() => setSelectedDomain('')}>
+                    查看全部領域
+                  </Button>
+                ) : undefined
+              }
+            />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {filteredJams.map((jam) => (
                 <div
                   key={jam.id}
-                  className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-5"
+                  className="flex min-w-0 flex-col gap-3 rounded-2xl border-2 border-line bg-surface p-5 text-left"
                 >
-                  <div className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="rounded-full bg-brand-soft-hover px-2.5 py-0.5 font-bold text-accent-900">
-                      #{jam.domain_name}
-                    </span>
-                    <span className="rounded-full bg-success-soft px-2.5 py-0.5 font-bold text-success-fg">
-                      目標 ≥{jam.target_schools_count} 校共創
-                    </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge tone="accent">#{jam.domain_name}</Badge>
+                    <Badge tone="success">目標 ≥{jam.target_schools_count} 校共創</Badge>
                   </div>
-                  <h2 className="text-base font-bold text-fg">{jam.title}</h2>
+                  <h2 className="font-display text-base font-bold text-fg">{jam.title}</h2>
                   <p className="text-sm text-fg-muted">{jam.summary}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {jam.needed_roles.map((r) => (
-                      <span
-                        key={r}
-                        className="rounded-full bg-surface-sunken px-2.5 py-0.5 text-xs font-semibold text-fg-secondary"
-                      >
-                        徵求：{r}
-                      </span>
+                      <Badge key={r}>徵求：{r}</Badge>
                     ))}
                   </div>
-                  <div className="mt-auto flex items-center justify-between border-t border-line pt-3 text-sm">
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t-2 border-line pt-3 text-sm">
                     <Link
                       href={`/clubs/${jam.host_club.slug}`}
-                      className="font-semibold text-brand-soft-fg hover:underline"
+                      className="inline-flex min-h-11 items-center font-semibold text-brand-soft-fg hover:underline"
                     >
                       主辦：{jam.host_club.university_short_name} {jam.host_club.name}
                     </Link>
-                    <span className="text-fg-subtle">
+                    <span className="font-mono tabular-nums text-fg-subtle">
                       截止 {jam.deadline_at.slice(0, 10)}
                     </span>
                   </div>
@@ -648,8 +644,8 @@ export function TogetherClient({
       {subTab === 'mentors' && (
         <div className="space-y-6">
           {/* Alumni Ping Directory */}
-          <section className="space-y-4 rounded-xl border border-line bg-surface p-6">
-            <h2 className="flex items-center gap-2 text-base font-bold text-fg">
+          <section className="space-y-4 rounded-2xl border-2 border-line bg-surface p-5 sm:p-6">
+            <h2 className="flex items-center gap-2 font-display text-base font-bold text-fg">
               <HandHeart className="h-4 w-4 text-brand" aria-hidden="true" />
               歷屆前輩請益牆
             </h2>
@@ -687,12 +683,7 @@ export function TogetherClient({
                       )}
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {al.expertise_tags.map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded-full bg-surface px-2.5 py-0.5 font-bold text-accent-900"
-                          >
-                            #{tag}
-                          </span>
+                          <Badge key={tag}>#{tag}</Badge>
                         ))}
                       </div>
                     </div>
@@ -707,16 +698,16 @@ export function TogetherClient({
                       ) : (
                         <span />
                       )}
-                      <button
-                        type="button"
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         onClick={() => {
                           setPingTarget(al);
                           setPingTag(al.expertise_tags[0] || '');
                         }}
-                        className="rounded-full bg-ink-900 px-3 py-1 font-bold text-white"
                       >
                         禮貌發問請益
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -726,7 +717,7 @@ export function TogetherClient({
             {pingTarget && (
               <form
                 onSubmit={handleSendPing}
-                className="space-y-3 rounded-xl border border-accent-300 bg-brand-soft/70 p-4 text-sm"
+                className="space-y-3 rounded-xl bg-brand-soft p-4 text-sm"
               >
                 <p className="font-bold text-fg">
                   向 {pingTarget.display_name} 送出簡短請益（對方不會看到你的個人電話，將經站內與 Email 轉達）
@@ -763,7 +754,7 @@ export function TogetherClient({
                     disabled={busy === 'ping'}
                     className={buttonClasses({ variant: 'primary', size: 'sm' })}
                   >
-                    <Send className="h-3 w-3" />
+                    <Send className="h-3 w-3" aria-hidden="true" />
                     送出請益請求
                   </button>
                   <button
@@ -779,37 +770,33 @@ export function TogetherClient({
           </section>
 
           {/* Practical Resources */}
-          <section className="space-y-4 rounded-xl border border-line bg-surface p-6">
-            <h2 className="text-base font-bold text-fg">
+          <section className="space-y-4 rounded-2xl border-2 border-line bg-surface p-5 sm:p-6">
+            <h2 className="font-display text-base font-bold text-fg">
               跨校前輩實務筆記（去識別化共筆與行政備忘）
             </h2>
             {filteredResources.length === 0 ? (
-              <div className="space-y-3 rounded-xl border border-dashed border-line bg-surface-subtle/70 p-6 text-center text-sm text-fg-muted">
-                <p>此領域目前還沒有跨校實務筆記。</p>
-                {selectedDomain && (
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDomain('')}
-                    className={buttonClasses({ variant: 'secondary', size: 'md' })}
-                  >
-                    查看全部領域
-                  </button>
-                )}
-              </div>
+              <EmptyState
+                title="此領域目前還沒有跨校實務筆記"
+                action={
+                  selectedDomain ? (
+                    <Button variant="secondary" onClick={() => setSelectedDomain('')}>
+                      查看全部領域
+                    </Button>
+                  ) : undefined
+                }
+              />
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {filteredResources.map((r) => (
                   <article
                     key={r.id}
-                    className="space-y-2 rounded-xl border border-line bg-surface-subtle p-4"
+                    className="space-y-2 rounded-xl bg-surface-subtle p-4"
                   >
-                    <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="rounded-full bg-brand-soft-hover px-2 py-0.5 text-accent-900">
-                        #{r.domain_name}
-                      </span>
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+                      <Badge tone="accent">#{r.domain_name}</Badge>
                       <span className="text-fg-subtle">來源：{r.source_university_short_name}</span>
                     </div>
-                    <h3 className="text-sm font-semibold text-fg">{r.title}</h3>
+                    <h3 className="font-display text-sm font-bold text-fg">{r.title}</h3>
                     <p className="whitespace-pre-wrap text-sm leading-relaxed text-fg-secondary">
                       {r.content_md}
                     </p>
@@ -821,7 +808,7 @@ export function TogetherClient({
             {isCampusVerified && (
               <form
                 onSubmit={handleCreateResource}
-                className="space-y-3 rounded-xl border border-dashed border-border-strong p-4 text-sm"
+                className="space-y-3 rounded-xl border-2 border-dashed border-line p-4 text-sm"
               >
                 <p className="font-bold text-fg-body">分享一則去識別化的社團實務秘笈</p>
                 <div className="grid gap-2 sm:grid-cols-3">
@@ -869,13 +856,9 @@ export function TogetherClient({
                     className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
                   />
                 </div>
-                <button
-                  type="submit"
-                  disabled={busy === 'res'}
-                  className="rounded-full bg-ink-900 px-4 py-1.5 font-bold text-white"
-                >
+                <Button type="submit" loading={busy === 'res'}>
                   分享實務指南
-                </button>
+                </Button>
               </form>
             )}
           </section>

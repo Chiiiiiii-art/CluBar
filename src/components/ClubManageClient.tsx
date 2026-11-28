@@ -35,7 +35,7 @@ import { uploadShortVideo } from '@/lib/media/client-upload';
 import { POST_KIND_LABELS } from '@/lib/constants';
 import { ImageUploader } from '@/components/ImageUploader';
 
-import { Notice, Tabs, buttonClasses, controlClasses, useConfirm } from '@/components/ui';
+import { Badge, Button, ButtonLink, Card, Notice, PageHeader, Tabs, buttonClasses, controlClasses, useConfirm } from '@/components/ui';
 export interface ManageClubData {
   club: {
     id: string;
@@ -119,6 +119,24 @@ const SCHEDULE_MODE_LABEL: Record<string, string> = {
   scheduled: '已定時間',
   tbd: '時間待定',
   voting: '投票喬時間中',
+};
+const JOIN_STATUS_LABEL: Record<string, string> = {
+  pending: '待審',
+  approved: '已核准',
+  rejected: '已婉拒',
+};
+const QUESTION_STATUS_LABEL: Record<string, string> = {
+  pending_reply: '待回覆',
+  answered_private: '已私下回覆',
+  published: '已公開',
+  hidden: '已隱藏',
+};
+const ARCHIVE_CATEGORY_LABEL: Record<string, string> = {
+  meeting_minutes: '會議記錄',
+  finance_ledger: '經費收支核銷',
+  equipment_inventory: '財產器材清冊',
+  evaluation_evidence: '評鑑佐證文件',
+  other: '其他密件',
 };
 const EVENT_STATUS_LABEL: Record<string, string> = {
   draft: '草稿',
@@ -734,25 +752,20 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-strong bg-surface p-5">
-        <div>
-          <p className="text-sm font-semibold text-fg-subtle">
-            {data.club.universityName} · 您的權限：{ROLE_LABEL[data.myRole] ?? data.myRole}
-          </p>
-          <h1 className="text-xl font-bold text-fg">{data.club.name} 管理後台</h1>
-        </div>
-        <Link
-          href={`/clubs/${data.club.slug}`}
-          className={buttonClasses({ variant: 'secondary', size: 'md' })}
-        >
-          查看公開門面
-        </Link>
-      </div>
+      <PageHeader
+        title={`${data.club.name} 管理後台`}
+        description={`${data.club.universityName} · 您的權限：${ROLE_LABEL[data.myRole] ?? data.myRole}`}
+        action={
+          <ButtonLink href={`/clubs/${data.club.slug}`} variant="secondary">
+            查看公開門面
+          </ButtonLink>
+        }
+      />
 
       {isReadOnlyAlumni && (
-        <div className="rounded-xl border border-accent-200 bg-brand-soft px-4 py-3 text-sm font-semibold text-accent-900">
+        <Notice tone="info">
           您目前為歷屆幹部／校友（只讀檢視權限）：可查閱私密評鑑歸檔、匯出年度成果報告與歷屆避雷便條，無法異動現任活動或成員權限。
-        </div>
+        </Notice>
       )}
 
       {bannerMsg && (
@@ -785,13 +798,13 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
             <details
               open={eventFormOpen}
               onToggle={(e) => setEventFormOpen(e.currentTarget.open)}
-              className="group rounded-xl border border-border-strong bg-surface"
+              className="group tactile-card rounded-2xl bg-surface"
             >
               <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-6 py-3 [&::-webkit-details-marker]:hidden">
                 <span>
-                  <span className="block text-base font-bold text-fg">建立體驗活動</span>
+                  <span className="block font-display text-base font-bold text-fg">建立體驗活動</span>
                   <span className="block text-sm text-fg-muted">
-                    4 個區塊：基本資訊、時間地點、參加條件、內容與報名
+                    分四步填寫：基本資訊、時間地點、參加條件、內容與報名
                   </span>
                 </span>
                 <ChevronDown
@@ -801,7 +814,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               </summary>
             <form
               onSubmit={handleCreateEvent}
-              className="border-t border-line px-6 pb-6"
+              className="border-t-2 border-line px-6 pb-6"
             >
               {aiFilledEvent && (
                 <div className="mt-4">
@@ -812,7 +825,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               )}
               <div className="mt-4 divide-y divide-line">
                 <fieldset className="min-w-0 space-y-4 pb-6">
-                  <legend className="text-sm font-semibold text-fg">基本資訊</legend>
+                  <legend className="font-display text-sm font-bold text-fg">基本資訊</legend>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label htmlFor="club-manage-evtitle" className="mb-1 block text-sm font-semibold text-fg-secondary">活動名稱 *</label>
@@ -864,7 +877,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 </fieldset>
 
                 <fieldset className="min-w-0 space-y-4 py-6">
-                  <legend className="text-sm font-semibold text-fg">時間與地點</legend>
+                  <legend className="font-display text-sm font-bold text-fg">時間與地點</legend>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label htmlFor="club-manage-evmode" className="mb-1 block text-sm font-semibold text-fg-secondary">時程模式</label>
@@ -942,7 +955,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 </fieldset>
 
                 <fieldset className="min-w-0 space-y-4 py-6">
-                  <legend className="text-sm font-semibold text-fg">參加條件</legend>
+                  <legend className="font-display text-sm font-bold text-fg">參加條件</legend>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label htmlFor="club-manage-evfee" className="mb-1 block text-sm font-semibold text-fg-secondary">單次費用 (NT$)</label>
@@ -1017,7 +1030,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 </fieldset>
 
                 <fieldset className="min-w-0 space-y-4 pt-6">
-                  <legend className="text-sm font-semibold text-fg">詳細內容與報名</legend>
+                  <legend className="font-display text-sm font-bold text-fg">詳細內容與報名</legend>
                   <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
                     <label htmlFor="club-manage-evdesc" className="block text-sm font-medium text-fg-body">
                       活動介紹
@@ -1026,7 +1039,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                       rows={3}
                       value={evDesc}
                       onChange={(e) => setEvDesc(e.target.value)}
-                      placeholder="完整活動介紹 Markdown（也可從「Vision 海報 AI」分頁一鍵抽取填入）"
+                      placeholder="完整活動介紹 Markdown（也可用「AI 海報辨識」一鍵帶入）"
                       className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
                     />
                   </div>
@@ -1063,26 +1076,27 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 </label>
               )}
               <div className="mt-6 border-t border-line pt-6">
-                <button
+                <Button
                   type="submit"
+                  size="lg"
                   disabled={
                     busy === 'create-event' || evTitle.trim().length < 2 || (aiFilledEvent && !aiFieldsConfirmed)
                   }
-                  className={buttonClasses({ variant: 'primary', size: 'lg', className: 'w-full sm:w-auto' })}
+                  className="w-full sm:w-auto"
                 >
                   {busy === 'create-event' ? '建立中...' : '發布活動並產生專屬短網址'}
-                </button>
+                </Button>
               </div>
             </form>
             </details>
           )}
 
-          <div className="space-y-3 rounded-xl border border-line bg-surface p-5">
-            <h2 className="text-base font-bold text-fg">近期活動清單</h2>
+          <Card className="space-y-3">
+            <h2 className="font-display text-base font-bold text-fg">近期活動清單</h2>
             {eventsList.map((ev) => (
               <div
                 key={ev.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface-sunken p-4"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface-subtle p-4"
               >
                 <div>
                   <p className="text-sm font-semibold text-fg">{ev.title}</p>
@@ -1103,14 +1117,14 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   )}
                   <Link
                     href={`/e/${ev.shortCode}`}
-                    className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'text-brand-soft-fg' })}
+                    className={buttonClasses({ variant: 'secondary', size: 'sm' })}
                   >
-                    /e/{ev.shortCode}
+                    看活動頁
                   </Link>
                 </div>
               </div>
             ))}
-          </div>
+          </Card>
         </div>
       )}
 
@@ -1119,10 +1133,10 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
         <div className="space-y-6">
           {canWrite && (
             <>
-              <div className="space-y-3 rounded-xl border border-accent-200 bg-surface-subtle p-6">
-                <h2 className="flex items-center gap-2 text-base font-bold text-fg">
-                  <Sparkles className="h-4 w-4 text-brand" />
-                  Vision AI 海報辨識 ＆ 零散文案整理（不捏造日期與費用）
+              <Card className="space-y-3">
+                <h2 className="flex items-center gap-2 font-display text-base font-bold text-fg">
+                  <Sparkles className="h-4 w-4 text-brand" aria-hidden="true" />
+                  AI 海報辨識與文案整理（不會捏造日期與費用）
                 </h2>
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
                   <label htmlFor="club-manage-airawtext" className="block text-sm font-medium text-fg-body">
@@ -1137,8 +1151,8 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   />
                 </div>
                 <div className="flex flex-wrap items-center gap-3">
-                  <label className={buttonClasses({ variant: 'primary', size: 'md', className: 'cursor-pointer' })}>
-                    <Upload className="h-3.5 w-3.5" />
+                  <label className={buttonClasses({ variant: 'secondary', size: 'md', className: 'cursor-pointer' })}>
+                    <Upload className="h-3.5 w-3.5" aria-hidden="true" />
                     {busy === 'ai-draft' ? '解析中...' : '上傳海報圖 / PDF 自動辨識'}
                     <input
                       type="file"
@@ -1151,82 +1165,71 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                       className="hidden"
                     />
                   </label>
-                  <button
-                    type="button"
+                  <Button
+                    variant="secondary"
                     disabled={busy === 'ai-draft' || aiRawText.trim().length < 20}
                     onClick={() => handleAiDraftSubmit(null)}
-                    className={buttonClasses({ variant: 'secondary', size: 'md' })}
                   >
                     僅解析文字草稿
-                  </button>
+                  </Button>
                 </div>
 
                 {aiResult &&
                   (() => {
                     const preferEvent = shouldRouteDraftToEvent(aiResult.draft, aiRawText);
                     return (
-                      <div className="space-y-2 rounded-xl bg-surface p-4 text-sm">
+                      <div className="space-y-2 rounded-xl bg-surface-subtle p-4 text-sm">
                         {aiResult.degraded && (
-                          <p className="font-bold text-warning-800">
+                          <p className="font-bold text-warning-fg">
                             {aiResult.warnings.join(' ')}
                           </p>
                         )}
                         <p className="font-bold text-fg">抽出標題：{aiResult.draft.title}</p>
                         <p className="text-fg-secondary">{aiResult.draft.summary}</p>
                         {preferEvent && (
-                          <p className="rounded-xl border border-accent-200 bg-brand-soft px-3 py-2 font-semibold text-accent-950">
+                          <p className="rounded-xl bg-brand-soft px-3 py-2 font-semibold text-brand-soft-fg">
                             偵測到活動招募／時間地點資訊：建議直接「帶入建立活動」開放報名或投票時間，避免活動宣傳海報混入日常動態牆。
                           </p>
                         )}
                         {aiResult.degraded && !preferEvent && (
-                          <p className="rounded-xl border border-notice-warning-border bg-warning-soft px-3 py-2 font-semibold text-warning-fg">
+                          <p className="rounded-xl bg-warning-soft px-3 py-2 font-semibold text-warning-fg">
                             AI 這次沒能讀懂素材內容。如果這是活動宣傳海報或社課行事曆，請改按「帶入建立活動」；日常動態牆只放社員的現場紀錄。
                           </p>
                         )}
                         {aiResult.draft.missing_beginner_fields.length > 0 && (
-                          <p className="font-semibold text-accent-800">
+                          <p className="font-semibold text-brand-soft-fg">
                             新手資訊建議補填：{aiResult.draft.missing_beginner_fields.join('、')}
                           </p>
                         )}
                         {aiResult.draft.poster_text_heavy && (
-                          <p className="font-semibold text-accent-800">
+                          <p className="font-semibold text-brand-soft-fg">
                             偵測到海報文字較密，建議補純文字時間地點以利搜尋與閱讀。
                           </p>
                         )}
                         <div className="flex flex-wrap gap-2 pt-2">
-                          <button
-                            type="button"
+                          <Button
+                            variant={preferEvent ? 'primary' : 'secondary'}
                             onClick={applyAiToEvent}
-                            className={`min-h-[44px] rounded-full px-4 font-bold ${
-                              preferEvent
-                                ? 'bg-brand text-on-brand'
-                                : 'border border-border-strong bg-surface text-fg-body hover:bg-surface-subtle'
-                            }`}
                           >
                             帶入「建立活動」表單
-                          </button>
-                          <button
-                            type="button"
+                          </Button>
+                          <Button
+                            variant={preferEvent ? 'secondary' : 'primary'}
                             onClick={applyAiToPost}
-                            className={`min-h-[44px] rounded-full px-4 font-bold ${
-                              preferEvent
-                                ? 'border border-border-strong bg-surface text-fg-muted hover:bg-surface-subtle'
-                                : 'bg-brand text-on-brand'
-                            }`}
                           >
                             {preferEvent ? '仍要帶入「作品／日常」表單' : '帶入下方「作品／日常」表單'}
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     );
                   })()}
-              </div>
+              </Card>
 
               <form
                 onSubmit={handlePublishPost}
-                className="space-y-4 rounded-xl border border-line bg-surface p-6"
+                className="tactile-card space-y-4 rounded-2xl bg-surface p-5 sm:p-6"
               >
-                <h2 className="text-base font-bold text-fg">發布社團日常／實作作品</h2>
+                <h2 className="font-display text-base font-bold text-fg">發布社團日常／實作作品</h2>
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
                     <label htmlFor="club-manage-postkind" className="block text-sm font-medium text-fg-body">
@@ -1275,8 +1278,8 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   maxImages={6}
                   purpose="post_image"
                 />
-                <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border-strong px-3 py-1.5 text-sm font-semibold text-fg-secondary">
-                  <Film className="h-3.5 w-3.5 text-brand" />
+                <label className={buttonClasses({ variant: 'secondary', size: 'md', className: 'cursor-pointer' })}>
+                  <Film className="h-3.5 w-3.5" aria-hidden="true" />
                   上傳 ≤15 秒短影 (MP4/WebM)
                   <input
                     type="file"
@@ -1295,26 +1298,24 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                     收進評鑑成果
                   </label>
                 </div>
-                <button
+                <Button
                   type="submit"
-                  disabled={busy === 'post' || postMedia.length === 0 || !postOrig}
-                  className={buttonClasses({ variant: 'primary', size: 'md' })}
-                >
+                  disabled={busy === 'post' || postMedia.length === 0 || !postOrig} variant="primary" size="md">
                   立即發布
-                </button>
+                </Button>
               </form>
             </>
           )}
 
-          <div className="space-y-3 rounded-xl border border-line bg-surface p-5">
-            <h2 className="text-base font-bold text-fg">已發布內容與評鑑標記</h2>
+          <Card className="space-y-3">
+            <h2 className="font-display text-base font-bold text-fg">已發布內容與評鑑標記</h2>
             {postsList.map((p) => (
               <div
                 key={p.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface-sunken p-4"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-surface-subtle p-4"
               >
                 <div>
-                  <span className="text-xs font-bold text-accent-800">
+                  <span className="text-xs font-bold text-brand-soft-fg">
                     {POST_KIND_LABELS[p.postKind].label}
                     {p.pinnedAt && <span className="ml-2 text-brand-soft-fg">・代表作</span>}
                   </span>
@@ -1322,16 +1323,14 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 </div>
                 <div className="flex items-center gap-3">
                   {isOfficer && p.status === 'published' && (
-                    <button
-                      type="button"
+                    <Button
+                      
                       aria-pressed={Boolean(p.pinnedAt)}
                       disabled={busy === `pin-${p.id}` || (!p.pinnedAt && pinnedCount >= 4)}
-                      onClick={() => void handleTogglePin(p.id, !p.pinnedAt)}
-                      className={buttonClasses({ variant: p.pinnedAt ? 'soft' : 'secondary', size: 'sm' })}
-                    >
+                      onClick={() => void handleTogglePin(p.id, !p.pinnedAt)} variant={p.pinnedAt ? 'soft' : 'secondary'} size="sm">
                       <Pin className="h-3.5 w-3.5" aria-hidden="true" />
                       {p.pinnedAt ? '取消代表作' : '設為代表作'}
-                    </button>
+                    </Button>
                   )}
                   {canWrite && (
                     <label className="flex cursor-pointer items-center gap-1 text-sm font-semibold text-fg-secondary">
@@ -1345,14 +1344,14 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   )}
                   <Link
                     href={`/posts/${p.id}`}
-                    className="rounded-xl bg-surface px-3 py-1.5 text-sm font-semibold text-fg-body"
+                    className="rounded-xl px-3 py-1.5 text-sm font-semibold text-fg-body underline-offset-4 hover:underline"
                   >
                     檢視
                   </Link>
                 </div>
               </div>
             ))}
-          </div>
+          </Card>
         </div>
       )}
 
@@ -1360,27 +1359,25 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
       {tab === 'members' && (
         <div className="space-y-6">
           {canWrite && (
-            <div className="space-y-4 rounded-xl border border-line bg-surface p-6">
+            <Card className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="flex items-center gap-2 text-base font-bold text-fg">
+                <h2 className="flex items-center gap-2 font-display text-base font-bold text-fg">
                   <KeyRound className="h-4 w-4 text-brand" />
-                  軌一：產生社員限時邀請碼（嚴格限同校 .edu.tw）
+                  產生社員限時邀請碼（限同校 .edu.tw）
                 </h2>
-                <button
-                  type="button"
+                <Button
+                  
                   onClick={handleGenerateInviteCode}
-                  disabled={busy === 'invite-code'}
-                  className={buttonClasses({ variant: 'primary', size: 'sm' })}
-                >
+                  disabled={busy === 'invite-code'} variant="primary" size="sm">
                   產生 7 天邀請碼
-                </button>
+                </Button>
               </div>
               {inviteCodes.length > 0 && (
                 <div className="grid gap-2 sm:grid-cols-2">
                   {inviteCodes.map((c) => (
                     <div
                       key={c.id}
-                      className="flex items-center justify-between rounded-xl border border-line bg-surface-subtle px-3 py-2 text-sm"
+                      className="flex items-center justify-between rounded-xl bg-surface-subtle px-3 py-2 text-sm"
                     >
                       <div>
                         <span className="font-mono font-bold text-fg">{c.code}</span>
@@ -1388,24 +1385,25 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                           已使用 {c.used_count} 次 · 到期 {c.expires_at.slice(0, 10)}
                         </p>
                       </div>
-                      <button
-                        type="button"
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => navigator.clipboard.writeText(c.code)}
-                        className="inline-flex items-center gap-1 font-bold text-brand"
+                        aria-label={`複製邀請碼 ${c.code}`}
                       >
-                        <Copy className="h-3 w-3" />
+                        <Copy className="h-3 w-3" aria-hidden="true" />
                         複製
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
           )}
 
           {canWrite && (
-            <div className="space-y-3 rounded-xl border border-line bg-surface p-6">
-              <h2 className="text-base font-bold text-fg">軌二：待審入社認證申請</h2>
+            <Card className="space-y-3">
+              <h2 className="font-display text-base font-bold text-fg">待審的入社申請</h2>
               {joinRequests.length === 0 ? (
                 <p className="text-sm text-fg-subtle">尚無待審入社申請。</p>
               ) : (
@@ -1420,36 +1418,32 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                     </div>
                     {r.status === 'pending' ? (
                       <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleReviewMemberRequest(r.id, 'approve')}
-                          className={buttonClasses({ variant: 'primary', size: 'sm', className: 'bg-success hover:bg-success-700 active:bg-success-800' })}
-                        >
+                        <Button
+                          
+                          onClick={() => handleReviewMemberRequest(r.id, 'approve')} variant="soft" size="sm">
                           核准為認證社員
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleReviewMemberRequest(r.id, 'reject')}
-                          className={buttonClasses({ variant: 'secondary', size: 'sm', className: 'border-danger-200 text-danger-fg hover:bg-danger-soft' })}
-                        >
+                        </Button>
+                        <Button
+                          
+                          onClick={() => handleReviewMemberRequest(r.id, 'reject')} variant="secondary" size="sm" className="text-danger-fg">
                           婉拒
-                        </button>
+                        </Button>
                       </div>
                     ) : (
-                      <span className="font-bold text-fg-muted">{r.status}</span>
+                      <span className="font-bold text-fg-muted">{JOIN_STATUS_LABEL[r.status] ?? r.status}</span>
                     )}
                   </div>
                 ))
               )}
-            </div>
+            </Card>
           )}
 
           {canWrite && (
             <form
               onSubmit={handleAddMember}
-              className="space-y-3 rounded-xl border border-line bg-surface p-6"
+              className="tactile-card space-y-3 rounded-2xl bg-surface p-5 sm:p-6"
             >
-              <h2 className="text-base font-bold text-fg">手動新增幹部／社員</h2>
+              <h2 className="font-display text-base font-bold text-fg">手動新增幹部／社員</h2>
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
                   <label htmlFor="club-manage-targetmemberemail" className="block text-sm font-medium text-fg-body">
@@ -1488,39 +1482,37 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   />
                 </div>
               </div>
-              <button
+              <Button
                 type="submit"
-                disabled={busy === 'add-member'}
-                className={buttonClasses({ variant: 'primary', size: 'md' })}
-              >
+                disabled={busy === 'add-member'} variant="primary" size="md">
                 確認新增
-              </button>
+              </Button>
             </form>
           )}
 
-          <div className="space-y-2 rounded-xl border border-line bg-surface p-5">
-            <h2 className="text-base font-bold text-fg">成員與歷屆名單</h2>
+          <Card className="space-y-2">
+            <h2 className="font-display text-base font-bold text-fg">成員與歷屆名單</h2>
             {data.members.map((m, idx) => (
               <div
                 key={`${m.userId}-${idx}`}
-                className="flex items-center justify-between rounded-xl bg-surface-sunken px-4 py-3 text-sm"
+                className="flex items-center justify-between rounded-xl bg-surface-subtle px-4 py-3 text-sm"
               >
                 <span className="font-bold text-fg">
                   {m.displayName} {m.title ? `（${m.title}）` : ''}
                 </span>
                 <span className="text-sm font-semibold text-fg-muted">
-                  {m.role} {m.endedAt ? '· 已卸任' : '· 現行有效'}
+                  {ROLE_LABEL[m.role] ?? m.role} {m.endedAt ? '· 已卸任' : '· 現行有效'}
                 </span>
               </div>
             ))}
-          </div>
+          </Card>
         </div>
       )}
 
       {/* QUESTIONS & FAQ TAB */}
       {tab === 'questions' && (
-        <div className="space-y-4 rounded-xl border border-line bg-surface p-6">
-          <h2 className="text-base font-bold text-fg">新生問答收件匣 ＆ 置頂 FAQ 管理</h2>
+        <Card className="space-y-4">
+          <h2 className="font-display text-base font-bold text-fg">新生提問與常見問答</h2>
           {questionsInbox.length === 0 ? (
             <p className="text-sm text-fg-subtle">目前尚無提問。</p>
           ) : (
@@ -1537,9 +1529,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                     <span className="font-bold text-fg">
                       {q.display_asker}：{q.question_text}
                     </span>
-                    <span className="rounded-full bg-surface px-2 py-0.5 text-xs font-bold text-fg-muted">
-                      {q.status}
-                    </span>
+                    <Badge>{QUESTION_STATUS_LABEL[q.status] ?? q.status}</Badge>
                   </div>
                   {canWrite && (
                     <>
@@ -1597,14 +1587,12 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                             同步推文至現場流
                           </label>
                         </div>
-                        <button
-                          type="button"
+                        <Button
+                          
                           onClick={() => handleReplyQuestion(q.id)}
-                          disabled={busy === `reply-${q.id}`}
-                          className={buttonClasses({ variant: 'primary', size: 'sm' })}
-                        >
+                          disabled={busy === `reply-${q.id}`} variant="primary" size="sm">
                           儲存並回覆
-                        </button>
+                        </Button>
                       </div>
                     </>
                   )}
@@ -1612,16 +1600,16 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               );
             })
           )}
-        </div>
+        </Card>
       )}
 
       {/* PRIVATE EVAL ARCHIVE & EXPORT TAB */}
       {tab === 'evaluation' && (
         <div className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border-strong bg-surface p-6">
+          <Card className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-bold text-fg">
-                一鍵匯出年度評鑑報告（含 Co-Club 共辦實績與內部索引）
+              <h2 className="font-display text-base font-bold text-fg">
+                一鍵匯出年度評鑑報告（含共同舉辦的活動與內部索引）
               </h2>
               <p className="text-sm text-fg-muted">
                 預設採計上學年 5 月 1 日至當年 5 月 31 日，僅整合有勾選「納入評鑑」之內容。
@@ -1643,12 +1631,12 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 下載 Markdown (.md)
               </a>
             </div>
-          </div>
+          </Card>
 
           {canWrite && (
-            <div className="space-y-3 rounded-xl border border-line bg-surface p-6">
-              <h3 className="text-sm font-semibold text-fg">
-                上傳私密內部評鑑檔案（Private Azure 容器，至少保存 6 年）
+            <Card className="space-y-3">
+              <h3 className="font-display text-sm font-bold text-fg">
+                上傳私密內部評鑑檔案（私密保存，至少 6 年）
               </h3>
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
@@ -1700,11 +1688,11 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   className="hidden"
                 />
               </label>
-            </div>
+            </Card>
           )}
 
-          <div className="space-y-2 rounded-xl border border-line bg-surface p-6">
-            <h3 className="text-sm font-semibold text-fg">社團私密檔案清冊（下載皆寫入稽核紀錄）</h3>
+          <Card className="space-y-2">
+            <h3 className="font-display text-sm font-bold text-fg">社團私密檔案清冊（下載皆寫入稽核紀錄）</h3>
             {archiveFiles.length === 0 ? (
               <p className="text-sm text-fg-subtle">目前尚無私密評鑑歸檔檔案。</p>
             ) : (
@@ -1716,23 +1704,21 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   <div>
                     <p className="font-bold text-fg">{f.title}</p>
                     <p className="text-fg-subtle">
-                      分類：{f.archive_category} · 發生日：{f.occurred_on} ·{' '}
+                      分類：{ARCHIVE_CATEGORY_LABEL[f.archive_category] ?? f.archive_category} · 發生日：{f.occurred_on} ·{' '}
                       {Math.round(f.size_bytes / 1024)} KB
                     </p>
                   </div>
-                  <button
-                    type="button"
+                  <Button
+                    
                     onClick={() => handleDownloadArchive(f.id)}
-                    disabled={busy === `dl-${f.id}`}
-                    className={buttonClasses({ variant: 'secondary', size: 'sm' })}
-                  >
+                    disabled={busy === `dl-${f.id}`} variant="secondary" size="sm">
                     <Download className="h-3 w-3" />
                     5 分鐘簽章下載
-                  </button>
+                  </Button>
                 </div>
               ))
             )}
-          </div>
+          </Card>
         </div>
       )}
 
@@ -1740,18 +1726,18 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
       {tab === 'handover' && (
         <div className="space-y-6">
           {data.pendingHandover && (
-            <div className="rounded-xl border border-warning-300 bg-warning-soft p-4 text-sm font-semibold text-warning-950">
+            <Notice tone="warning">
               目前有進行中的社長交接邀請：等待 {data.pendingHandover.toUserName} 於{' '}
               {formatTaipeiDate(data.pendingHandover.expiresAt)} 前接受。
-            </div>
+            </Notice>
           )}
 
           {isOwner && !data.pendingHandover && (
             <form
               onSubmit={handleStartHandover}
-              className="space-y-4 rounded-xl border border-border-strong bg-surface p-6"
+              className="tactile-card space-y-4 rounded-2xl bg-surface p-5 sm:p-6"
             >
-              <h2 className="text-base font-bold text-fg">
+              <h2 className="font-display text-base font-bold text-fg">
                 發起 3 步換屆交接 ＆ 撰寫下屆避雷便條
               </h2>
               <p className="text-sm text-fg-muted">
@@ -1821,25 +1807,23 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   同意將以上去識別化經驗公開至「一起聚 → 前輩請益與筆記」（個人與社團聯絡方式不會公開）
                 </span>
               </label>
-              <button
+              <Button
                 type="submit"
-                disabled={busy === 'handover'}
-                className={buttonClasses({ variant: 'primary', size: 'md' })}
-              >
+                disabled={busy === 'handover'} variant="primary" size="md">
                 送出交接邀請與避雷便條
-              </button>
+              </Button>
             </form>
           )}
 
-          <div className="space-y-3 rounded-xl border border-line bg-surface p-5">
-            <h2 className="text-base font-bold text-fg">歷屆交接避雷便條（僅幹部／校友可見）</h2>
+          <Card className="space-y-3">
+            <h2 className="font-display text-base font-bold text-fg">歷屆交接避雷便條（僅幹部／校友可見）</h2>
             {data.handoverNotes.length === 0 ? (
               <p className="text-sm text-fg-subtle">尚無交接備忘錄。</p>
             ) : (
               data.handoverNotes.map((n) => (
                 <div
                   key={n.id}
-                  className="space-y-1 rounded-xl bg-surface-sunken p-4 text-sm text-fg-secondary"
+                  className="space-y-1 rounded-xl bg-surface-subtle p-4 text-sm text-fg-secondary"
                 >
                   <p className="font-bold text-fg">記錄日期：{formatTaipeiDate(n.createdAt)}</p>
                   {n.venueTips && <p>場地眉角：{n.venueTips}</p>}
@@ -1848,7 +1832,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                 </div>
               ))
             )}
-          </div>
+          </Card>
         </div>
       )}
     </div>

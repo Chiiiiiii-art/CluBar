@@ -1,3 +1,5 @@
+> **[DEPRECATED — v1 Historical Brief]** Superseded by v2.5 (`docs/design/README.md`).
+
 # Task A — Phase 0.1: Which audit defects are still open? (READ-ONLY on code)
 
 Goal: the plan says severe usability defects must be fixed before the visual redesign. Find out which items from the UX audit are still open in the CURRENT code.

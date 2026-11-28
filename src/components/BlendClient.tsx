@@ -84,7 +84,7 @@ export function BlendClient({
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
           <div className="min-w-0 flex-1 space-y-5">
             <div className="space-y-2">
-              <h2 className="text-base font-semibold text-fg">共同的興趣</h2>
+              <h2 className="font-display text-base font-bold text-fg">共同的興趣</h2>
               {sharedDomains.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {sharedDomains.map((d) => (
@@ -122,7 +122,7 @@ export function BlendClient({
                 onClick={copyLink}
                 icon={
                   copied ? (
-                    <Check className="h-4 w-4 text-success-700" aria-hidden="true" />
+                    <Check className="h-4 w-4 text-success-fg" aria-hidden="true" />
                   ) : (
                     <Copy className="h-4 w-4" aria-hidden="true" />
                   )
@@ -141,11 +141,11 @@ export function BlendClient({
             </div>
           </div>
 
-          <div className="mx-auto w-32 shrink-0 overflow-hidden rounded-xl border border-line sm:mx-0 sm:w-36">
+          <div className="mx-auto w-32 shrink-0 overflow-hidden rounded-xl border-2 border-border-ink sm:mx-0 sm:w-36">
             <img
               src={`/api/og/blend/${shortCode}?format=story`}
               alt="限時動態 9:16 合拍分享卡預覽"
-              className="aspect-[9/16] w-full object-cover"
+              className="h-auto w-full"
               loading="lazy"
             />
           </div>
@@ -159,9 +159,9 @@ export function BlendClient({
               <Link
                 key={c.id}
                 href={`/clubs/${c.slug}`}
-                className="min-w-0 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-border-strong"
+                className="tactile-card tactile-card-interactive tactile-press min-w-0 rounded-2xl bg-surface p-4"
               >
-                <h3 className="break-words text-base font-semibold text-fg">{c.name}</h3>
+                <h3 className="break-words font-display text-base font-bold text-fg">{c.name}</h3>
                 <p className="mt-1 line-clamp-2 text-sm text-fg-muted">{c.tagline}</p>
               </Link>
             ))}

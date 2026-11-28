@@ -31,7 +31,7 @@ export function Field({
   const describedBy = [hintId, errorId].filter(Boolean).join(' ') || undefined;
   return (
     <div className={cn('space-y-1.5', className)}>
-      <label htmlFor={id} className="block text-sm font-medium text-fg-body">
+      <label htmlFor={id} className="block text-sm font-bold text-fg-body">
         {label}
         {required && (
           <span className="ml-0.5 text-danger" aria-hidden="true">

@@ -8,7 +8,7 @@ import { users } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { sanitizeInternalPath } from '@/lib/validators';
 
-import { Notice, buttonClasses } from '@/components/ui';
+import { Card, Notice, buttonClasses } from '@/components/ui';
 export const dynamic = 'force-dynamic';
 
 export default async function LoginPage({
@@ -48,8 +48,8 @@ export default async function LoginPage({
       : [];
 
   return (
-    <div className="mx-auto max-w-sm py-8 sm:py-12">
-      <h1 className="text-2xl font-bold text-fg">登入社團聚</h1>
+    <Card className="mx-auto my-8 max-w-sm sm:my-12">
+      <h1 className="font-display text-2xl font-black text-fg">登入社團聚</h1>
       <p className="mt-2 text-base text-fg-muted">
         登入後可收藏作品、追蹤社團，並驗證 .edu.tw 校園身分。
       </p>
@@ -138,7 +138,7 @@ export default async function LoginPage({
           {devAccounts.length === 0 ? (
             <p className="mt-2 text-sm text-fg-muted">目前尚無可用測試帳號，請先完成資料初始化。</p>
           ) : (
-            <ul className="mt-2 divide-y divide-line overflow-hidden rounded-xl border border-line">
+            <ul className="mt-2 divide-y divide-line overflow-hidden rounded-xl border-2 border-line">
               {devAccounts.map((acc) => (
                 <li key={acc.id}>
                   <form
@@ -186,6 +186,6 @@ export default async function LoginPage({
           )}
         </details>
       )}
-    </div>
+    </Card>
   );
 }

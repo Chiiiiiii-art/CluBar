@@ -45,7 +45,7 @@ export function Dialog({
       }}
       aria-labelledby={titleId}
       className={cn(
-        'm-auto w-[calc(100%-2rem)] max-w-md rounded-xl border border-line bg-surface p-0 text-fg shadow-xl',
+        'tactile-shadow-lg m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border-2 border-border-ink bg-surface p-0 text-fg',
         className
       )}
     >
@@ -53,7 +53,7 @@ export function Dialog({
         <div className="p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 space-y-1">
-              <h2 id={titleId} className="text-lg font-semibold">
+              <h2 id={titleId} className="font-display text-lg font-bold">
                 {title}
               </h2>
               {description && <p className="text-sm text-fg-muted">{description}</p>}

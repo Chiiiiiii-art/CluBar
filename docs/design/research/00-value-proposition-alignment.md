@@ -1,4 +1,7 @@
-# 價值主張 × 品牌概念對齊
+# 價值主張 × 品牌概念對齊（v1 歷史檔）
+
+> [!WARNING]
+> **已棄置（DEPRECATED — v1 舊版）**：本頁為 v1「社團吧台」隱喻對齊檔，已被 v2.5「校園貼紙簿 / 社團佈告欄」取代。最新規範請見 [../01-brand.md](../01-brand.md) 與 [../../ui-redesign/v2-tactile-research.md](../../ui-redesign/v2-tactile-research.md)。
 
 > 來源：[商業提案書](../../clubar-pitch-deck.md) §二、§三；[UI 改善計畫](../../ui-redesign-plan.md) §3。所有設計參考與規則都要先通過這一頁的檢查。
 

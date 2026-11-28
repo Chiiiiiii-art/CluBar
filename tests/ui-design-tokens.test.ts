@@ -42,8 +42,7 @@ const RULES: Array<{ name: string; pattern: RegExp; hint: string }> = [
   { name: 'hex colour in class', pattern: /-\[#[0-9a-fA-F]{3,8}\]/, hint: 'use a token from globals.css' },
   { name: 'legacy CSS var class', pattern: /-\[var\(--[a-z-]+\)\]/, hint: 'use the semantic utility (e.g. border-line)' },
   { name: 'sub-12px text', pattern: /text-\[(?:[0-9]|1[01])px\]/, hint: 'text-xs (12px) is the floor' },
-  { name: 'extra-heavy weight', pattern: /(?<![\w-])font-(?:extrabold|black)\b/, hint: 'max weight is font-bold' },
-  { name: 'off-scale radius', pattern: /(?<![\w-])rounded(?:-[trbl]{1,2})?-(?:2xl|3xl)\b/, hint: 'radii are lg / xl / full' },
+  { name: 'off-scale radius', pattern: /(?<![\w-])rounded(?:-[trbl]{1,2})?-3xl\b/, hint: 'radii are md / lg / xl / 2xl / full' },
   { name: 'window.confirm', pattern: /window\.confirm\(/, hint: 'use useConfirm() from components/ui' },
 ];
 

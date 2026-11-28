@@ -100,7 +100,7 @@ export default async function PostDetailPage({
           {gallery.map((media, idx) => (
             <div
               key={`${media.url}-${idx}`}
-              className={`overflow-hidden rounded-xl border border-line bg-surface-sunken ${
+              className={`overflow-hidden rounded-2xl border-2 border-border-ink bg-surface-sunken tactile-shadow-sm ${
                 gallery.length === 1 ? 'sm:col-span-2' : ''
               }`}
               style={{ aspectRatio: clampedAspectRatio(media.width, media.height) }}
@@ -132,7 +132,7 @@ export default async function PostDetailPage({
           <Badge tone="accent">{kindMeta.label}</Badge>
           {post.mood_tag && <Badge>{post.mood_tag}</Badge>}
         </div>
-        <h1 className="break-words text-2xl font-bold leading-snug text-fg sm:text-3xl">
+        <h1 className="break-words font-display text-2xl font-black leading-snug text-fg sm:text-3xl">
           {post.headline}
         </h1>
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-fg-muted">
@@ -149,7 +149,7 @@ export default async function PostDetailPage({
             )}
           </Link>
           <span aria-hidden="true">·</span>
-          <time>{formatTaipeiDate(post.published_at)}</time>
+          <time className="font-mono tabular-nums">{formatTaipeiDate(post.published_at)}</time>
         </div>
       </header>
 
@@ -162,7 +162,7 @@ export default async function PostDetailPage({
       {post.contextual_event && (
         <Link
           href={`/e/${post.contextual_event.short_code}`}
-          className="flex min-h-14 items-center justify-between gap-3 rounded-xl bg-brand-soft p-4 text-sm font-semibold text-accent-900 hover:bg-brand-soft-hover"
+          className="tactile-card tactile-card-interactive flex min-h-14 items-center justify-between gap-3 rounded-2xl bg-brand-soft p-4 text-sm font-semibold text-fg"
         >
           <span className="flex min-w-0 items-center gap-2">
             <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -172,7 +172,7 @@ export default async function PostDetailPage({
         </Link>
       )}
 
-      <div className="flex flex-wrap items-center gap-2 border-t border-line pt-5">
+      <div className="flex flex-wrap items-center gap-2 border-t-2 border-line pt-5">
         <BookmarkButton
           targetType="post"
           targetId={post.id}

@@ -1,3 +1,5 @@
+> **[DEPRECATED — v1 Historical Brief]** Superseded by v2.5 (`docs/design/README.md` & `docs/ui-redesign/v2-tactile-research.md`). Do NOT treat `docs/ui-redesign-plan.md` or these briefs as current design spec.
+
 # Common rules for every Gemini task (read first)
 
 You are executing one task from `docs/ui-redesign-plan.md` (the UI redesign plan, written in Traditional Chinese). Read that plan before you start.

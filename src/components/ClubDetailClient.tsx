@@ -4,7 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { HelpCircle, Send, UserPlus } from 'lucide-react';
 
-import { buttonClasses, controlClasses } from '@/components/ui';
+import { Button, Card, controlClasses } from '@/components/ui';
+
 export function ClubDetailClient({
   clubSlug,
   clubName,
@@ -88,16 +89,16 @@ export function ClubDetailClient({
     <div className="space-y-6">
       {/* Ask Box */}
       {isVerifiedClub && (
-        <section className="rounded-xl border border-border-strong bg-surface p-5 sm:p-6">
-          <h3 className="flex items-center gap-2 text-base font-bold text-fg">
-            <HelpCircle className="h-4 w-4 text-brand" aria-hidden="true" />
+        <Card>
+          <h3 className="flex items-center gap-2 font-display text-base font-bold text-fg">
+            <HelpCircle className="h-5 w-5 text-brand-soft-fg" aria-hidden="true" />
             匿名問答箱｜想先問社團幹部什麼都可以
           </h3>
           {!isLoggedIn ? (
             <p className="mt-2 text-sm text-fg-muted">
               <Link
                 href={`/login?callbackUrl=${encodeURIComponent(`/clubs/${clubSlug}`)}`}
-                className="font-bold text-brand underline"
+                className="font-bold text-brand-soft-fg underline"
               >
                 登入並完成 .edu.tw 驗證
               </Link>{' '}
@@ -108,7 +109,7 @@ export function ClubDetailClient({
               為防範廣告騷擾，提問須先{' '}
               <Link
                 href={`/me?returnTo=${encodeURIComponent(`/clubs/${clubSlug}`)}`}
-                className="inline-flex min-h-[44px] items-center font-bold text-brand underline"
+                className="inline-flex min-h-[44px] items-center font-bold text-brand-soft-fg underline"
               >
                 完成 .edu.tw 校園信箱驗證
               </Link>
@@ -155,34 +156,35 @@ export function ClubDetailClient({
                     </div>
                   )}
                 </div>
-                <button
+                <Button
                   type="submit"
-                  disabled={qBusy || questionText.trim().length < 5}
-                  className={buttonClasses({ variant: 'primary', size: 'md' })}
+                  variant="primary"
+                  disabled={questionText.trim().length < 5}
+                  loading={qBusy}
+                  icon={<Send className="h-4 w-4" aria-hidden="true" />}
                 >
-                  <Send className="h-3.5 w-3.5" aria-hidden="true" />
                   送出問題
-                </button>
+                </Button>
               </div>
-              {qMsg && <p className="text-sm font-semibold text-success-700">{qMsg}</p>}
+              {qMsg && <p className="text-sm font-semibold text-success-fg">{qMsg}</p>}
               {qErr && <p className="text-sm font-semibold text-danger-fg">{qErr}</p>}
             </form>
           )}
-        </section>
+        </Card>
       )}
 
       {/* Dual-track Member Request */}
       {isVerifiedClub && !membershipRole && (
-        <section className="rounded-xl border border-line bg-surface-subtle p-5 sm:p-6">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-fg">
-            <UserPlus className="h-4 w-4 text-brand" aria-hidden="true" />
+        <section className="rounded-2xl bg-surface-subtle p-5 sm:p-6">
+          <h3 className="flex items-center gap-2 font-display text-base font-bold text-fg">
+            <UserPlus className="h-5 w-5 text-brand-soft-fg" aria-hidden="true" />
             已經是「{clubName}」的社員嗎？申請加入認證社員牆
           </h3>
           {!isLoggedIn ? (
             <p className="mt-2 text-sm text-fg-muted">
               <Link
                 href={`/login?callbackUrl=${encodeURIComponent(`/clubs/${clubSlug}`)}`}
-                className="inline-flex min-h-[44px] items-center font-bold text-brand underline"
+                className="inline-flex min-h-[44px] items-center font-bold text-brand-soft-fg underline"
               >
                 登入帳號
               </Link>{' '}
@@ -207,14 +209,10 @@ export function ClubDetailClient({
                   className={`${controlClasses} min-h-11 min-w-0 flex-1`}
                 />
               </div>
-              <button
-                type="submit"
-                disabled={joinBusy}
-                className="min-h-[44px] rounded-full bg-ink-900 px-4 text-sm font-semibold text-white hover:bg-ink-800 disabled:opacity-50"
-              >
+              <Button type="submit" variant="secondary" loading={joinBusy} className="self-end">
                 {joinBusy ? '送出中...' : '申請認證社員'}
-              </button>
-              {joinMsg && <p className="w-full text-sm font-semibold text-success-700">{joinMsg}</p>}
+              </Button>
+              {joinMsg && <p className="w-full text-sm font-semibold text-success-fg">{joinMsg}</p>}
               {joinErr && <p className="w-full text-sm font-semibold text-danger-fg">{joinErr}</p>}
             </form>
           )}

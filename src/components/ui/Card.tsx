@@ -2,8 +2,8 @@ import type { ComponentProps } from 'react';
 import { cn } from './cn';
 
 /**
- * Flat surface with a hairline border. Do not nest Cards: inside a card,
- * separate groups with spacing or a divider instead.
+ * Tactile card with 2px ink frame and crisp hard shadow. Do not nest Cards:
+ * inside a card, separate groups with spacing or a divider instead.
  */
 export function Card({
   interactive = false,
@@ -14,9 +14,9 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-xl border border-line bg-surface',
+        'tactile-card rounded-2xl bg-surface',
         padded && 'p-5 sm:p-6',
-        interactive && 'transition-shadow hover:border-border-strong hover:shadow-sm',
+        interactive && 'tactile-card-interactive',
         className
       )}
       {...rest}
@@ -41,7 +41,7 @@ export function Section({
     <section className={cn('space-y-4', className)} {...rest}>
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-lg font-semibold text-fg">{title}</h2>
+          <h2 className="font-display text-lg font-bold text-fg">{title}</h2>
           {description && <p className="mt-0.5 text-sm text-fg-muted">{description}</p>}
         </div>
         {action}
@@ -66,9 +66,13 @@ export function PageHeader({
 }) {
   return (
     <header className={cn('flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between', className)}>
-      <div className="min-w-0 space-y-1">
-        {eyebrow && <div className="text-sm font-medium text-fg-muted">{eyebrow}</div>}
-        <h1 className="text-2xl font-bold text-fg sm:text-3xl">{title}</h1>
+      <div className="min-w-0 space-y-1.5">
+        {eyebrow && (
+          <div className="inline-flex items-center rounded-md border-2 border-border-ink bg-spark px-2.5 py-0.5 text-xs font-bold text-fg">
+            {eyebrow}
+          </div>
+        )}
+        <h1 className="font-display text-2xl font-black text-fg sm:text-3xl">{title}</h1>
         {description && <p className="max-w-2xl text-base text-fg-muted">{description}</p>}
       </div>
       {action && <div className="flex shrink-0 flex-wrap gap-2">{action}</div>}

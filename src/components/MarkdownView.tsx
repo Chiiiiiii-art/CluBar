@@ -8,19 +8,19 @@ export function MarkdownView({ content }: { content: string }) {
       <ReactMarkdown
         components={{
           h1: ({ children }) => (
-            <h2 className="mt-5 text-xl font-bold text-fg">{children}</h2>
+            <h2 className="mt-5 font-display text-xl font-bold text-fg">{children}</h2>
           ),
           h2: ({ children }) => (
-            <h3 className="mt-4 text-lg font-bold text-fg">{children}</h3>
+            <h3 className="mt-4 font-display text-lg font-bold text-fg">{children}</h3>
           ),
           h3: ({ children }) => (
-            <h4 className="mt-3 text-base font-bold text-fg">{children}</h4>
+            <h4 className="mt-3 font-display text-base font-bold text-fg">{children}</h4>
           ),
           p: ({ children }) => <p className="whitespace-pre-line">{children}</p>,
           ul: ({ children }) => <ul className="list-disc space-y-1 pl-5">{children}</ul>,
           ol: ({ children }) => <ol className="list-decimal space-y-1 pl-5">{children}</ol>,
           blockquote: ({ children }) => (
-            <blockquote className="border-l-4 border-accent-300 bg-brand-soft/60 px-4 py-2 text-fg-secondary">
+            <blockquote className="border-l-4 border-brand bg-brand-soft/60 px-4 py-2 text-fg-secondary">
               {children}
             </blockquote>
           ),
@@ -38,7 +38,7 @@ export function MarkdownView({ content }: { content: string }) {
                 href={safeHref}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-medium text-brand-soft-fg underline underline-offset-2 hover:text-accent-900"
+                className="font-medium text-brand-soft-fg underline underline-offset-2 hover:text-fg"
               >
                 {children}
               </a>

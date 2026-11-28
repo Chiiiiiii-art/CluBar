@@ -4,16 +4,15 @@ import { cn } from './cn';
 export type BadgeTone = 'neutral' | 'accent' | 'success' | 'warning' | 'danger';
 
 const TONE: Record<BadgeTone, string> = {
-  neutral: 'bg-surface-sunken text-fg-secondary',
-  accent: 'bg-brand-soft text-brand-soft-fg',
-  success: 'bg-success-soft text-success-fg',
-  warning: 'bg-warning-soft text-warning-fg',
-  danger: 'bg-danger-soft text-danger-fg',
+  neutral: 'bg-surface-subtle text-fg-secondary border-border-ink',
+  accent: 'bg-spark text-spark-fg border-border-ink',
+  success: 'bg-success-soft text-success-fg border-border-ink',
+  warning: 'bg-warning-soft text-warning-fg border-border-ink',
+  danger: 'bg-danger-soft text-danger-fg border-danger',
 };
 
 /**
- * Small status label. Keep it to two per card: more than that stops reading
- * as a signal and turns into noise.
+ * Small status/category sticker label. Keep it to two per card.
  */
 export function Badge({
   tone = 'neutral',
@@ -25,7 +24,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium leading-5',
+        'inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs font-bold leading-5',
         TONE[tone],
         className
       )}

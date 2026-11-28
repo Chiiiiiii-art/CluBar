@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Noto_Sans_TC, Noto_Serif_TC } from 'next/font/google';
+import { Bricolage_Grotesque, Huninn, JetBrains_Mono, Noto_Sans_TC } from 'next/font/google';
 import { and, count, eq, isNull } from 'drizzle-orm';
 import { db, isDatabaseConfigured } from '@/db';
 import { notifications } from '@/db/schema';
@@ -9,23 +9,34 @@ import { ConfirmProvider } from '@/components/ui/Dialog';
 import './globals.css';
 
 const notoSansTC = Noto_Sans_TC({
-  // CJK fonts are split into unicode-range slices by Google Fonts; preloading
-  // would fetch every slice, so let the browser request only what it renders.
   preload: false,
   display: 'swap',
   variable: '--font-noto-tc',
 });
 
-// Display serif for page titles (docs/design/02-tokens.md). Same slicing caveat as above.
-const notoSerifTC = Noto_Serif_TC({
-  weight: ['600', '700'],
+const bricolageGrotesque = Bricolage_Grotesque({
+  weight: ['700', '800'],
   preload: false,
   display: 'swap',
-  variable: '--font-noto-serif-tc',
+  variable: '--font-bricolage',
+});
+
+const huninn = Huninn({
+  weight: ['400'],
+  preload: false,
+  display: 'swap',
+  variable: '--font-huninn',
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  weight: ['500', '700'],
+  preload: false,
+  display: 'swap',
+  variable: '--font-jetbrains-mono',
 });
 
 export const viewport: Viewport = {
-  themeColor: '#f8f5ee',
+  themeColor: '#f9f6f0',
 };
 
 export const metadata: Metadata = {
@@ -64,13 +75,24 @@ export default async function RootLayout({
   }
 
   return (
-    <html lang="zh-Hant" className={`${notoSansTC.variable} ${notoSerifTC.variable}`}>
+    <html
+      lang="zh-Hant"
+      className={`${notoSansTC.variable} ${bricolageGrotesque.variable} ${huninn.variable} ${jetbrainsMono.variable}`}
+    >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@500;700;900&display=swap"
+          rel="stylesheet"
+        />
+      </head>
       <body className="min-h-screen bg-canvas text-fg">
         <ConfirmProvider>
-        <Navbar user={navUser} unreadCount={unreadCount} />
-        <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-6xl px-4 pt-6 pb-24 sm:px-6 md:pb-12">
-          {children}
-        </main>
+          <Navbar user={navUser} unreadCount={unreadCount} />
+          <main className="mx-auto min-h-[calc(100vh-4rem)] max-w-6xl px-4 pt-6 pb-24 sm:px-6 md:pb-12">
+            {children}
+          </main>
         </ConfirmProvider>
       </body>
     </html>

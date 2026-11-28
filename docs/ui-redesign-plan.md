@@ -1,6 +1,9 @@
-# CluBar UI 改善計畫：從「能用」到「有個性」
+# CluBar UI 改善計畫：從「能用」到「有個性」（v1 歷史提案）
 
-> **文件狀態**：提案（待決策）｜2026-11-27
+> [!WARNING]
+> **已棄置（DEPRECATED — v1 舊版）**：本文件為 v1「社團吧台 × 暗土琥珀 `#9e5c11` × 思源宋體」早期提案，已被 **v2.5 Soft Neubrutalism × 校園貼紙簿** 取代。請改以 [docs/design/README.md](design/README.md) 與研究報告 [docs/ui-redesign/v2-tactile-research.md](ui-redesign/v2-tactile-research.md) 為準。
+
+> **文件狀態**：已棄置（歷史參考，2026-11-27）
 > **範圍**：視覺識別與介面風格（Visual / Interaction / Voice）。資訊架構與功能流程沿用 [PRD v2](./clubar-prd-v2.md)，功能性缺陷仍以 [UX 稽核](./ux-audit-and-benchmark.md) 的 ROI 清單為準。
 > **一句話**：目前的 UI 乾淨、清楚，但與任何一個 Tailwind 範本無法區分。本計畫把「社團聚 = 校園裡的一張吧台桌」這個品牌概念，系統性地落到色彩、字體、形狀、動態與文案上，同時不犧牲可讀性與無障礙。
 
@@ -205,7 +208,7 @@ Logo 已經講好了故事：**一張吧台桌，一杯啤酒、一杯紅酒—�
 2. **「吧台」概念**：採用。它只是設計語彙（色彩、形狀、插圖、文案），不涉及產品內容。
 3. **深色模式**：本輪不做。語意 token 層已完成，日後要加時只需另一組 token 值。
 4. **測試對象**：暫不招募外部受測者，由產品負責人親自試用。§4 Phase 1 的 Desirability 測試與 Phase 5 的易用性回歸改為自評：仍以 §3.1 的形容詞表與既有測試腳本當作檢核清單。
-5. **視覺方向**：選定 **A：吧台燈琥珀 × 思源宋體**。酒紅（B）因為容易被讀成「酒」、也會縮小受眾而淘汰（參考 Pinkoi 品牌更新）。完整規範見 [docs/design/](./design/README.md)。
+5. **視覺方向**：v1 原先選定 **A：吧台燈琥珀 × 思源宋體**。2026-11-28 經視覺重設研究（見 [v2-tactile-research.md](./ui-redesign/v2-tactile-research.md)）與 4 方案對照後，改定案為 **v2.5：Soft Neubrutalism × 精修潮流貼紙風**（熾熱朱紅 `#ce1a1f` × 電光鈷藍 `#155cbb` × 亮檸檬黃 `#fce575` × `Chiron GoRound TC` × 扇貝模切貼紙 × 彈簧觸覺回饋，並同步拿掉「吧台」舊隱喻與說教聲明文案），對照原型：[01-modern-tactile-v2.html](./ui-redesign/style-tiles-v2/01-modern-tactile-v2.html)。完整規範見 [docs/design/](./design/README.md)。
 
 ---
 

@@ -1,3 +1,5 @@
+> **[DEPRECATED — v1 Historical Brief]** Superseded by v2.5 (`docs/design/02-tokens.md`).
+
 # Task C — Phase 0.4: Semantic token layer, ZERO visual change
 
 Goal: per `docs/ui-redesign-plan.md` §2.5 and §4 Phase 0 step 4, add a semantic token layer so that the later re-skin (new colours, maybe dark mode) is a change in ONE place. The rendered UI must look exactly the same after this task.

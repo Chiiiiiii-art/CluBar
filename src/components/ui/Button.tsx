@@ -7,11 +7,11 @@ export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'soft
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 const VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-brand text-on-brand hover:bg-brand-hover active:bg-brand-active',
-  secondary: 'border border-line bg-surface text-fg-body hover:border-border-strong hover:bg-surface-subtle',
+  primary: 'border-2 border-border-ink bg-brand text-on-brand hover:bg-brand-hover active:bg-brand-active tactile-press',
+  secondary: 'border-2 border-border-ink bg-surface text-fg hover:bg-surface-subtle tactile-press',
   ghost: 'text-fg-secondary hover:bg-surface-sunken',
-  soft: 'bg-brand-soft text-brand-soft-fg hover:bg-brand-soft-hover',
-  danger: 'bg-danger text-on-brand hover:bg-danger-hover',
+  soft: 'border-2 border-border-ink bg-spark text-spark-fg hover:bg-brand-soft tactile-press',
+  danger: 'border-2 border-border-ink bg-danger text-on-brand hover:bg-danger-hover tactile-press',
 };
 
 // sm keeps a 44px hit area through padding on a 36px visual box.
@@ -33,7 +33,7 @@ export function buttonClasses({
   className?: string;
 } = {}) {
   return cn(
-    'inline-flex shrink-0 items-center justify-center rounded-xl font-semibold transition-colors',
+    'inline-flex shrink-0 items-center justify-center rounded-xl font-display font-bold',
     'disabled:pointer-events-none disabled:opacity-50',
     VARIANT[variant],
     SIZE[size],

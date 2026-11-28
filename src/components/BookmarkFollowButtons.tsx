@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Bookmark, Heart } from 'lucide-react';
 import type { FollowMode } from '@/db/schema';
 
-import { controlClasses } from '@/components/ui';
+import { Button, controlClasses } from '@/components/ui';
+
 const FOLLOW_MODE_LABELS: Record<FollowMode, string> = {
   all: '全動態追蹤中',
   events_only: '只追活動中',
@@ -49,19 +50,15 @@ export function BookmarkButton({
   };
 
   return (
-    <button
-      type="button"
+    <Button
+      variant={bookmarked ? 'soft' : 'secondary'}
       disabled={pending}
       onClick={toggle}
-      className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border px-3.5 py-2 text-sm font-semibold transition-colors ${
-        bookmarked
-          ? 'border-brand bg-brand-soft text-brand'
-          : 'border-border-strong bg-surface text-fg-secondary hover:bg-brand-soft'
-      }`}
+      aria-pressed={bookmarked}
+      icon={<Bookmark className={`h-4 w-4 ${bookmarked ? 'fill-current' : ''}`} aria-hidden="true" />}
     >
-      <Bookmark className={`h-3.5 w-3.5 ${bookmarked ? 'fill-current' : ''}`} aria-hidden="true" />
-      <span>{bookmarked ? '已私密收藏' : '私密收藏'}</span>
-    </button>
+      {bookmarked ? '已私密收藏' : '私密收藏'}
+    </Button>
   );
 }
 
@@ -106,19 +103,15 @@ export function FollowButton({
 
   return (
     <div className="inline-flex flex-wrap items-center gap-1.5">
-      <button
-        type="button"
+      <Button
+        variant={followed ? 'soft' : 'primary'}
         disabled={pending}
         onClick={() => toggle()}
-        className={`inline-flex min-h-[44px] items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
-          followed
-            ? 'border border-brand bg-brand-soft text-brand'
-            : 'bg-brand text-on-brand hover:bg-brand-hover'
-        }`}
+        aria-pressed={followed}
+        icon={<Heart className={`h-4 w-4 ${followed ? 'fill-current' : ''}`} aria-hidden="true" />}
       >
-        <Heart className={`h-4 w-4 ${followed ? 'fill-current' : ''}`} aria-hidden="true" />
-        <span>{followed ? FOLLOW_MODE_LABELS[followMode] : '追蹤社團'}</span>
-      </button>
+        {followed ? FOLLOW_MODE_LABELS[followMode] : '追蹤社團'}
+      </Button>
       {followed && (
         <select
           aria-label="選擇追蹤篩選模式"

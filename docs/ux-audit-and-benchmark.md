@@ -1,4 +1,7 @@
-# CluBar UI/UX 實機稽核、4 標竿對標與 ROI 改善規格書（Phase 1–2 Checkpoint Gate）
+# CluBar UI/UX 實機稽核、4 標竿對標與 ROI 改善規格書（Phase 1–2 歷史稽核）
+
+> [!WARNING]
+> **歷史稽核文件（視覺規範已棄置）**：本報告記錄 2026-11-27 改版前基線的功能性 UX 缺陷（`D-01`–`D-17`）與修復規格，僅供功能缺陷追蹤溯源。現行視覺系統與設計規範請見 [docs/design/README.md](design/README.md)（**v2.5**）與 [docs/ui-redesign/v2-tactile-research.md](ui-redesign/v2-tactile-research.md)。
 
 > **驗證範圍與誠實揭露（Evidence & Validity Statement）**：  
 > - **實機瀏覽器雙視口走查（`390×844` 手機 ＋ `1440×900` 桌機）**：已完成 `/`, `近期可參加`, `/onboarding`, `/blend/Gdhzir3B`, `/posts/[id]`, `/clubs/ncu-gamedev`, `/clubs/ncu-guitar`（`U1`）, `/e/ncu-dn-01`, `/e/ncu-art-01`, `/e/ncu-ph-01`, `/login`, `/me`, `/u/xiaoming-ncu`, `/u/zien-dev`, `/my-clubs`, `/clubs/ncu-gamedev/manage`, `/together`, `/together/[id]`, `/clubs/apply`。  

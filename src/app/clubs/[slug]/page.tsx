@@ -5,6 +5,8 @@ import {
   AlertTriangle,
   BadgeCheck,
   Calendar,
+  ChevronDown,
+  MapPin,
   Settings,
   ShieldAlert, CalendarPlus } from 'lucide-react';
 import { db, isDatabaseConfigured } from '@/db';
@@ -21,7 +23,7 @@ import { formatTaipeiDate, formatTaipeiDateTime } from '@/lib/academic-year';
 import { getCurrentUser } from '@/lib/auth/guards';
 import { CLUB_CATEGORIES, POST_KIND_LABELS } from '@/lib/constants';
 import { computeClubPulse } from '@/lib/discovery/fairness';
-import { Badge, ClubMark, buttonClasses } from '@/components/ui';
+import { Badge, Card, ClubMark, EmptyState, Notice, buttonClasses } from '@/components/ui';
 import { realMediaUrl } from '@/lib/media/placeholder';
 import {
   clampedAspectRatio,
@@ -160,37 +162,29 @@ export default async function ClubPublicPage({
       <ClubPageViewTracker clubId={publicClub.id} />
 
       {publicClub.verification_status === 'unclaimed_directory' && (
-        <div className="flex flex-col justify-between gap-3 rounded-xl border border-warning-300 bg-warning-soft p-4 sm:flex-row sm:items-center">
-          <div className="flex items-start gap-2.5 text-sm text-warning-950">
-            <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-warning-700" aria-hidden="true" />
-            <div>
-              <p className="font-bold">這個社團還沒在社團聚開通主頁</p>
-              <p className="text-sm text-warning-fg">
-                目前僅列出校方公開名錄資料。如果你是幹部，認領後就能放上活動與日常紀錄。
-              </p>
-            </div>
-          </div>
-          <Link
-            href={`/clubs/apply?claim=${encodeURIComponent(publicClub.slug)}`}
-            className={buttonClasses({ variant: 'primary', size: 'md', className: 'shrink-0' })}
-          >
-            認領這個社團
-          </Link>
-        </div>
+        <Notice
+          tone="warning"
+          title="這個社團還沒在社團聚開通主頁"
+          action={
+            <Link
+              href={`/clubs/apply?claim=${encodeURIComponent(publicClub.slug)}`}
+              className={buttonClasses({ variant: 'primary', size: 'md', className: 'shrink-0' })}
+            >
+              認領這個社團
+            </Link>
+          }
+        >
+          目前僅列出校方公開名錄資料。如果你是幹部，認領後就能放上活動與日常紀錄。
+        </Notice>
       )}
 
       {publicClub.verification_status === 'suspended' && (
-        <div className="flex items-start gap-2.5 rounded-xl border border-danger-300 bg-danger-soft p-4 text-sm text-danger-950">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-danger-fg" aria-hidden="true" />
-          <div>
-            <p className="font-bold">此社團目前暫停發布與更新權限</p>
-          </div>
-        </div>
+        <Notice tone="danger" title="此社團目前暫停發布與更新權限" />
       )}
 
-      <section className="space-y-6">
+      <Card padded={false} className="overflow-hidden">
         {realMediaUrl(publicClub.cover_url) && (
-          <div className="flex justify-center overflow-hidden rounded-xl bg-surface-sunken">
+          <div className="flex justify-center border-b-2 border-border-ink bg-surface-sunken">
             <img
               src={publicClub.cover_url!}
               alt={`${publicClub.name} 封面`}
@@ -199,85 +193,88 @@ export default async function ClubPublicPage({
           </div>
         )}
 
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex min-w-0 items-start gap-4">
-            {realMediaUrl(publicClub.avatar_url) ? (
-              <img
-                src={publicClub.avatar_url!}
-                alt=""
-                className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-20 sm:w-20"
+        <div className="space-y-5 p-5 sm:p-6">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex min-w-0 items-start gap-4">
+              {realMediaUrl(publicClub.avatar_url) ? (
+                <img
+                  src={publicClub.avatar_url!}
+                  alt=""
+                  className="tactile-shadow-sm h-16 w-16 shrink-0 rounded-xl border-2 border-border-ink bg-surface object-cover sm:h-20 sm:w-20"
+                />
+              ) : (
+                <ClubMark name={publicClub.name} seed={publicClub.slug} category={publicClub.category} size="lg" className="sm:h-20 sm:w-20 sm:text-3xl" />
+              )}
+              <div className="min-w-0 space-y-1.5">
+                <h1 className="break-words font-display text-2xl font-black text-fg sm:text-3xl">{publicClub.name}</h1>
+                <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-fg-muted">
+                  <span>{publicClub.university.name}</span>
+                  <span aria-hidden="true">·</span>
+                  <span>{categoryMeta.label}</span>
+                  {publicClub.verification_status === 'verified' ? (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-brand-soft-fg">
+                        <BadgeCheck className="h-4 w-4" aria-hidden="true" />
+                        官方認證
+                      </span>
+                    </>
+                  ) : (
+                    <Badge tone="warning">待認領</Badge>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <FollowButton
+                clubId={publicClub.id}
+                initialFollowed={isFollowed}
+                initialMode={followMode}
+                isLoggedIn={Boolean(currentUser)}
               />
-            ) : (
-              <ClubMark name={publicClub.name} seed={publicClub.slug} category={publicClub.category} size="lg" className="sm:h-20 sm:w-20 sm:text-3xl" />
-            )}
-            <div className="min-w-0 space-y-1.5">
-              <h1 className="text-2xl font-bold text-fg sm:text-3xl">{publicClub.name}</h1>
-              <p className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-fg-muted">
-                <span>{publicClub.university.name}</span>
-                <span aria-hidden="true">·</span>
-                <span>{categoryMeta.label}</span>
-                {publicClub.verification_status === 'verified' ? (
-                  <>
-                    <span aria-hidden="true">·</span>
-                    <span className="inline-flex items-center gap-1 text-brand-soft-fg">
-                      <BadgeCheck className="h-4 w-4" aria-hidden="true" />
-                      官方認證
-                    </span>
-                  </>
-                ) : (
-                  <Badge tone="warning">待認領</Badge>
-                )}
-              </p>
+              <ShareButton />
+              {!isUnclaimed && publicClub.verification_status !== 'suspended' && (
+                <a
+                  href={`/api/calendar/clubs/${publicClub.slug}.ics`}
+                  className={buttonClasses({ variant: 'secondary', size: 'md' })}
+                >
+                  <CalendarPlus className="h-4 w-4" aria-hidden="true" />
+                  訂閱社團行事曆
+                </a>
+              )}
+              <ReportModal targetType="club" targetId={publicClub.id} isLoggedIn={Boolean(currentUser)} />
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <FollowButton
-              clubId={publicClub.id}
-              initialFollowed={isFollowed}
-              initialMode={followMode}
-              isLoggedIn={Boolean(currentUser)}
-            />
-            <ShareButton />
-            {!isUnclaimed && publicClub.verification_status !== 'suspended' && (
-              <a
-                href={`/api/calendar/clubs/${publicClub.slug}.ics`}
-                className={buttonClasses({ variant: 'secondary', size: 'md' })}
-              >
-                <CalendarPlus className="h-4 w-4" aria-hidden="true" />
-                訂閱社團行事曆
-              </a>
-            )}
-            <ReportModal targetType="club" targetId={publicClub.id} isLoggedIn={Boolean(currentUser)} />
-          </div>
-        </div>
+          {(publicClub.tagline || publicClub.description) && (
+            <div className="max-w-3xl space-y-2">
+              {publicClub.tagline && (
+                <p className="font-display text-lg font-bold text-fg">{publicClub.tagline}</p>
+              )}
+              {publicClub.description && (
+                <p className="whitespace-pre-line text-base text-fg-secondary">{publicClub.description}</p>
+              )}
+            </div>
+          )}
 
-        {(publicClub.tagline || publicClub.description) && (
-          <div className="max-w-3xl space-y-2">
-            {publicClub.tagline && <p className="text-lg font-medium text-fg">{publicClub.tagline}</p>}
-            {publicClub.description && (
-              <p className="whitespace-pre-line text-base text-fg-secondary">{publicClub.description}</p>
-            )}
-          </div>
-        )}
+          {(trustSignals.length > 0 || questions.length > 0) && (
+            <div className="flex flex-wrap items-center gap-2">
+              {trustSignals.map((label) => (
+                <Badge key={label}>{label}</Badge>
+              ))}
+              {questions.length > 0 && (
+                <a
+                  href="#faq"
+                  className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-brand-soft-fg underline-offset-4 hover:underline"
+                >
+                  先看新手 FAQ
+                </a>
+              )}
+            </div>
+          )}
 
-        {(trustSignals.length > 0 || questions.length > 0) && (
-          <div className="flex flex-wrap items-center gap-2">
-            {trustSignals.map((label) => (
-              <Badge key={label}>{label}</Badge>
-            ))}
-            {questions.length > 0 && (
-              <a
-                href="#faq"
-                className="inline-flex min-h-11 items-center px-1 text-sm font-semibold text-brand-soft-fg underline-offset-4 hover:underline"
-              >
-                先看新手 FAQ
-              </a>
-            )}
-          </div>
-        )}
-
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-t-2 border-line pt-5">
             <ClubOfficialLinks
               clubId={publicClub.id}
               links={
@@ -307,41 +304,52 @@ export default async function ClubPublicPage({
                 href={`/clubs/${publicClub.slug}/manage`}
                 className={buttonClasses({ variant: 'secondary', size: 'md' })}
               >
-                <Settings className="h-3.5 w-3.5" aria-hidden="true" />
+                <Settings className="h-4 w-4" aria-hidden="true" />
                 <span>社團管理後台</span>
               </Link>
             )}
+          </div>
         </div>
-      </section>
+      </Card>
 
       {eventRows.length > 0 && (
-        <section>
-          <div className="mb-3 flex items-center gap-2">
+        <section className="space-y-4">
+          <h2 className="flex items-center gap-2 font-display text-lg font-bold text-fg">
             <Calendar className="h-5 w-5 text-brand-soft-fg" aria-hidden="true" />
-            <h2 className="text-lg font-semibold text-fg">近期活動</h2>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
+            近期活動
+          </h2>
+          <div className="grid gap-5 md:grid-cols-2">
             {eventRows.map((ev) => (
               <Link
                 key={ev.id}
                 href={`/e/${ev.shortCode}`}
-                className={buttonClasses({ variant: 'secondary', size: 'md', className: 'flex-col justify-between' })}
+                className="group tactile-card tactile-card-interactive flex flex-col overflow-hidden rounded-2xl bg-surface"
               >
-                <h3 className="text-sm font-semibold text-fg">{ev.title}</h3>
-                <div className="flex flex-wrap gap-2 text-sm text-fg-muted">
-                  <span>
+                <div className="flex-1 space-y-1.5 px-4 pt-3.5 pb-4">
+                  <p className="flex items-center gap-1.5 font-mono text-xs font-bold tabular-nums text-brand-soft-fg">
+                    <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     {ev.scheduleMode === 'voting'
-                      ? '時間待定・投票中'
+                      ? '時間投票中'
                       : ev.startsAt
                         ? formatTaipeiDateTime(ev.startsAt)
                         : '時間待定'}
-                  </span>
-                  <span>· {ev.locationText}</span>
+                  </p>
+                  <h3 className="line-clamp-2 font-display text-lg font-black leading-snug text-fg group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">
+                    {ev.title}
+                  </h3>
+                  <p className="flex items-center gap-1.5 text-sm text-fg-muted">
+                    <MapPin className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <span className="truncate">{ev.locationText}</span>
+                  </p>
                 </div>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <Badge>{ev.feeNtd === 0 ? '免費' : `NT$${ev.feeNtd}`}</Badge>
-                  {ev.beginnerFriendly && <Badge>零基礎可</Badge>}
-                  {ev.nonMembersWelcome && <Badge>非社員可</Badge>}
+                <div className="ticket-stub flex flex-wrap items-center justify-between gap-2 bg-surface-subtle px-4 py-3">
+                  <span className="font-mono text-sm font-bold text-fg">
+                    {ev.feeNtd === 0 ? '免費入場' : `NT$${ev.feeNtd}`}
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {ev.beginnerFriendly && <Badge tone="accent">零基礎可</Badge>}
+                    {ev.nonMembersWelcome && <Badge tone="accent">非社員可</Badge>}
+                  </div>
                 </div>
               </Link>
             ))}
@@ -350,58 +358,61 @@ export default async function ClubPublicPage({
       )}
 
       {questions.length > 0 && (
-        <section id="faq" className="rounded-xl border border-border-strong bg-surface p-5 sm:p-6">
-          <h2 className="text-lg font-bold text-fg">新手常問</h2>
-          <div className="mt-4 space-y-3">
+        <Card id="faq" className="scroll-mt-20">
+          <h2 className="font-display text-lg font-bold text-fg">新手常問</h2>
+          <div className="mt-3 divide-y-2 divide-line border-t-2 border-line">
             {questions.map((q) => (
-              <div key={q.id} className="rounded-xl bg-surface-sunken p-4">
-                <p className="text-sm font-semibold text-fg">
-                  Q（{q.display_asker}）：{q.question_text}
+              <details key={q.id} className="group">
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 py-3 text-sm font-semibold text-fg [&::-webkit-details-marker]:hidden">
+                  <span>
+                    Q（{q.display_asker}）：{q.question_text}
+                  </span>
+                  <ChevronDown
+                    className="h-4 w-4 shrink-0 text-fg-muted transition-transform group-open:rotate-180"
+                    aria-hidden="true"
+                  />
+                </summary>
+                <p className="pb-4 text-sm text-fg-secondary">
+                  {q.answer_text ? `A：${q.answer_text}` : '社團還沒有回覆這個問題。'}
                 </p>
-                {q.answer_text && (
-                  <p className="mt-1.5 text-sm text-fg-secondary">A：{q.answer_text}</p>
-                )}
-              </div>
+              </details>
             ))}
           </div>
-        </section>
+        </Card>
       )}
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-xl font-bold text-fg">社團日常與代表作品牆</h2>
-          {publicClub.verification_status === 'verified' && (
-            <span className="rounded-full bg-brand-soft-hover px-3 py-1 text-sm font-semibold text-accent-900">
-              本學期社員一起留下 {nrcCount} 則日常
-            </span>
+          <h2 className="font-display text-xl font-bold text-fg">社團日常與代表作品牆</h2>
+          {publicClub.verification_status === 'verified' && nrcCount > 0 && (
+            <Badge tone="accent">本學期有社員留下日常</Badge>
           )}
         </div>
 
         {publicPosts.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-border-strong bg-surface p-8 text-center">
-            <p className="text-sm font-semibold text-fg">這個社團目前還沒有公開作品或日常紀錄</p>
-            <p className="mt-1 text-sm text-fg-muted">
-              {publicClub.verification_status === 'unclaimed_directory'
+          <EmptyState
+            title="這個社團目前還沒有公開作品或日常紀錄"
+            description={
+              publicClub.verification_status === 'unclaimed_directory'
                 ? '等現任幹部完成認領後，就會陸續放上社團簡介、體驗活動與日常照片。'
-                : '社團剛開通主頁，歡迎先從下方問答箱提問或稍後再回來看看。'}
-            </p>
-            <div className="mt-4 flex flex-wrap justify-center gap-2.5">
-              {publicClub.verification_status === 'unclaimed_directory' && (
-                <Link
-                  href={`/clubs/apply?claim=${encodeURIComponent(publicClub.slug)}`}
-                  className={buttonClasses({ variant: 'secondary', size: 'md' })}
-                >
-                  我是幹部，立即認領
+                : '社團剛開通主頁，歡迎先從下方問答箱提問或稍後再回來看看。'
+            }
+            action={
+              <>
+                {publicClub.verification_status === 'unclaimed_directory' && (
+                  <Link
+                    href={`/clubs/apply?claim=${encodeURIComponent(publicClub.slug)}`}
+                    className={buttonClasses({ variant: 'secondary', size: 'md' })}
+                  >
+                    我是幹部，立即認領
+                  </Link>
+                )}
+                <Link href="/" className={buttonClasses({ variant: 'ghost', size: 'md' })}>
+                  回別的聚看其他社團
                 </Link>
-              )}
-              <Link
-                href="/"
-                className={buttonClasses({ variant: 'ghost', size: 'md' })}
-              >
-                回別的聚看其他社團
-              </Link>
-            </div>
-          </div>
+              </>
+            }
+          />
         ) : (
           <div className="columns-1 gap-5 sm:columns-2 lg:columns-3">
             {publicPosts.map((post) => {
@@ -411,10 +422,10 @@ export default async function ClubPublicPage({
                 <Link
                   key={post.id}
                   href={`/posts/${post.id}`}
-                  className="group mb-5 block break-inside-avoid overflow-hidden rounded-xl border border-line bg-surface transition-colors hover:border-border-strong"
+                  className="group tactile-card tactile-card-interactive mb-5 block break-inside-avoid overflow-hidden rounded-2xl bg-surface"
                 >
                   <div
-                    className="relative bg-surface-sunken"
+                    className="relative border-b-2 border-border-ink bg-surface-sunken"
                     style={{
                       aspectRatio:
                         firstMedia?.width && firstMedia?.height
@@ -426,19 +437,17 @@ export default async function ClubPublicPage({
                       src={firstMedia?.url || '/images/demo/moment-4x5.svg'}
                       alt={firstMedia?.alt || post.headline}
                       loading="lazy"
-                      className="h-full w-full object-cover"
+                      className="h-full w-full object-contain"
                     />
-                    <span
-                      className={`absolute top-3 left-3 rounded-full px-2.5 py-0.5 text-sm font-semibold ${kindMeta.badgeClass}`}
-                    >
+                    <Badge tone="accent" className="absolute top-3 left-3">
                       {pinnedPostIds.has(post.id) ? `代表作・${kindMeta.label}` : kindMeta.label}
-                    </span>
+                    </Badge>
                   </div>
                   <div className="flex flex-1 flex-col gap-2 p-4">
-                    <h3 className="line-clamp-2 text-base font-semibold leading-snug text-fg">
+                    <h3 className="line-clamp-2 font-display text-base font-bold leading-snug text-fg">
                       {post.headline}
                     </h3>
-                    <span className="mt-auto text-sm text-fg-subtle">
+                    <span className="mt-auto font-mono text-sm tabular-nums text-fg-subtle">
                       {formatTaipeiDate(post.published_at)}
                     </span>
                   </div>

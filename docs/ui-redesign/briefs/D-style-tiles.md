@@ -1,3 +1,5 @@
+> **[DEPRECATED — v1 Historical Brief]** Superseded by v2.5 (`docs/ui-redesign/style-tiles-v2/01-modern-tactile-v2.html`).
+
 # Task D — Phase 1.2: Three style-tile prototypes (static HTML, new files only)
 
 Goal: let the team SEE and test the "社團吧台 (The Campus Bar)" direction from `docs/ui-redesign-plan.md` §3 before any production code changes. Read §3 carefully — it defines the concept, colour, type, shape, motion, illustration and voice rules. Also look at `public/brand/clubar-logo-1024.webp` (cream line-art on near-black: beer mug + wine glass on a bar table).

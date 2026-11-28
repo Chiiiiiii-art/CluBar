@@ -1,4 +1,7 @@
-# CluBar Colour Token Inventory & Semantic Migration (Phase 0.4)
+# CluBar Colour Token Inventory & Semantic Migration (Phase 0.4 — Historical)
+
+> [!WARNING]
+> **已棄置（DEPRECATED — v1 Phase 0.4 歷史清單）**：本文件記錄 v1 語意化遷移前盤點，已被 v2.5 OKLCH 色票系統取代。最新 token 請見 [../design/02-tokens.md](../design/02-tokens.md)。
 
 Date: 2026-11-27
 Scope: `src/**/*.tsx` (excluding `src/app/api/og/**` PNG generators) and `src/components/ui/styles.ts`.

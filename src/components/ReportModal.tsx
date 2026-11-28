@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Flag, X } from 'lucide-react';
+import { Flag } from 'lucide-react';
 import type { ReportReason, ReportTargetType } from '@/db/schema';
 import { REPORT_REASONS } from '@/lib/constants';
+import { Button, Dialog, Field, Notice, Select, Textarea } from '@/components/ui';
 
-import { buttonClasses, controlClasses } from '@/components/ui';
 export function ReportModal({
   targetType,
   targetId,
@@ -19,6 +19,7 @@ export function ReportModal({
   buttonLabel?: string;
 }) {
   const router = useRouter();
+  const formId = useId();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<ReportReason>('inappropriate');
   const [detail, setDetail] = useState('');
@@ -67,108 +68,62 @@ export function ReportModal({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={handleOpen}
-        className={buttonClasses({ variant: 'secondary', size: 'md' })}
+      <Button variant="secondary" onClick={handleOpen} icon={<Flag className="h-4 w-4" aria-hidden="true" />}>
+        {buttonLabel}
+      </Button>
+
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="回報違規或侵權內容"
+        footer={
+          done ? (
+            <Button variant="primary" onClick={() => setOpen(false)}>
+              完成
+            </Button>
+          ) : (
+            <>
+              <Button variant="secondary" onClick={() => setOpen(false)}>
+                取消
+              </Button>
+              <Button type="submit" form={formId} variant="danger" loading={submitting}>
+                {submitting ? '送出中...' : '送出檢舉'}
+              </Button>
+            </>
+          )
+        }
       >
-        <Flag className="h-3.5 w-3.5" aria-hidden="true" />
-        <span>{buttonLabel}</span>
-      </button>
-
-      {open && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink-900/50 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-label="檢舉違規內容"
-        >
-          <div className="w-full max-w-md rounded-xl bg-surface p-6 shadow-xl">
-            <div className="flex items-center justify-between border-b border-line pb-3">
-              <h3 className="text-base font-bold text-fg">回報違規或侵權內容</h3>
-              <button
-                type="button"
-                onClick={() => setOpen(false)}
-                aria-label="關閉視窗"
-                className="rounded-lg p-1 text-fg-subtle hover:bg-surface-sunken"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {done ? (
-              <div className="mt-4 space-y-4">
-                <p className="rounded-xl bg-success-soft p-4 text-sm font-medium text-success-900">
-                  已收到您的檢舉回報，平台管理員將會儘速檢視並依法規與社群守則處置。
-                </p>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className={buttonClasses({ variant: 'primary', size: 'md', className: 'w-full' })}
-                >
-                  完成
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-                <div>
-                  <label htmlFor="report-reason" className="mb-1.5 block text-sm font-semibold text-fg-secondary">
-                    檢舉原因
-                  </label>
-                  <select id="report-reason"
-                    value={reason}
-                    onChange={(e) => setReason(e.target.value as ReportReason)}
-                    className={`${controlClasses} min-h-11 w-full`}
-                  >
-                    {Object.entries(REPORT_REASONS).map(([k, v]) => (
-                      <option key={k} value={k}>
-                        {v.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label htmlFor="report-detail" className="mb-1.5 block text-sm font-semibold text-fg-secondary">
-                    補充說明（選填）
-                  </label>
-                  <textarea id="report-detail"
-                    rows={3}
-                    maxLength={1000}
-                    value={detail}
-                    onChange={(e) => setDetail(e.target.value)}
-                    placeholder="請簡述問題所在或佐證連結，利於管理員快速判讀。"
-                    className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
-                  />
-                </div>
-
-                {error && (
-                  <p className="rounded-xl bg-danger-soft px-3 py-2 text-sm font-medium text-danger-fg">
-                    {error}
-                  </p>
-                )}
-
-                <div className="flex justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setOpen(false)}
-                    className="rounded-xl border border-border-strong px-4 py-2 text-sm font-semibold text-fg-secondary hover:bg-surface-subtle"
-                  >
-                    取消
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className={buttonClasses({ variant: 'danger', size: 'md' })}
-                  >
-                    {submitting ? '送出中...' : '送出檢舉'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
+        {done ? (
+          <Notice tone="success">已收到您的檢舉回報，平台管理員將會儘速檢視並依法規與社群守則處置。</Notice>
+        ) : (
+          <form id={formId} onSubmit={handleSubmit} className="space-y-4">
+            <Field label="檢舉原因">
+              {(p) => (
+                <Select {...p} value={reason} onChange={(e) => setReason(e.target.value as ReportReason)}>
+                  {Object.entries(REPORT_REASONS).map(([k, v]) => (
+                    <option key={k} value={k}>
+                      {v.label}
+                    </option>
+                  ))}
+                </Select>
+              )}
+            </Field>
+            <Field label="補充說明（選填）">
+              {(p) => (
+                <Textarea
+                  {...p}
+                  rows={3}
+                  maxLength={1000}
+                  value={detail}
+                  onChange={(e) => setDetail(e.target.value)}
+                  placeholder="請簡述問題所在或佐證連結，利於管理員快速判讀。"
+                />
+              )}
+            </Field>
+            {error && <Notice tone="danger">{error}</Notice>}
+          </form>
+        )}
+      </Dialog>
     </>
   );
 }

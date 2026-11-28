@@ -51,10 +51,10 @@ function Choice({
       aria-pressed={selected}
       onClick={onClick}
       className={cn(
-        'flex min-h-12 w-full items-center justify-between gap-2 rounded-xl border px-4 py-2.5 text-left text-sm transition-colors',
+        'tactile-press flex min-h-12 w-full items-center justify-between gap-2 rounded-xl border-2 border-border-ink px-4 py-2.5 text-left font-display text-sm',
         selected
-          ? 'border-fg bg-surface-subtle font-semibold text-fg'
-          : 'border-line bg-surface text-fg-secondary hover:border-border-strong hover:bg-surface-subtle'
+          ? 'bg-spark font-bold text-fg'
+          : 'bg-surface font-medium text-fg-secondary hover:bg-surface-subtle hover:text-fg'
       )}
     >
       <span className="min-w-0 break-words">{children}</span>
@@ -74,7 +74,7 @@ function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
         aria-valuemax={3}
         aria-valuenow={step}
         aria-valuetext={`步驟 ${step} / 3`}
-        className="mt-2 h-1 overflow-hidden rounded-full bg-ink-200"
+        className="mt-2 h-2 overflow-hidden rounded-full border border-border-ink bg-surface-sunken"
       >
         <div
           className="h-full rounded-full bg-brand transition-all"
@@ -207,7 +207,7 @@ export function OnboardingClient({
               </Choice>
             ))}
           </div>
-          <div className="flex justify-end border-t border-line pt-4">
+          <div className="flex justify-end border-t-2 border-dashed border-line pt-4">
             <Button size="md" onClick={() => goStep(2)} icon={<ArrowRight className="h-4 w-4" aria-hidden="true" />} className="flex-row-reverse">
               下一步
             </Button>
@@ -220,7 +220,7 @@ export function OnboardingClient({
           <PageHeader title="這學期想怎麼探索校園？" />
 
           <section className="space-y-3" aria-labelledby="onb-goals">
-            <h2 id="onb-goals" className="text-base font-semibold text-fg">
+            <h2 id="onb-goals" className="font-display text-base font-bold text-fg">
               你現在比較在意什麼？
               <span className="ml-2 text-sm font-normal text-fg-muted">可選 1–2 項</span>
             </h2>
@@ -234,7 +234,7 @@ export function OnboardingClient({
           </section>
 
           <section className="space-y-3" aria-labelledby="onb-domains">
-            <h2 id="onb-domains" className="text-base font-semibold text-fg">
+            <h2 id="onb-domains" className="font-display text-base font-bold text-fg">
               挑幾個你有點好奇的領域
               <span className="ml-2 text-sm font-normal text-fg-muted">可選 1–4 個</span>
             </h2>
@@ -248,7 +248,7 @@ export function OnboardingClient({
           </section>
 
           <section className="space-y-3" aria-labelledby="onb-vibe">
-            <h2 id="onb-vibe" className="text-base font-semibold text-fg">
+            <h2 id="onb-vibe" className="font-display text-base font-bold text-fg">
               偏好的社團氛圍
             </h2>
             <div className="grid gap-2.5 sm:grid-cols-2">
@@ -260,7 +260,7 @@ export function OnboardingClient({
             </div>
           </section>
 
-          <div className="flex items-center justify-between gap-3 border-t border-line pt-4">
+          <div className="flex items-center justify-between gap-3 border-t-2 border-dashed border-line pt-4">
             <Button variant="ghost" onClick={() => goStep(1)}>
               上一步
             </Button>
@@ -302,7 +302,7 @@ export function OnboardingClient({
 
           {result.clubs.length > 0 && (
             <section className="space-y-3" aria-labelledby="onb-clubs">
-              <h2 id="onb-clubs" className="text-lg font-semibold text-fg">
+              <h2 id="onb-clubs" className="font-display text-lg font-bold text-fg">
                 為你挑出的校內活躍社團
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -310,13 +310,13 @@ export function OnboardingClient({
                   <Link
                     key={c.id}
                     href={`/clubs/${c.slug}`}
-                    className="min-w-0 rounded-xl border border-line bg-surface p-4 transition-colors hover:border-border-strong"
+                    className="tactile-card tactile-card-interactive tactile-press min-w-0 rounded-2xl bg-surface p-4"
                   >
                     <div className="flex items-center justify-between gap-2 text-sm text-fg-muted">
                       <span className="truncate">{c.university_short_name}</span>
-                      <span className="shrink-0 text-success-700">● {c.pulse_label}</span>
+                      <span className="shrink-0 text-success-fg">● {c.pulse_label}</span>
                     </div>
-                    <h3 className="mt-1 break-words text-base font-semibold text-fg">{c.name}</h3>
+                    <h3 className="mt-1 break-words font-display text-base font-bold text-fg">{c.name}</h3>
                     <p className="mt-1 line-clamp-2 text-sm text-fg-muted">{c.tagline}</p>
                   </Link>
                 ))}
@@ -326,7 +326,7 @@ export function OnboardingClient({
 
           {result.events.length > 0 && (
             <section className="space-y-3" aria-labelledby="onb-events">
-              <h2 id="onb-events" className="text-lg font-semibold text-fg">
+              <h2 id="onb-events" className="font-display text-lg font-bold text-fg">
                 近期可直接報名的體驗場次
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">

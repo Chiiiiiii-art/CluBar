@@ -11,7 +11,7 @@ export interface TabItem<T extends string> {
 }
 
 /**
- * WAI-ARIA tabs (automatic activation). `variant="segmented"` is a pill
+ * WAI-ARIA tabs (automatic activation). `variant="segmented"` is a tactile
  * switcher for 2–3 peer views; `"underline"` suits longer tab sets.
  * Pair each panel with `tabPanelProps(idPrefix, id)`.
  */
@@ -55,15 +55,13 @@ export function Tabs<T extends string>({
       onKeyDown={onKeyDown}
       className={cn(
         variant === 'segmented'
-          ? 'inline-flex rounded-xl bg-surface-sunken p-1'
-          : 'no-scrollbar flex gap-1 overflow-x-auto border-b border-line',
+          ? 'tactile-shadow-sm inline-flex gap-1 rounded-xl border-2 border-border-ink bg-surface p-1'
+          : 'no-scrollbar flex gap-1 overflow-x-auto border-b-2 border-line',
         className
       )}
     >
       {items.map((t, i) => {
         const selected = t.id === value;
-        // Roving tabindex: keep one tab reachable by keyboard even when the
-        // set is collapsed and no tab is selected (e.g. an optional panel).
         const focusable = selected || (!hasSelection && i === 0);
         return (
           <button
@@ -79,17 +77,15 @@ export function Tabs<T extends string>({
             tabIndex={focusable ? 0 : -1}
             onClick={() => onChange(t.id)}
             className={cn(
-              'inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap text-sm font-medium transition-colors',
+              'inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap font-display text-sm font-bold transition-colors',
               variant === 'segmented'
                 ? cn(
                     'rounded-lg px-4',
-                    selected ? 'bg-surface text-fg shadow-sm' : 'text-fg-muted hover:text-fg'
+                    selected ? 'bg-fg text-spark' : 'text-fg-secondary hover:bg-surface-subtle hover:text-fg'
                   )
                 : cn(
-                    '-mb-px border-b-2 px-3',
-                    selected
-                      ? 'border-fg text-fg'
-                      : 'border-transparent text-fg-muted hover:text-fg'
+                    '-mb-0.5 border-b-2 px-3',
+                    selected ? 'border-brand text-fg' : 'border-transparent text-fg-muted hover:text-fg'
                   )
             )}
           >

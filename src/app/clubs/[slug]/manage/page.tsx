@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { and, desc, eq, gt, isNull, or } from 'drizzle-orm';
 import { db, isDatabaseConfigured } from '@/db';
@@ -14,6 +13,7 @@ import {
   type ClubMemberRole,
 } from '@/db/schema';
 import { getCurrentUser } from '@/lib/auth/guards';
+import { ButtonLink, EmptyState } from '@/components/ui';
 import { ClubManageClient, type ManageClubData } from '@/components/ClubManageClient';
 
 export const dynamic = 'force-dynamic';
@@ -60,17 +60,16 @@ export default async function ClubManagePage({
 
   if (!myRole || myRole === 'member') {
     return (
-      <div className="mx-auto max-w-lg rounded-xl border border-danger-200 bg-surface p-8 text-center">
-        <h1 className="text-lg font-bold text-fg">您沒有此社團的管理後台權限</h1>
-        <p className="mt-2 text-sm text-fg-muted">
-          僅現任社長、現任幹部或歷屆校友（只讀檢視評鑑檔案）可進入社團管理後台。
-        </p>
-        <Link
-          href={`/clubs/${slug}`}
-          className="mt-4 inline-flex rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-white"
-        >
-          返回社團門面
-        </Link>
+      <div className="mx-auto max-w-lg">
+        <EmptyState
+          title="您沒有此社團的管理後台權限"
+          description="僅現任社長、現任幹部或歷屆校友（只讀檢視評鑑檔案）可進入社團管理後台。"
+          action={
+            <ButtonLink href={`/clubs/${slug}`} variant="secondary">
+              返回社團門面
+            </ButtonLink>
+          }
+        />
       </div>
     );
   }

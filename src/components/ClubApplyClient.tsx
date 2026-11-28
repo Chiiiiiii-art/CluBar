@@ -172,7 +172,7 @@ export function ClubApplyClient({
         <form onSubmit={handleSubmit} {...tabPanelProps('club-apply', tab)} className="mt-6">
           <fieldset disabled={!campusVerified} className="min-w-0 space-y-8 disabled:opacity-60">
             <section className="space-y-4" aria-labelledby="club-apply-info-heading">
-              <h2 id="club-apply-info-heading" className="text-base font-semibold text-fg">
+              <h2 id="club-apply-info-heading" className="font-display text-base font-bold text-fg">
                 社團資料
               </h2>
               {tab === 'new_club' ? (
@@ -313,7 +313,7 @@ export function ClubApplyClient({
             </section>
 
             <section className="space-y-4" aria-labelledby="club-apply-evidence-heading">
-              <h2 id="club-apply-evidence-heading" className="text-base font-semibold text-fg">
+              <h2 id="club-apply-evidence-heading" className="font-display text-base font-bold text-fg">
                 幹部身分佐證
               </h2>
               <Field

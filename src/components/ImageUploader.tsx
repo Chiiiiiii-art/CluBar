@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ImagePlus, Trash2 } from 'lucide-react';
 import type { MediaItem } from '@/db/schema';
+import { buttonClasses } from '@/components/ui';
 
 async function compressToWebp(file: File): Promise<{
   blob: Blob;
@@ -113,7 +114,11 @@ export function ImageUploader({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3">
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border-strong bg-surface px-3.5 py-2 text-sm font-semibold text-fg-body hover:bg-brand-soft">
+        <label className={buttonClasses({
+            variant: 'secondary',
+            size: 'md',
+            className: 'cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus-ring',
+          })}>
           <ImagePlus className="h-4 w-4 text-brand" aria-hidden="true" />
           <span>{uploading ? '壓縮上傳中...' : `上傳圖片（${value.length}/${maxImages}）`}</span>
           <input
@@ -141,20 +146,20 @@ export function ImageUploader({
           {value.map((item, idx) => (
             <div
               key={`${item.url}-${idx}`}
-              className="group relative overflow-hidden rounded-xl border border-line bg-surface-sunken"
+              className="relative overflow-hidden rounded-xl border-2 border-border-ink bg-surface-sunken"
             >
               <img
                 src={item.url}
                 alt={item.alt || `圖片 ${idx + 1}`}
-                className="aspect-[16/10] w-full object-cover"
+                className="h-auto w-full"
               />
               <button
                 type="button"
                 onClick={() => onChange(value.filter((_, i) => i !== idx))}
                 aria-label="移除此圖片"
-                className="absolute top-2 right-2 rounded-lg bg-ink-900/75 p-1.5 text-white hover:bg-danger"
+                className="absolute top-1 right-1 inline-flex h-11 w-11 items-center justify-center rounded-xl border-2 border-border-ink bg-surface text-fg hover:bg-danger-soft"
               >
-                <Trash2 className="h-3.5 w-3.5" />
+                <Trash2 className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
           ))}

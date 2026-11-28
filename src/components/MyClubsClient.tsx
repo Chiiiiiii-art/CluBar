@@ -7,7 +7,21 @@ import { ArrowRight, Film, KeyRound, Settings, Sparkles } from 'lucide-react';
 import type { ClubMemberRole, MediaItem, PostKind } from '@/db/schema';
 import { uploadShortVideo } from '@/lib/media/client-upload';
 import { ImageUploader } from '@/components/ImageUploader';
-import { ButtonLink, ClubMark, EmptyState, PageHeader, buttonClasses, controlClasses } from '@/components/ui';
+import {
+  Badge,
+  Button,
+  ButtonLink,
+  Card,
+  ClubMark,
+  EmptyState,
+  Field,
+  Input,
+  PageHeader,
+  Select,
+  Textarea,
+  buttonClasses,
+  controlClasses,
+} from '@/components/ui';
 
 const ROLE_LABELS: Partial<Record<ClubMemberRole, string>> = {
   owner: '社長',
@@ -170,7 +184,8 @@ export function MyClubsClient({
           description="輸入幹部給你的邀請碼，或到社團頁申請加入。"
         />
       ) : (
-        <ul className="divide-y divide-line rounded-xl border border-line bg-surface">
+        <Card padded={false}>
+          <ul className="divide-y-2 divide-line">
           {memberships.map((m) => {
             const canManage = m.role === 'owner' || m.role === 'editor' || m.role === 'alumni';
             return (
@@ -192,18 +207,19 @@ export function MyClubsClient({
                     管理
                   </ButtonLink>
                 ) : (
-                  <ArrowRight className="h-4 w-4 shrink-0 text-ink-400" aria-hidden="true" />
+                  <ArrowRight className="h-4 w-4 shrink-0 text-fg-subtle" aria-hidden="true" />
                 )}
               </li>
             );
           })}
-        </ul>
+          </ul>
+        </Card>
       )}
 
       {/* Invite Code Redeem */}
-      <div className="rounded-xl border border-line bg-surface p-6">
-        <h2 className="flex items-center gap-2 text-base font-bold text-fg">
-          <KeyRound className="h-4 w-4 text-brand" aria-hidden="true" />
+      <Card>
+        <h2 className="flex items-center gap-2 font-display text-lg font-bold text-fg">
+          <KeyRound className="h-4 w-4 text-brand-soft-fg" aria-hidden="true" />
           輸入幹部邀請碼，成為認證社員
         </h2>
         {!isCampusVerified ? (
@@ -211,7 +227,7 @@ export function MyClubsClient({
             邀請碼僅限同校學生驗證使用，請先至{' '}
             <Link
               href="/me?returnTo=/my-clubs"
-              className="inline-flex min-h-[44px] items-center font-bold text-brand underline"
+              className="inline-flex min-h-[44px] items-center font-bold text-brand-soft-fg underline"
             >
               個人中心驗證學校信箱
             </Link>
@@ -219,162 +235,159 @@ export function MyClubsClient({
           </p>
         ) : (
           <form onSubmit={handleRedeemCode} className="mt-3 flex flex-wrap gap-2">
-            <input aria-label="邀請碼"
+            <input
+              aria-label="邀請碼"
               type="text"
               value={inviteCode}
               onChange={(e) => setInviteCode(e.target.value)}
               placeholder="例如：NCUP-A1B2C3"
-              className={`${controlClasses} min-h-11 min-w-0 flex-1 uppercase`}
+              className={`${controlClasses} min-h-11 min-w-0 flex-1 font-mono uppercase`}
             />
-            <button
-              type="submit"
-              disabled={joinBusy || inviteCode.trim().length < 4}
-              className={buttonClasses({ variant: 'primary', size: 'md' })}
-            >
+            <Button type="submit" variant="primary" loading={joinBusy} disabled={inviteCode.trim().length < 4}>
               {joinBusy ? '驗證中...' : '立即加入社團'}
-            </button>
+            </Button>
           </form>
         )}
-        {joinMsg && <p className="mt-2 text-sm font-semibold text-success-700">{joinMsg}</p>}
+        {joinMsg && <p className="mt-2 text-sm font-semibold text-success-fg">{joinMsg}</p>}
         {joinErr && <p className="mt-2 text-sm font-semibold text-danger-fg">{joinErr}</p>}
-      </div>
+      </Card>
 
       {/* Quick Post Composer */}
       {selectedClub && (
-        <form
-          onSubmit={handlePublishPost}
-          className="space-y-4 rounded-xl border border-border-strong bg-surface p-6"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="flex items-center gap-2 text-base font-bold text-fg">
-              <Sparkles className="h-4 w-4 text-brand" aria-hidden="true" />
-              發一則社團日常
-            </h2>
-            <span className="rounded-full bg-brand-soft px-3 py-1 text-sm font-semibold text-accent-900">
-              免公文格式，記錄真實的社員互動瞬間
-            </span>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <label htmlFor="my-clubs-selectedclub-slug" className="mb-1 block text-sm font-semibold text-fg-secondary">發表社團</label>
-              <select id="my-clubs-selectedclub-slug"
-                value={selectedClub.slug}
-                onChange={(e) => setSelectedSlug(e.target.value)}
-                className={`${controlClasses} min-h-11 w-full`}
-              >
-                {activePostingClubs.map((c) => (
-                  <option key={c.clubId} value={c.slug}>
-                    {c.universityShortName} {c.name}（{c.role}）
-                  </option>
-                ))}
-              </select>
+        <Card>
+          <form onSubmit={handlePublishPost} className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="flex items-center gap-2 font-display text-lg font-bold text-fg">
+                <Sparkles className="h-4 w-4 text-brand-soft-fg" aria-hidden="true" />
+                發一則社團日常
+              </h2>
+              <Badge tone="accent">免公文格式，記錄真實的社員互動瞬間</Badge>
             </div>
-            <div>
-              <label htmlFor="my-clubs-isofficerselected-postkind-nrc-moment" className="mb-1 block text-sm font-semibold text-fg-secondary">內容類型</label>
-              <select id="my-clubs-isofficerselected-postkind-nrc-moment"
-                value={isOfficerSelected ? postKind : 'nrc_moment'}
-                onChange={(e) => setPostKind(e.target.value as 'nrc_moment' | 'wip_work')}
-                disabled={!isOfficerSelected}
-                className={`${controlClasses} min-h-11 w-full`}
-              >
-                <option value="nrc_moment">社員日常紀錄</option>
-                {isOfficerSelected && <option value="wip_work">社團實作作品／成果</option>}
-              </select>
-            </div>
-          </div>
 
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="sm:col-span-2">
-              <label htmlFor="my-clubs-headline" className="mb-1 block text-sm font-semibold text-fg-secondary">一句話亮點 *</label>
-              <input id="my-clubs-headline"
-                type="text"
-                required
-                minLength={2}
-                maxLength={120}
-                value={headline}
-                onChange={(e) => setHeadline(e.target.value)}
-                placeholder="例如：暗房剛沖出第一捲底片，大家在燈下等影的那刻太酷了"
-                className={`${controlClasses} min-h-11 w-full`}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="發表社團">
+                {(p) => (
+                  <Select {...p} value={selectedClub.slug} onChange={(e) => setSelectedSlug(e.target.value)}>
+                    {activePostingClubs.map((c) => (
+                      <option key={c.clubId} value={c.slug}>
+                        {c.universityShortName} {c.name}（{ROLE_LABELS[c.role] ?? '社員'}）
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </Field>
+              <Field label="內容類型">
+                {(p) => (
+                  <Select
+                    {...p}
+                    value={isOfficerSelected ? postKind : 'nrc_moment'}
+                    onChange={(e) => setPostKind(e.target.value as 'nrc_moment' | 'wip_work')}
+                    disabled={!isOfficerSelected}
+                  >
+                    <option value="nrc_moment">社員日常紀錄</option>
+                    {isOfficerSelected && <option value="wip_work">社團實作作品／成果</option>}
+                  </Select>
+                )}
+              </Field>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Field label="一句話亮點（必填）" className="sm:col-span-2">
+                {(p) => (
+                  <Input
+                    {...p}
+                    type="text"
+                    required
+                    minLength={2}
+                    maxLength={120}
+                    value={headline}
+                    onChange={(e) => setHeadline(e.target.value)}
+                    placeholder="例如：暗房剛沖出第一捲底片，大家在燈下等影的那刻太酷了"
+                  />
+                )}
+              </Field>
+              <Field label="氛圍小標（選填）">
+                {(p) => (
+                  <Input
+                    {...p}
+                    type="text"
+                    maxLength={24}
+                    value={moodTag}
+                    onChange={(e) => setMoodTag(e.target.value)}
+                    placeholder="例如：週四練團夜"
+                  />
+                )}
+              </Field>
+            </div>
+
+            <Field label="補充背景（選填）">
+              {(p) => (
+                <Textarea
+                  {...p}
+                  rows={2}
+                  value={contentMd}
+                  onChange={(e) => setContentMd(e.target.value)}
+                  placeholder="可以簡單補一句器材或歡迎新生一起來的原因..."
+                />
+              )}
+            </Field>
+
+            <div className="space-y-3 rounded-xl bg-surface-subtle p-4">
+              <ImageUploader
+                clubId={selectedClub.clubId}
+                value={mediaItems}
+                onChange={setMediaItems}
+                maxImages={6}
+                purpose="post_image"
               />
-            </div>
-            <div>
-              <label htmlFor="my-clubs-moodtag" className="mb-1 block text-sm font-semibold text-fg-secondary">氛圍小標（選填）</label>
-              <input id="my-clubs-moodtag"
-                type="text"
-                maxLength={24}
-                value={moodTag}
-                onChange={(e) => setMoodTag(e.target.value)}
-                placeholder="例如：週四練團夜"
-                className={`${controlClasses} min-h-11 w-full`}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label htmlFor="my-clubs-contentmd" className="mb-1 block text-sm font-semibold text-fg-secondary">補充背景（選填）</label>
-            <textarea id="my-clubs-contentmd"
-              rows={2}
-              value={contentMd}
-              onChange={(e) => setContentMd(e.target.value)}
-              placeholder="可以簡單補一句器材或歡迎新生一起來的原因..."
-              className={`${controlClasses} min-h-24 py-2.5 leading-relaxed w-full`}
-            />
-          </div>
-
-          <div className="space-y-3 rounded-xl bg-surface-subtle p-4">
-            <ImageUploader
-              clubId={selectedClub.clubId}
-              value={mediaItems}
-              onChange={setMediaItems}
-              maxImages={6}
-              purpose="post_image"
-            />
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-border-strong bg-surface px-3.5 py-2 text-sm font-semibold text-fg-secondary hover:bg-surface-subtle">
-                <Film className="h-4 w-4 text-brand" aria-hidden="true" />
-                {videoBusy ? '處理短影與封面中...' : '或上傳 15 秒內短影 (MP4/WebM ≤25MB)'}
+              <label
+                className={buttonClasses({
+                  variant: 'secondary',
+                  size: 'md',
+                  className: 'cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-focus-ring',
+                })}
+              >
+                <Film className="h-4 w-4" aria-hidden="true" />
+                {videoBusy ? '處理短影與封面中...' : '或上傳 15 秒內短影（MP4／WebM，25MB 內）'}
                 <input
                   type="file"
                   accept="video/mp4,video/webm"
                   onChange={handleShortVideoChange}
                   disabled={videoBusy || mediaItems.length >= 6}
-                  className="hidden"
+                  className="sr-only"
                 />
               </label>
             </div>
-          </div>
 
-          <div className="space-y-2 text-sm text-fg-secondary">
-            <label className="flex cursor-pointer items-center gap-2 font-semibold">
-              <input
-                type="checkbox"
-                checked={originalityConfirmed}
-                onChange={(e) => setOriginalityConfirmed(e.target.checked)}
-              />
-              本人確認照片／短影為原創拍攝且未侵犯肖像與著作權（必填）
-            </label>
-            <label className="flex cursor-pointer items-center gap-2">
-              <input
-                type="checkbox"
-                checked={includeEval}
-                onChange={(e) => setIncludeEval(e.target.checked)}
-              />
-              同時標記為本學期社團評鑑成果候補
-            </label>
-          </div>
+            <div className="space-y-1 text-sm text-fg-secondary">
+              <label className="flex min-h-11 cursor-pointer items-center gap-2 font-semibold">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-brand"
+                  checked={originalityConfirmed}
+                  onChange={(e) => setOriginalityConfirmed(e.target.checked)}
+                />
+                本人確認照片／短影為原創拍攝且未侵犯肖像與著作權（必填）
+              </label>
+              <label className="flex min-h-11 cursor-pointer items-center gap-2">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 accent-brand"
+                  checked={includeEval}
+                  onChange={(e) => setIncludeEval(e.target.checked)}
+                />
+                同時標記為本學期社團評鑑成果候補（選填）
+              </label>
+            </div>
 
-          {postMsg && <p className="text-sm font-semibold text-success-700">{postMsg}</p>}
-          {postErr && <p className="text-sm font-semibold text-danger-fg">{postErr}</p>}
+            {postMsg && <p className="text-sm font-semibold text-success-fg">{postMsg}</p>}
+            {postErr && <p className="text-sm font-semibold text-danger-fg">{postErr}</p>}
 
-          <button
-            type="submit"
-            disabled={postBusy || !headline.trim()}
-            className={buttonClasses({ variant: 'primary', size: 'md' })}
-          >
-            {postBusy ? '發布中...' : '發布到社團日常與現場流'}
-          </button>
-        </form>
+            <Button type="submit" variant="primary" loading={postBusy} disabled={!headline.trim()}>
+              {postBusy ? '發布中...' : '發布到社團日常與現場流'}
+            </Button>
+          </form>
+        </Card>
       )}
     </div>
   );

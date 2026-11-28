@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { ExternalLink as ExternalLinkIcon } from 'lucide-react';
 import type { ExternalLink } from '@/db/schema';
 import { trackAnalyticsEvent } from '@/lib/analytics-client';
+import { buttonClasses } from '@/components/ui';
 
 export function ClubPageViewTracker({ clubId }: { clubId: string }) {
   useEffect(() => {
@@ -40,10 +41,10 @@ export function ClubOfficialLinks({
               source_surface: 'club_page',
             })
           }
-          className="inline-flex items-center gap-1.5 rounded-xl border border-border-strong bg-surface-sunken px-3.5 py-2 text-sm font-semibold text-fg-body transition-colors hover:bg-brand-soft-hover"
+          className={buttonClasses({ variant: 'secondary', size: 'md', className: 'gap-1.5' })}
         >
           <span>{link.label}</span>
-          <ExternalLinkIcon className="h-3.5 w-3.5 text-fg-subtle" aria-hidden="true" />
+          <ExternalLinkIcon className="h-3.5 w-3.5 text-fg-muted" aria-hidden="true" />
         </a>
       ))}
     </div>

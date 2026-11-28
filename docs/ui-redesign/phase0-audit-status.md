@@ -1,4 +1,7 @@
-# Phase 0.1｜UX 稽核缺陷現況盤點（`D-01`–`D-17`）
+# Phase 0.1｜UX 稽核缺陷現況盤點（`D-01`–`D-17`，歷史快照）
+
+> [!WARNING]
+> **已棄置（DEPRECATED — Phase 0 歷史快照）**：本盤點為 2026-11-27 v1 改版前快照，已不代表最新程式碼與 v2.5 規範。最新設計規範請見 [../design/README.md](../design/README.md)。
 
 > 盤點日期：2026-11-27｜依據：[ux-audit-and-benchmark.md](../ux-audit-and-benchmark.md) §四、§五，逐項比對目前程式碼與 `http://localhost:3000` 實機回應。
 

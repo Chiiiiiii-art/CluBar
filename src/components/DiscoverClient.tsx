@@ -340,19 +340,74 @@ export function DiscoverClient({
   const hasAnyFilter = activeTab === 'events' ? hasActiveEventFilters : Boolean(selectedDomainId || activeNlQuery);
   const examplesVisible = showExamples && activeTab === 'stream' && !query.trim();
 
+  const featuredEvent = eventItems[0] ?? null;
+  const selectedUniLabel =
+    universities.find((u) => u.id === selectedUniId)?.short_name ?? '全部學校';
+
+  const quickEventShortcuts = [
+    {
+      label: '零基礎可',
+      active: activeTab === 'events' && beginnerOnly,
+      toneClass: 'bg-spark text-fg',
+      shape: 'rounded-full',
+      onClick: () => {
+        const next = !(activeTab === 'events' && beginnerOnly);
+        setActiveTab('events');
+        setBeginnerOnly(next);
+        reloadEvents({ beginnerOnly: next });
+      },
+    },
+    {
+      label: '非社員歡迎',
+      active: activeTab === 'events' && nonMemberOnly,
+      toneClass: 'bg-domain-arts-soft text-domain-arts',
+      shape: 'rounded-xl',
+      onClick: () => {
+        const next = !(activeTab === 'events' && nonMemberOnly);
+        setActiveTab('events');
+        setNonMemberOnly(next);
+        reloadEvents({ nonMemberOnly: next });
+      },
+    },
+    {
+      label: '本週體驗',
+      active: activeTab === 'events' && dateRange === 'this_week',
+      toneClass: 'bg-domain-service-soft text-domain-service',
+      shape: 'rounded-lg',
+      onClick: () => {
+        const next = activeTab === 'events' && dateRange === 'this_week' ? 'all' : 'this_week';
+        setActiveTab('events');
+        setDateRange(next);
+        reloadEvents({ dateRange: next });
+      },
+    },
+    {
+      label: '免費參加',
+      active: activeTab === 'events' && freeOnly,
+      toneClass: 'bg-surface text-fg',
+      shape: 'rounded-lg',
+      onClick: () => {
+        const next = !(activeTab === 'events' && freeOnly);
+        setActiveTab('events');
+        setFreeOnly(next);
+        reloadEvents({ freeOnly: next });
+      },
+    },
+  ] as const;
+
   return (
-    <div className="space-y-6">
-      {/* First-visit invitation: one dismissible line, not a hero */}
+    <div className="space-y-4 sm:space-y-5">
+      {/* First-visit invitation: lightweight slim bar (keeps visual spotlight on Hero Bento) */}
       {showOnboardingPrompt && (
-        <div className="flex items-center gap-3 rounded-xl bg-ink-900 py-2 pr-2 pl-4 text-white">
-          <Sparkles className="h-4 w-4 shrink-0 text-accent-300" aria-hidden="true" />
-          <p className="min-w-0 flex-1 text-sm">
-            <span className="font-semibold">第一次來？</span>
-            <span className="text-ink-300"> 30 秒挑出適合你的社團</span>
+        <div className="tactile-shadow-sm flex items-center gap-3 rounded-xl border-2 border-border-ink bg-surface py-1.5 pr-1.5 pl-3.5 text-fg">
+          <Sparkles className="h-4 w-4 shrink-0 text-cobalt" aria-hidden="true" />
+          <p className="min-w-0 flex-1 text-sm font-medium">
+            <span className="font-bold">第一次來？</span>
+            <span> 30 秒挑出適合你的社團</span>
           </p>
           <Link
             href="/onboarding"
-            className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg bg-surface px-3 text-sm font-semibold text-fg hover:bg-surface-sunken"
+            className="tactile-press inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg border-2 border-border-ink bg-spark px-3 font-display text-sm font-bold text-fg"
           >
             開始
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -361,16 +416,134 @@ export function DiscoverClient({
             type="button"
             onClick={() => setShowOnboardingPrompt(false)}
             aria-label="關閉提示"
-            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-ink-300 hover:bg-white/10 hover:text-white"
+            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-fg-muted hover:bg-surface-subtle hover:text-fg"
           >
             <X className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
       )}
 
-      {/* Discovery controls sit directly on the page: no card around them */}
+      {/* Soft Neubrutalist Bento Masthead */}
+      <section className="grid gap-4 lg:grid-cols-[1.35fr_1fr]" aria-label="社團探索主視覺">
+        <div className="tactile-card flex min-w-0 flex-col justify-between gap-4 rounded-2xl bg-surface p-5 sm:p-6">
+          <div className="space-y-3">
+            <span className="tactile-shadow-sm inline-flex items-center rounded-lg border-2 border-border-ink bg-domain-academic-soft px-3 py-1 text-xs font-bold text-domain-academic">
+              {selectedUniLabel} · 社團探索
+            </span>
+            <h1 className="font-display text-2xl font-black leading-tight text-fg sm:text-3xl">
+              看作品，找到真正{' '}
+              <span className="tactile-shadow-sm inline-block rounded-lg border-2 border-border-ink bg-spark px-2.5 py-0.5 text-fg">
+                想去的社團
+              </span>
+            </h1>
+            <p className="text-sm text-fg-secondary sm:text-base">
+              從社員日常與體驗社課開始，零基礎也能輕鬆參加。
+            </p>
+          </div>
+
+          <form
+            role="search"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setShowExamples(false);
+              void submitQuery(undefined, activeTab);
+            }}
+            className="relative"
+          >
+            <div className="tactile-shadow-sm flex items-center gap-2 rounded-xl border-2 border-border-ink bg-canvas py-1 pr-1 pl-3.5 transition-shadow focus-within:ring-2 focus-within:ring-focus-ring/25">
+              <Search className="h-5 w-5 shrink-0 text-fg-muted" aria-hidden="true" />
+              <input
+                type="search"
+                aria-label="用一句話搜尋社團或活動"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onFocus={() => setShowExamples(true)}
+                onBlur={() => window.setTimeout(() => setShowExamples(false), 150)}
+                placeholder="搜尋：週末、零基礎、不用買器材"
+                className="min-h-11 w-full min-w-0 bg-transparent text-base text-fg outline-none placeholder:text-fg-muted"
+              />
+              <Button type="submit" loading={loading} size="sm" className="min-h-10">
+                搜尋
+              </Button>
+            </div>
+            {examplesVisible && (
+              <div className="tactile-shadow-md absolute inset-x-0 top-full z-20 mt-2 rounded-xl border-2 border-border-ink bg-surface p-2">
+                <p className="px-2 pt-1 pb-2 text-xs font-bold text-fg-muted">試試這樣找</p>
+                <ul>
+                  {DISCOVER_EXAMPLE_PROMPTS.map((ex) => (
+                    <li key={ex}>
+                      <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          setShowExamples(false);
+                          void submitQuery(ex, 'stream');
+                        }}
+                        className="flex min-h-11 w-full items-center gap-2 rounded-lg px-2 text-left text-sm font-medium text-fg-body hover:bg-surface-subtle"
+                      >
+                        <Search className="h-4 w-4 shrink-0 text-fg-muted" aria-hidden="true" />
+                        <span>{ex}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </form>
+        </div>
+
+        <aside className="tactile-card flex min-w-0 flex-col justify-between gap-4 rounded-2xl bg-cobalt p-5 text-on-cobalt">
+          <div className="space-y-2.5">
+            <span className="font-mono text-xs font-bold tracking-wide">點貼紙直接看活動</span>
+            <div className="flex flex-wrap gap-2">
+              {quickEventShortcuts.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  aria-pressed={item.active}
+                  onClick={item.onClick}
+                  className={`tactile-press inline-flex min-h-10 items-center gap-1.5 border-2 border-border-ink px-3 py-1.5 font-display text-xs font-bold ${item.shape} ${
+                    item.active ? 'bg-fg text-spark' : item.toneClass
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {featuredEvent ? (
+            <div className="tactile-shadow-sm flex items-center justify-between gap-3 rounded-xl border-2 border-border-ink bg-surface px-3.5 py-3 text-fg">
+              <div className="min-w-0">
+                <p className="font-mono text-xs font-bold text-brand-soft-fg">本週體驗社課</p>
+                <p className="truncate font-display text-sm font-black">{featuredEvent.title}</p>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => handleTabSwitch('events')}
+                className="shrink-0"
+              >
+                看票根 →
+              </Button>
+            </div>
+          ) : (
+            <div className="tactile-shadow-sm flex items-center justify-between gap-3 rounded-xl border-2 border-border-ink bg-surface px-3.5 py-3 text-fg">
+              <div className="min-w-0">
+                <p className="font-mono text-xs font-bold text-brand-soft-fg">不知道從哪逛？</p>
+                <p className="truncate font-display text-sm font-black">30 秒測驗挑出適合你的社團</p>
+              </div>
+              <ButtonLink href="/onboarding" variant="secondary" size="sm" className="shrink-0">
+                開始 →
+              </ButtonLink>
+            </div>
+          )}
+        </aside>
+      </section>
+
+      {/* Discovery controls */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Tabs
             label="別的聚分頁切換"
             idPrefix="discover"
@@ -407,68 +580,35 @@ export function DiscoverClient({
           </div>
         </div>
 
-        <form
-          role="search"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setShowExamples(false);
-            void submitQuery(undefined, activeTab);
-          }}
-          className="relative"
-        >
-          <div className="flex items-center gap-2 rounded-xl border border-line-input bg-surface py-1 pr-1 pl-3.5 transition-shadow focus-within:border-brand focus-within:ring-2 focus-within:ring-focus-ring/20">
-            <Search className="h-5 w-5 shrink-0 text-fg-subtle" aria-hidden="true" />
-            <input
-              type="search"
-              aria-label="用一句話搜尋社團或活動"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onFocus={() => setShowExamples(true)}
-              onBlur={() => window.setTimeout(() => setShowExamples(false), 150)}
-              placeholder="想找什麼？例如：週末、零基礎、不用買器材"
-              className="min-h-11 w-full min-w-0 bg-transparent text-base text-fg outline-none placeholder:text-fg-subtle"
-            />
-            <Button type="submit" loading={loading} size="sm" className="min-h-10">
-              搜尋
-            </Button>
-          </div>
-          {examplesVisible && (
-            <div className="absolute inset-x-0 top-full z-20 mt-2 rounded-xl border border-line bg-surface p-2 shadow-lg">
-              <p className="px-2 pt-1 pb-2 text-xs font-medium text-fg-subtle">試試這樣問</p>
-              <ul>
-                {DISCOVER_EXAMPLE_PROMPTS.map((ex) => (
-                  <li key={ex}>
-                    <button
-                      type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => {
-                        setShowExamples(false);
-                        void submitQuery(ex, 'stream');
-                      }}
-                      className="flex min-h-11 w-full items-center gap-2 rounded-lg px-2 text-left text-sm text-fg-body hover:bg-surface-subtle"
-                    >
-                      <Search className="h-4 w-4 shrink-0 text-ink-400" aria-hidden="true" />
-                      <span>{ex}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </form>
-
-        <ChipRow aria-label="興趣領域">
-          {domains.map((d) => (
-            <FilterChip key={d.id} selected={selectedDomainId === d.id} onClick={() => handleDomainSelect(d.id)}>
-              {d.name_zh}
-            </FilterChip>
-          ))}
+        <ChipRow aria-label="興趣領域" className="sm:gap-2">
+          {domains.map((d, idx) => {
+            const domainTints = [
+              'bg-domain-academic-soft hover:bg-spark/60',
+              'bg-domain-arts-soft hover:bg-spark/60',
+              'bg-domain-recreation-soft hover:bg-spark/60',
+              'bg-domain-sports-soft hover:bg-spark/60',
+              'bg-domain-service-soft hover:bg-spark/60',
+              'bg-domain-social-soft hover:bg-spark/60',
+            ];
+            return (
+              <FilterChip
+                key={d.id}
+                shapeIndex={idx}
+                tintClass={domainTints[idx % domainTints.length]}
+                selected={selectedDomainId === d.id}
+                onClick={() => handleDomainSelect(d.id)}
+                className="sm:px-3"
+              >
+                {d.name_zh}
+              </FilterChip>
+            );
+          })}
         </ChipRow>
 
         {activeTab === 'events' && (
           <ChipRow aria-label="活動條件">
-            {eventChips.map((chip) => (
-              <FilterChip key={chip.label} selected={chip.active} onClick={chip.onClick}>
+            {eventChips.map((chip, idx) => (
+              <FilterChip key={chip.label} shapeIndex={idx + 1} selected={chip.active} onClick={chip.onClick}>
                 {chip.label}
               </FilterChip>
             ))}
@@ -476,22 +616,22 @@ export function DiscoverClient({
         )}
 
         {hasAnyFilter && (
-          <div className="flex flex-wrap items-center gap-2 text-sm" aria-label="已套用的條件">
-            <span className="text-fg-muted">已套用：</span>
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border-2 border-dashed border-border-ink bg-surface px-3 py-2 text-sm" aria-label="已套用的條件">
+            <span className="font-bold text-fg-secondary">已選條件：</span>
             {appliedFilters.map((f) => (
               <button
                 key={f.key}
                 type="button"
                 onClick={f.remove}
                 aria-label={`移除條件：${f.label}`}
-                className="inline-flex min-h-11 max-w-full items-center gap-1 rounded-full border border-line bg-surface-subtle px-3 font-medium text-fg-body transition-colors hover:border-border-strong"
+                className="tactile-press inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-lg border-2 border-border-ink bg-spark px-3 font-display font-bold text-fg"
               >
                 <span className="truncate">{f.label}</span>
-                <X className="h-3.5 w-3.5 shrink-0 text-fg-muted" aria-hidden="true" />
+                <X className="h-3.5 w-3.5 shrink-0 text-fg" aria-hidden="true" />
               </button>
             ))}
-            <Button variant="ghost" size="sm" onClick={resetAllFilters} icon={<RotateCcw className="h-4 w-4" aria-hidden="true" />}>
-              清除全部
+            <Button variant="secondary" size="sm" onClick={resetAllFilters} icon={<RotateCcw className="h-4 w-4" aria-hidden="true" />}>
+              撕掉全部
             </Button>
           </div>
         )}
@@ -506,7 +646,7 @@ export function DiscoverClient({
           <div aria-busy="true" aria-label="正在載入內容" className="columns-1 gap-5 sm:columns-2 lg:columns-3">
             {[0, 1, 2, 3, 4, 5].map((idx) => (
               <div key={idx} className="mb-6 break-inside-avoid">
-                <Skeleton className="w-full rounded-xl" style={{ aspectRatio: idx % 2 === 0 ? '4 / 5' : '4 / 3' }} />
+                <Skeleton className="w-full rounded-2xl" style={{ aspectRatio: idx % 2 === 0 ? '4 / 5' : '4 / 3' }} />
                 <Skeleton className="mt-3 h-4 w-4/5" />
                 <Skeleton className="mt-2 h-4 w-1/2" />
               </div>
@@ -515,10 +655,9 @@ export function DiscoverClient({
         ) : activeTab === 'stream' ? (
           streamItems.length === 0 ? (
             <EmptyState
-              icon={<Compass />}
-              title="沒有符合條件的社團現場"
-              description="清除搜尋，或換個興趣領域看看。"
-              action={<Button onClick={resetAllFilters}>看全部</Button>}
+              title="這裡還空著"
+              description="換個領域逛逛，找張喜歡的社團貼紙。"
+              action={<Button onClick={resetAllFilters}>看全部作品</Button>}
             />
           ) : (
             <div className="columns-1 gap-5 sm:columns-2 lg:columns-3">
@@ -531,10 +670,9 @@ export function DiscoverClient({
           )
         ) : eventItems.length === 0 ? (
           <EmptyState
-            icon={<Calendar />}
             title="這些條件下沒有近期活動"
-            description="少選幾個條件就能看到更多。"
-            action={<Button onClick={resetAllFilters}>清除條件</Button>}
+            description="少選幾個條件就能看到更多體驗社課。"
+            action={<Button onClick={resetAllFilters}>撕掉全部</Button>}
           />
         ) : (
           <div className="grid gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
@@ -545,12 +683,10 @@ export function DiscoverClient({
         )}
       </div>
 
-      {/* Batch pagination */}
-      <div className="flex flex-col items-center gap-3 border-t border-line pt-6 text-center">
-        <p className="text-sm text-fg-muted">
-          這批 {activeTab === 'stream' ? streamMeta.count : eventMeta.count} 則・每個社團最多 2 則・不依讚數排序
-        </p>
-        <div className="flex flex-wrap justify-center gap-2">
+      {/* Finite batch end */}
+      <div className="tactile-shadow-sm flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-border-ink bg-surface px-5 py-4">
+        <p className="font-display text-sm font-bold text-fg">這批看完了</p>
+        <div className="flex flex-wrap gap-2">
           {(activeTab === 'stream' ? streamMeta.has_more : eventMeta.has_more) && (
             <Button
               variant="secondary"
@@ -568,7 +704,7 @@ export function DiscoverClient({
               換一批
             </Button>
           )}
-          <Button variant="ghost" onClick={() => handleTabSwitch(activeTab === 'stream' ? 'events' : 'stream')}>
+          <Button variant="soft" onClick={() => handleTabSwitch(activeTab === 'stream' ? 'events' : 'stream')}>
             {activeTab === 'stream' ? '看近期活動' : '看社團現場'}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Button>

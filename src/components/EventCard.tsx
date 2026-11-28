@@ -40,8 +40,8 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
     });
 
   return (
-    <article className="group overflow-hidden rounded-xl border border-line bg-surface">
-      <Link href={href} onClick={track} className="block">
+    <article className="group tactile-card tactile-card-interactive flex flex-col overflow-hidden rounded-2xl bg-surface">
+      <Link href={href} onClick={track} className="block border-b-2 border-border-ink">
         <div
           className={`relative w-full overflow-hidden bg-gradient-to-br ${theme.gradientClass}`}
           style={{ aspectRatio: aspect }}
@@ -63,26 +63,26 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
       </Link>
 
       {/* Ticket body: what / when / where */}
-      <div className="space-y-1.5 px-4 pt-3 pb-4">
+      <div className="flex-1 space-y-1.5 px-4 pt-3.5 pb-4">
         {event.reason && (
-          <p className="flex items-start gap-1.5 text-sm text-brand-soft-fg">
+          <p className="flex items-start gap-1.5 text-sm font-medium text-brand-soft-fg">
             <Sparkles className="mt-1 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span>{event.reason}</span>
           </p>
         )}
 
-        <p className="flex items-center gap-1.5 text-sm font-medium tabular-nums text-brand-soft-fg">
-          <Calendar className="h-4 w-4 shrink-0" aria-hidden="true" />
+        <p className="flex items-center gap-1.5 font-mono text-xs font-bold tabular-nums text-brand-soft-fg">
+          <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           {timeLabel}
         </p>
 
-        <Link href={href} onClick={track} className="block py-1">
-          <h3 className="line-clamp-2 font-display text-lg font-bold leading-snug text-fg group-hover:underline group-hover:decoration-border-strong group-hover:underline-offset-4">
+        <Link href={href} onClick={track} className="block py-0.5">
+          <h3 className="line-clamp-2 font-display text-lg font-black leading-snug text-fg group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">
             {event.title}
           </h3>
         </Link>
 
-        <p className="truncate text-sm text-fg-muted">
+        <p className="truncate text-sm font-medium text-fg-secondary">
           {event.club.name}
           {event.co_host_clubs && event.co_host_clubs.length > 0
             ? ` × ${event.co_host_clubs.map((c) => c.name).join(' × ')}`
@@ -90,7 +90,7 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
         </p>
 
         <p className="flex items-center gap-1.5 text-sm text-fg-muted">
-          <MapPin className="h-4 w-4 shrink-0 text-fg-faint" aria-hidden="true" />
+          <MapPin className="h-4 w-4 shrink-0 text-fg-muted" aria-hidden="true" />
           <span className="truncate">
             {event.club.university_short_name} · {event.location_text}
           </span>
@@ -98,13 +98,17 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
       </div>
 
       {/* Ticket stub: fee and who can come */}
-      <div className="ticket-stub flex flex-wrap items-center gap-1.5 px-4 py-3">
-        <span className="mr-1 text-sm font-semibold text-fg">
-          {event.fee_ntd === 0 ? '免費' : `NT$${event.fee_ntd}`}
+      <div className="ticket-stub flex flex-wrap items-center justify-between gap-2 bg-surface-subtle px-4 py-3">
+        <span className="font-mono text-sm font-bold text-fg">
+          {event.fee_ntd === 0 ? '免費入場' : `NT$${event.fee_ntd}`}
         </span>
-        {decisionTags.map((tag) => (
-          <Badge key={tag}>{tag}</Badge>
-        ))}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {decisionTags.map((tag) => (
+            <Badge key={tag} tone="accent">
+              {tag}
+            </Badge>
+          ))}
+        </div>
       </div>
     </article>
   );
