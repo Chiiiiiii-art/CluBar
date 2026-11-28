@@ -128,3 +128,19 @@ export interface ClubPillData {
   uniName: string;
   accent: string;
 }
+
+/** Same values as the --color-domain-* tokens in globals.css (Satori cannot read CSS variables). */
+export const DOMAIN_COLORS: Record<string, string> = {
+  'game-dev': '#8b6cff',
+  'photo-film': '#45b7e6',
+  'music-live': '#ff7aa2',
+  'craft-design': '#ffb547',
+  'software-ai': '#2fc4a4',
+  'outdoor-mountain': '#79c35a',
+  'social-service': '#ff9466',
+  'finance-research': '#f4d64a',
+  'boardgame-esports': '#2f55d4',
+  'dance-stage': '#d77ad9',
+  'sports-fitness': '#ef6447',
+  'language-culture': '#c28d5f',
+};

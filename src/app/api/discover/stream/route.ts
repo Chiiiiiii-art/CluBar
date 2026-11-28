@@ -30,7 +30,7 @@ export async function GET(req: Request) {
         .split(',')
         .map((s) => s.trim())
         .filter((s) => z.string().uuid().safeParse(s).success)
-        .slice(0, 6),
+        .slice(0, 12),
       excludeIds,
     });
 

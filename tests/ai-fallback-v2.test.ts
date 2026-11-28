@@ -127,7 +127,7 @@ test('Onboarding archetype and Blend deterministic scoring stay bounded 45..100'
   // The quiz no longer asks goals or vibe: no hidden default may pick the archetype.
   assert.equal(
     computePersonaArchetype({ goals: [], domainNames: ['音樂展演'] }),
-    '舞台共振者'
+    '校園探索旅人 · 音樂展演'
   );
 
   const fullMatch = computeBlendScore({

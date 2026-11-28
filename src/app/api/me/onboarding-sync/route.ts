@@ -10,7 +10,7 @@ import { computePersonaArchetype } from '@/lib/services/onboarding-blend';
 const syncSchema = z.object({
   university_id: z.string().uuid().optional().nullable(),
   goals: z.array(z.string().trim().max(40)).max(4).default([]),
-  domain_ids: z.array(z.string().uuid()).max(6).default([]),
+  domain_ids: z.array(z.string().uuid()).max(12).default([]),
   vibe: z.string().trim().max(32).optional().nullable(),
 });
 

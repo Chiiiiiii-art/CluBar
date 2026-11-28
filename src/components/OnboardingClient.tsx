@@ -1,13 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight, Check, Share2 } from 'lucide-react';
+import { ArrowRight, Check, Download, Share2 } from 'lucide-react';
 import { DomainIcon } from './DomainIcon';
 import { EventCard } from './EventCard';
+import { RecipeCard } from './RecipeCard';
 import type { DiscoverEventCardDTO } from '@/lib/serializers';
 import { ONBOARDING_DISMISSED_KEY } from '@/lib/constants';
+import { MAX_TAPS, foodLabel, recipeImagePath, recipePath, toRecipe, type Food } from '@/lib/recipe';
+import { downloadImage, preloadShareImage, shareInvite } from '@/lib/share';
 
 import { Button, ButtonLink, EmptyState, PageHeader, cn } from '@/components/ui';
 interface RecommendResult {
@@ -48,6 +51,101 @@ function Choice({
     >
       <span className="min-w-0 break-words">{children}</span>
       {selected && <Check className="h-4 w-4 shrink-0 text-fg" aria-hidden="true" />}
+    </button>
+  );
+}
+
+/**
+ * Interest sticker that counts taps: each tap adds one 份 with a floating "+N";
+ * a long press (or Backspace) takes one back, so no extra minus button takes up room.
+ */
+function TapChoice({
+  count,
+  onAdd,
+  onRemove,
+  children,
+}: {
+  count: number;
+  onAdd: () => void;
+  onRemove: () => void;
+  children: React.ReactNode;
+}) {
+  const timer = useRef<number | null>(null);
+  const longPressed = useRef(false);
+  const [pops, setPops] = useState<{ id: number; text: string }[]>([]);
+
+  const pop = (text: string) => {
+    const id = Date.now() + Math.random();
+    setPops((p) => [...p, { id, text }]);
+    window.setTimeout(() => setPops((p) => p.filter((x) => x.id !== id)), 700);
+  };
+  const remove = () => {
+    if (count === 0) return;
+    onRemove();
+    pop('−1');
+  };
+  const cancel = () => {
+    if (timer.current) window.clearTimeout(timer.current);
+    timer.current = null;
+  };
+
+  return (
+    <button
+      type="button"
+      aria-pressed={count > 0}
+      onPointerDown={(e) => {
+        if (e.button !== 0) return;
+        longPressed.current = false;
+        cancel();
+        timer.current = window.setTimeout(() => {
+          longPressed.current = true;
+          remove();
+          navigator.vibrate?.(15);
+        }, 450);
+      }}
+      onPointerUp={cancel}
+      onPointerLeave={cancel}
+      onPointerCancel={cancel}
+      onContextMenu={(e) => e.preventDefault()}
+      onKeyDown={(e) => {
+        if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '-') {
+          e.preventDefault();
+          remove();
+        }
+      }}
+      onClick={() => {
+        if (longPressed.current) {
+          longPressed.current = false;
+          return;
+        }
+        if (count >= MAX_TAPS) return;
+        onAdd();
+        pop(`+${count + 1}`);
+      }}
+      style={{ WebkitTouchCallout: 'none' }}
+      className={cn(
+        'tactile-press relative flex min-h-12 w-full select-none items-center justify-between gap-2 rounded-xl border-2 border-border-ink px-4 py-2.5 text-left font-display text-sm',
+        count > 0
+          ? 'bg-spark font-bold text-fg'
+          : 'bg-surface font-medium text-fg-secondary hover:bg-surface-subtle hover:text-fg'
+      )}
+    >
+      <span className="min-w-0 break-words">{children}</span>
+      {count > 0 && (
+        <span className="flex h-7 min-w-7 shrink-0 items-center justify-center rounded-full bg-fg px-1.5 text-sm font-bold text-spark">
+          {count}
+          <span className="sr-only"> 份</span>
+        </span>
+      )}
+      {pops.map((p) => (
+        <span
+          key={p.id}
+          aria-hidden="true"
+          className="animate-tap-pop pointer-events-none absolute left-1/2 top-0 font-display text-lg font-bold text-brand"
+        >
+          {p.text}
+        </span>
+      ))}
     </button>
   );
 }
@@ -95,8 +193,6 @@ function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
   );
 }
 
-const MAX_DOMAINS = 3;
-
 export function OnboardingClient({
   universities,
   domains,
@@ -113,10 +209,23 @@ export function OnboardingClient({
   const knownSchool = universities.some((u) => u.id === initialUniversityId);
   const [step, setStep] = useState<1 | 2 | 3>(knownSchool ? 2 : 1);
   const [universityId, setUniversityId] = useState(knownSchool ? initialUniversityId : '');
-  const [domainIds, setDomainIds] = useState<string[]>([]);
+  // Taps per domain slug: more taps, bigger share of the recipe.
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const [food, setFood] = useState<Food>('drink');
+  const [shareNote, setShareNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<RecommendResult | null>(null);
   const [blendLoading, setBlendLoading] = useState(false);
+
+  const recipe = toRecipe(counts);
+  const slugToId = new Map(domains.map((d) => [d.slug, d.id]));
+  const domainIds = recipe.map((p) => slugToId.get(p.slug)).filter(Boolean) as string[];
+  const imageUrl = recipeImagePath(recipe, food);
+
+  useEffect(() => {
+    // iOS needs the share image ready before the tap (see lib/share).
+    if (step === 3 && recipe.length > 0) preloadShareImage(imageUrl, 'clubar-mix.png');
+  }, [step, imageUrl, recipe.length]);
 
   const goStep = (next: 1 | 2 | 3) => {
     setStep(next);
@@ -125,9 +234,19 @@ export function OnboardingClient({
     }
   };
 
-  const toggleDomain = (id: string) => {
-    setDomainIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < MAX_DOMAINS ? [...prev, id] : prev
+  const bump = (slug: string, delta: 1 | -1) =>
+    setCounts((prev) => ({ ...prev, [slug]: Math.max(0, Math.min(MAX_TAPS, (prev[slug] ?? 0) + delta)) }));
+
+  const handleShare = async () => {
+    const outcome = await shareInvite({
+      title: `我的社團${foodLabel(food)}`,
+      text: `這是我的社團${foodLabel(food)}，你也來調一份？`,
+      url: `${window.location.origin}${recipePath(recipe, food)}`,
+      imageUrl,
+      fileName: 'clubar-mix.png',
+    });
+    setShareNote(
+      outcome === 'copied' ? '連結已複製，貼給朋友吧' : outcome === 'failed' ? '分享失敗，可以改用存成圖片' : ''
     );
   };
 
@@ -154,6 +273,7 @@ export function OnboardingClient({
             university_id: universityId,
             goals: [],
             domain_ids: domainIds,
+            domain_weights: counts,
             synced: false,
           })
         );
@@ -227,16 +347,21 @@ export function OnboardingClient({
         <div className="space-y-6">
           <PageHeader
             title="你對哪些有點好奇？"
-            description={`選 1–${MAX_DOMAINS} 個，我們只留下這些類型的社團。`}
+            description="喜歡就點，越喜歡點越多下；點錯了長按可以減一份。"
           />
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3" role="group" aria-label="興趣領域">
             {domains.map((d) => (
-              <Choice key={d.id} selected={domainIds.includes(d.id)} onClick={() => toggleDomain(d.id)}>
+              <TapChoice
+                key={d.id}
+                count={counts[d.slug] ?? 0}
+                onAdd={() => bump(d.slug, 1)}
+                onRemove={() => bump(d.slug, -1)}
+              >
                 <span className="inline-flex items-center gap-2">
                   <DomainIcon slug={d.slug} />
                   {d.name_zh}
                 </span>
-              </Choice>
+              </TapChoice>
             ))}
           </div>
           <div className="flex items-center justify-between gap-3 border-t-2 border-dashed border-line pt-4">
@@ -249,7 +374,7 @@ export function OnboardingClient({
               icon={<ArrowRight className="h-4 w-4" aria-hidden="true" />}
               className="flex-row-reverse"
             >
-              {loading ? '挑選中...' : '看結果'}
+              {loading ? '調配中...' : '看結果'}
             </Button>
           </div>
           <SkipLink />
@@ -259,26 +384,28 @@ export function OnboardingClient({
       {step === 3 && result && (
         <div className="space-y-8">
           <PageHeader
-            eyebrow="你的校園探索類型"
-            title={result.persona_archetype}
-            action={
-              <>
-                <Button
-                  disabled={blendLoading}
-                  onClick={handleCreateBlend}
-                  icon={<Share2 className="h-4 w-4" aria-hidden="true" />}
-                >
-                  {isLoggedIn ? '做一張分享卡，約朋友合拍' : '登入做興趣分享卡'}
-                </Button>
-                <ButtonLink
-                  href={`/?university_id=${encodeURIComponent(universityId)}${domainIds.length ? `&domain_id=${encodeURIComponent(domainIds.join(','))}` : ''}`}
-                  variant="secondary"
-                >
-                  逛逛現場動態
-                </ButtonLink>
-              </>
-            }
+            eyebrow="測驗結果"
+            title="調好了，這是你的配方"
+            description="點越多下的興趣，份量越多。想換個食物也可以。"
           />
+          <div className="space-y-3">
+            <RecipeCard parts={recipe} food={food} onFoodChange={setFood} />
+            <div className="flex flex-wrap gap-2.5">
+              <Button onClick={handleShare} icon={<Share2 className="h-4 w-4" aria-hidden="true" />}>
+                分享我的{foodLabel(food)}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => void downloadImage(imageUrl, 'clubar-mix.png')}
+                icon={<Download className="h-4 w-4" aria-hidden="true" />}
+              >
+                存成圖片
+              </Button>
+            </div>
+            <p className="min-h-5 text-sm text-fg-muted" role="status">
+              {shareNote}
+            </p>
+          </div>
 
           {result.clubs.length === 0 && result.events.length === 0 && (
             <EmptyState
@@ -291,7 +418,7 @@ export function OnboardingClient({
           {result.clubs.length > 0 && (
             <section className="space-y-3" aria-labelledby="onb-clubs">
               <h2 id="onb-clubs" className="font-display text-lg font-bold text-fg">
-                為你挑出的校內活躍社團
+                照你的配方，挑出這些社團
               </h2>
               <div className="grid gap-3 sm:grid-cols-2">
                 {result.clubs.map((c) => (
@@ -324,6 +451,18 @@ export function OnboardingClient({
               </div>
             </section>
           )}
+
+          <div className="flex flex-wrap gap-2.5 border-t-2 border-dashed border-line pt-4">
+            <ButtonLink
+              href={`/?university_id=${encodeURIComponent(universityId)}${domainIds.length ? `&domain_id=${encodeURIComponent(domainIds.join(','))}` : ''}`}
+              variant="secondary"
+            >
+              逛逛社團動態
+            </ButtonLink>
+            <Button variant="ghost" disabled={blendLoading} onClick={handleCreateBlend}>
+              {isLoggedIn ? '約朋友比對興趣' : '登入約朋友比對興趣'}
+            </Button>
+          </div>
         </div>
       )}
     </div>

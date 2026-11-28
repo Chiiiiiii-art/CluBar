@@ -37,7 +37,7 @@ export default async function HomePage({
   const urlDomainIds = (sp.domain_id ?? '')
     .split(',')
     .filter((id) => uuidRegex.test(id))
-    .slice(0, 6);
+    .slice(0, 12);
   const initialDomainIds = urlDomainIds.length > 0 ? urlDomainIds : (homeContext?.savedDomainIds ?? []);
   // The client also checks localStorage before showing it.
   const maybeFirstVisit = !homeContext?.known && !initialUniversityId;

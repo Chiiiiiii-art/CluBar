@@ -152,6 +152,24 @@
   --color-notice-danger-fg: var(--color-danger-800);
   --color-notice-success-border: var(--color-border-ink);
   --color-notice-success-fg: var(--color-success-800);
+
+}
+
+:root {
+  /* Interest domains: recipe-card ingredients (quiz result). Content colours, not UI chrome. In :root because
+     Tailwind drops @theme variables no utility uses, and these are only read via var(). Mirrored as literals in src/lib/og/card-parts.tsx DOMAIN_COLORS for PNG cards. */
+  --color-domain-game-dev: #8b6cff;
+  --color-domain-photo-film: #45b7e6;
+  --color-domain-music-live: #ff7aa2;
+  --color-domain-craft-design: #ffb547;
+  --color-domain-software-ai: #2fc4a4;
+  --color-domain-outdoor-mountain: #79c35a;
+  --color-domain-social-service: #ff9466;
+  --color-domain-finance-research: #f4d64a;
+  --color-domain-boardgame-esports: #2f55d4;
+  --color-domain-dance-stage: #d77ad9;
+  --color-domain-sports-fitness: #ef6447;
+  --color-domain-language-culture: #c28d5f;
 }
 
 @layer base {
@@ -323,6 +341,26 @@
 
 .animate-stamp {
   animation: stamp-in 320ms var(--ease-spring) both;
+}
+
+/* Quiz "+1" pop that floats up off a tapped sticker. */
+@keyframes tap-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -10px) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -34px) scale(1);
+  }
+}
+
+.animate-tap-pop {
+  animation: tap-pop 650ms var(--ease-out-soft) both;
 }
 
 /* Horizontal scroller that fades its right edge on small screens. */

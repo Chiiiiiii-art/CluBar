@@ -10,7 +10,7 @@ import { createBlendSessionForUser } from '@/lib/services/onboarding-blend';
 
 const createBlendSchema = z.object({
   university_id: z.string().uuid().optional(),
-  domain_ids: z.array(z.string().uuid()).max(6).optional(),
+  domain_ids: z.array(z.string().uuid()).max(12).optional(),
   goals: z.array(z.string().trim().max(40)).max(4).optional(),
 });
 
