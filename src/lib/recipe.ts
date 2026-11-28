@@ -11,6 +11,49 @@ export const FOODS: { id: Food; label: string }[] = [
   { id: 'pizza', label: '披薩' },
 ];
 
+/**
+ * Colour sets the user picks for their card. Colours go by rank (biggest share gets the first),
+ * and each set alternates dark/light or warm/cool so neighbouring layers never blend together.
+ * Like event theme presets these are user-chosen content colours, so they live here as literals
+ * (the OG card needs literals anyway).
+ */
+export const PALETTES = [
+  { id: 'soda', label: '汽水', colors: ['#ff6b6b', '#4d96ff', '#ffd93d', '#9b5de5', '#6bcb77', '#ff8fab', '#2ec4b6', '#f9844a'] },
+  { id: 'sunset', label: '夕陽', colors: ['#f94144', '#f9c74f', '#277da1', '#f8961e', '#577590', '#f3722c', '#90be6d', '#43aa8b'] },
+  { id: 'berry', label: '莓果', colors: ['#c9184a', '#ffb3c6', '#7b2cbf', '#f4a6c1', '#e63946', '#cdb4db', '#5a189a', '#ff758f'] },
+  { id: 'matcha', label: '抹茶', colors: ['#386641', '#dde5b6', '#a7c957', '#283618', '#f2e8cf', '#6a994e', '#bc4749', '#b5c99a'] },
+  { id: 'ocean', label: '海洋', colors: ['#023e8a', '#90e0ef', '#0077b6', '#caf0f8', '#03045e', '#48cae4', '#ade8f4', '#00b4d8'] },
+] as const;
+export type PaletteId = (typeof PALETTES)[number]['id'];
+
+export function parsePalette(raw: string | null | undefined): PaletteId {
+  return PALETTES.find((p) => p.id === raw)?.id ?? 'soda';
+}
+
+/** Colour for the i-th ingredient (parts are sorted biggest first). */
+export function partColor(palette: PaletteId, i: number): string {
+  const colors = PALETTES.find((p) => p.id === palette)!.colors;
+  return colors[i % colors.length]!;
+}
+
+/** Name printed on the card; plain text, short. */
+export function parseMaker(raw: string | null | undefined): string {
+  return (raw ?? '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 16);
+}
+
+export interface RecipeCardState {
+  parts: RecipePart[];
+  food: Food;
+  palette: PaletteId;
+  maker: string;
+}
+
+function cardQuery(c: RecipeCardState): string {
+  const q = new URLSearchParams({ r: encodeRecipe(c.parts), f: c.food, p: c.palette });
+  if (c.maker) q.set('n', c.maker);
+  return q.toString();
+}
+
 export interface RecipePart {
   slug: string;
   name: string;
@@ -50,10 +93,14 @@ export function foodLabel(food: Food): string {
   return FOODS.find((f) => f.id === food)!.label;
 }
 
-export function recipePath(parts: RecipePart[], food: Food): string {
-  return `/mix?r=${encodeURIComponent(encodeRecipe(parts))}&f=${food}`;
+export function recipePath(c: RecipeCardState): string {
+  return `/mix?${cardQuery(c)}`;
 }
 
-export function recipeImagePath(parts: RecipePart[], food: Food): string {
-  return `/api/og/mix?r=${encodeURIComponent(encodeRecipe(parts))}&f=${food}`;
+export function recipeImagePath(c: RecipeCardState): string {
+  return `/api/og/mix?${cardQuery(c)}`;
+}
+
+export function cardTitle(maker: string, food: Food): string {
+  return `${maker || '我'}的社團${foodLabel(food)}`;
 }

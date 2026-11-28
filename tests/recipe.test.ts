@@ -1,10 +1,15 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { encodeRecipe, parseFood, parseRecipe, toRecipe } from '../src/lib/recipe';
-import { DOMAIN_COLORS } from '../src/lib/og/card-parts';
-import { INTEREST_DOMAIN_SEEDS } from '../src/lib/constants';
+import {
+  PALETTES,
+  encodeRecipe,
+  parseFood,
+  parseMaker,
+  parsePalette,
+  parseRecipe,
+  partColor,
+  toRecipe,
+} from '../src/lib/recipe';
 
 test('recipe round-trips through the share link, biggest share first', () => {
   const parts = toRecipe({ 'software-ai': 1, 'game-dev': 3, 'boardgame-esports': 1, 'music-live': 0 });
@@ -22,11 +27,11 @@ test('parseRecipe drops untrusted junk', () => {
   assert.equal(parseFood('<script>'), 'drink');
 });
 
-test('OG domain colours match the --color-domain-* tokens', () => {
-  const css = readFileSync(join(__dirname, '..', 'src', 'app', 'globals.css'), 'utf8');
-  for (const d of INTEREST_DOMAIN_SEEDS) {
-    const m = css.match(new RegExp(`--color-domain-${d.slug}:\\s*(#[0-9a-f]{6})`));
-    assert.ok(m, `missing token for ${d.slug}`);
-    assert.equal(DOMAIN_COLORS[d.slug], m![1]);
+test('palettes: neighbouring ingredients never share a colour; maker name is cleaned', () => {
+  for (const pal of PALETTES) {
+    for (let i = 0; i < 12; i++) assert.notEqual(partColor(pal.id, i), partColor(pal.id, i + 1), pal.id);
   }
+  assert.equal(parsePalette('nope'), 'soda');
+  assert.equal(parseMaker('  小明<script>  '), '小明script');
+  assert.equal(parseMaker('a'.repeat(40)).length, 16);
 });

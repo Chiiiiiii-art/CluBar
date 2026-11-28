@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Bell,
-  CalendarPlus,
   Check,
   CheckCircle2,
   Clock,
@@ -27,6 +26,7 @@ import { uploadDualAlbumPhoto } from '@/lib/media/client-upload';
 import type { EventFullViewDTO } from '@/lib/services/events';
 import { ImageUploader } from '@/components/ImageUploader';
 import { MarkdownView } from '@/components/MarkdownView';
+import { settledLocation } from '@/components/EventStatusTags';
 import { ShareButton } from '@/components/ShareButton';
 import { PublishPanel } from '@/components/publish/PublishPanel';
 import { completeFlow, startFlow } from '@/lib/flow';
@@ -82,23 +82,6 @@ function buildGoogleCalendarHref(detail: EventFullViewDTO['detail']): string | n
   return url.toString();
 }
 
-function buildOutlookCalendarHref(detail: EventFullViewDTO['detail']): string | null {
-  if (!detail.starts_at) return null;
-  const start = new Date(detail.starts_at);
-  const end = detail.ends_at
-    ? new Date(detail.ends_at)
-    : new Date(start.getTime() + 2 * 60 * 60 * 1000);
-  const url = new URL('https://outlook.live.com/calendar/0/deeplink/compose');
-  url.searchParams.set('path', '/calendar/action/compose');
-  url.searchParams.set('rru', 'addevent');
-  url.searchParams.set('subject', detail.title);
-  url.searchParams.set('startdt', start.toISOString());
-  url.searchParams.set('enddt', end.toISOString());
-  url.searchParams.set('location', detail.location_text);
-  url.searchParams.set('body', detail.summary || detail.title);
-  return url.toString();
-}
-
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
@@ -131,9 +114,6 @@ export function EventPageClient({
   const [data, setData] = useState<EventFullViewDTO>(initialData);
   const [privacyMode, setPrivacyMode] = useState<RsvpPrivacyMode>(
     initialData.viewer_rsvp?.privacy_mode ?? 'public_to_attendees'
-  );
-  const [displayAlias, setDisplayAlias] = useState(
-    initialData.viewer_rsvp?.display_alias ?? ''
   );
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -180,8 +160,9 @@ export function EventPageClient({
     detail.campus_only &&
     (!viewer.isCampusVerified || viewer.universityId !== detail.club.university_id);
 
-  // No public head counts (docs/design/01-brand.md); capacity is shown only as open / full.
-  const isFull = Boolean(detail.capacity && detail.going_count >= detail.capacity);
+  // Seats left is the event's own capacity, not a popularity count; product asked to show it.
+  const seatsLeft = detail.capacity ? Math.max(0, detail.capacity - detail.going_count) : null;
+  const isFull = seatsLeft === 0;
   // Ended = past ends_at, or 3h after starts_at when no end time was given.
   const endMs = detail.ends_at
     ? new Date(detail.ends_at).getTime()
@@ -192,7 +173,6 @@ export function EventPageClient({
   const hiddenGoingCount = Math.max(0, detail.going_count - detail.public_attendees.length);
   const featuredCount = album_photos.filter((p) => p.status === 'featured_stream').length;
   const googleUrl = buildGoogleCalendarHref(detail);
-  const outlookUrl = buildOutlookCalendarHref(detail);
   const canRsvp = viewer.isLoggedIn && !campusRestricted && !hasEnded && detail.status !== 'cancelled';
   const loginHref = `/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}?rsvp=1`)}`;
   // Invite text for the share sheet; location stays out when officers chose to hide it.
@@ -242,7 +222,8 @@ export function EventPageClient({
         body: JSON.stringify({
           status: nextStatus,
           privacy_mode: privacyMode,
-          display_alias: displayAlias.trim() || null,
+          // Names come from the profile only; per-event aliases are no longer offered.
+          display_alias: null,
         }),
       });
       const json = await res.json();
@@ -254,7 +235,7 @@ export function EventPageClient({
       }
       setStatusMessage(
         nextStatus === 'going'
-          ? '卡位成功！記得加入行事曆。'
+          ? '卡位成功！'
           : nextStatus === 'interested'
             ? '已標記為有興趣。'
             : '已取消報名。'
@@ -399,22 +380,6 @@ export function EventPageClient({
       await refreshEvent();
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : '策展審核失敗');
-    } finally {
-      setBusyAction(null);
-    }
-  }
-
-  async function handleCopyWebcal() {
-    setErrorMessage(null);
-    setBusyAction('webcal');
-    try {
-      const res = await fetch('/api/me/calendar-token');
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error?.message || '無法取得個人行事曆連結');
-      await navigator.clipboard.writeText(json.webcal_url);
-      setStatusMessage('已複製你的專屬行事曆訂閱網址！可直接加入 Apple／Google 日曆。');
-    } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : '複製失敗');
     } finally {
       setBusyAction(null);
     }
@@ -817,13 +782,15 @@ export function EventPageClient({
         <div id="rsvp-section" className="space-y-6 md:col-span-5">
           {/* RSVP Card */}
           <Card>
-            <h2 id="rsvp-heading" tabIndex={-1} className="font-display text-lg font-bold text-fg outline-none">{hasEnded ? '活動結束了' : '報名這場活動'}</h2>
+            <h2 id="rsvp-heading" tabIndex={-1} className="font-display text-lg font-bold text-fg outline-none">{hasEnded ? '活動結束了' : '報上名來！'}</h2>
             <p className="mt-1 text-sm text-fg-muted">
               {hasEnded
                 ? '謝謝大家來參加！把現場照片放進共享相簿，精選會回到社團頁。'
                 : isFull
                   ? '名額已滿，可以先按「有興趣」追蹤這場活動。'
-                  : '還有位子，零基礎也歡迎直接報名。'}
+                  : seatsLeft !== null
+                    ? `剩下 ${seatsLeft} 個位置，零基礎也歡迎。`
+                    : '還有位子，零基礎也歡迎直接報名。'}
             </p>
 
             {hasEnded ? (
@@ -861,54 +828,33 @@ export function EventPageClient({
               </div>
             ) : (
               <div className="mt-4 space-y-4">
-                {/* 2-Tier Privacy Selector */}
-                <div className="space-y-2 rounded-xl bg-surface-subtle p-3.5 text-sm">
-                  <p className="font-bold text-fg-body">你的名單顯示偏好（隨時可改）：</p>
-                  <label className="flex min-h-11 cursor-pointer items-start gap-2 py-1">
-                    <input
-                      type="radio"
-                      name="privacy_mode"
-                      checked={privacyMode === 'public_to_attendees'}
-                      onChange={() => setPrivacyMode('public_to_attendees')}
-                      className="mt-0.5"
-                    />
-                    <span>
-                      <strong className="text-fg">公開於同場名單</strong>（與參加者互相認識，可自訂顯示暱稱）
-                    </span>
-                  </label>
-                  <label className="flex min-h-11 cursor-pointer items-start gap-2 py-1">
-                    <input
-                      type="radio"
-                      name="privacy_mode"
-                      checked={privacyMode === 'private_count_only'}
-                      onChange={() => setPrivacyMode('private_count_only')}
-                      className="mt-0.5"
-                    />
-                    <span>
-                      <strong className="flex items-center gap-1 text-fg">
-                        <Lock className="h-3 w-3" aria-hidden="true" />
-                        僅計入總人數（完全匿名）
-                      </strong>
-                      公開頁面絕不顯示你的姓名與頭像
-                    </span>
-                  </label>
-
-                  {privacyMode === 'public_to_attendees' && (
-                    <div className="min-w-0 flex-1 space-y-1.5 *:w-full">
-                      <label htmlFor="event-page-displayalias" className="block text-sm font-medium text-fg-body">
-                        顯示暱稱（選填）
-                      </label>
-                      <input id="event-page-displayalias"
-                        type="text"
-                        maxLength={40}
-                        value={displayAlias}
-                        onChange={(e) => setDisplayAlias(e.target.value)}
-                        placeholder="自訂此場顯示暱稱（留空則用帳號名稱）"
-                        className={`${controlClasses} min-h-11 mt-1 w-full`}
+                {/* Public or anonymous; the shown name is edited on the profile, not here. */}
+                <fieldset className="flex gap-2">
+                  <legend className="sr-only">在同場名單上</legend>
+                  {(
+                    [
+                      { id: 'public_to_attendees', label: '公開' },
+                      { id: 'private_count_only', label: '匿名' },
+                    ] as const
+                  ).map((o) => (
+                    <label
+                      key={o.id}
+                      className={`tactile-press flex min-h-11 flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl border-2 border-border-ink font-display text-sm font-bold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-brand ${
+                        privacyMode === o.id ? 'bg-fg text-spark' : 'bg-surface text-fg'
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="privacy_mode"
+                        className="sr-only"
+                        checked={privacyMode === o.id}
+                        onChange={() => setPrivacyMode(o.id)}
                       />
-                    </div>
-                  )}
-                </div>
+                      {o.id === 'private_count_only' && <Lock className="h-3.5 w-3.5" aria-hidden="true" />}
+                      {o.label}
+                    </label>
+                  ))}
+                </fieldset>
 
                 <div className="flex flex-wrap gap-2">
                   <Button
@@ -929,25 +875,42 @@ export function EventPageClient({
                 </div>
 
                 {viewer_rsvp?.status === 'going' && (
-                  <div
-                    role="status"
-                    className="flex items-center gap-3 rounded-xl bg-success-soft px-4 py-3 text-success-fg"
-                  >
-                    <span
-                      aria-hidden="true"
-                      className={`inline-flex shrink-0 -rotate-4 items-center rounded-lg border-2 border-border-ink bg-surface px-2 py-0.5 font-display text-sm font-black text-fg ${
-                        stampKey > 0 ? 'animate-stamp' : ''
-                      }`}
-                      key={stampKey}
-                    >
-                      已卡位
-                    </span>
-                    <div className="min-w-0 text-sm">
-                      <p className="font-bold text-fg">卡位成功：{detail.title}</p>
-                      <p className="text-fg-secondary">
-                        <span className="font-mono tabular-nums">{formatDisplayTime(detail.starts_at)}</span>・{detail.location_text}
-                      </p>
+                  <div className="space-y-3">
+                    {/* Admission ticket: the stamp lands on it the moment you 卡位. */}
+                    <div role="status" className="tactile-card overflow-hidden rounded-2xl bg-spark">
+                      <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold tracking-widest text-fg-secondary">入場券</p>
+                          <p className="mt-1 break-words font-display text-lg font-black leading-snug text-fg">{detail.title}</p>
+                        </div>
+                        <span
+                          aria-hidden="true"
+                          className={`inline-flex shrink-0 -rotate-6 items-center rounded-lg border-2 border-brand bg-surface px-2 py-0.5 font-display text-base font-black text-brand ${
+                            stampKey > 0 ? 'animate-stamp' : ''
+                          }`}
+                          key={stampKey}
+                        >
+                          已卡位
+                        </span>
+                      </div>
+                      <div className="ticket-stub px-4 py-3 text-sm text-fg">
+                        <p className="font-mono font-bold tabular-nums">{formatDisplayTime(detail.starts_at)}</p>
+                        <p className="break-words">{settledLocation(detail.location_text) || '地點待定'}</p>
+                      </div>
                     </div>
+                    {googleUrl ? (
+                      <a
+                        href={googleUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={buttonClasses({ variant: 'primary', size: 'lg', block: true })}
+                      >
+                        <Bell className="h-4 w-4" aria-hidden="true" />
+                        當日推播我
+                      </a>
+                    ) : (
+                      <p className="text-center text-sm text-fg-muted">時間確定後，這裡可以加到 Google 日曆提醒你。</p>
+                    )}
                   </div>
                 )}
 
@@ -1010,60 +973,13 @@ export function EventPageClient({
             )}
           </Card>
 
-          {/* Calendar Sync & Push */}
-          <Card>
-            <h2 className="flex items-center gap-2 font-display text-base font-bold text-fg">
-              <CalendarPlus className="h-4 w-4 text-brand" aria-hidden="true" />
-              加入行事曆與行前通知
-            </h2>
-            {detail.starts_at ? (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {googleUrl && (
-                  <a
-                    href={googleUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={buttonClasses({ variant: 'secondary', size: 'md' })}
-                  >
-                    Google 日曆
-                  </a>
-                )}
-                {outlookUrl && (
-                  <a
-                    href={outlookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={buttonClasses({ variant: 'secondary', size: 'md' })}
-                  >
-                    Outlook
-                  </a>
-                )}
-                <a
-                  href={`/api/calendar/events/${detail.short_code}.ics`}
-                  download={`${detail.short_code}.ics`}
-                  className={buttonClasses({ variant: 'secondary', size: 'md' })}
-                >
-                  <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                  下載行事曆檔
-                </a>
-                {viewer.isLoggedIn && (
-                  <button
-                    type="button"
-                    onClick={handleCopyWebcal}
-                    disabled={busyAction === 'webcal'}
-                    className={buttonClasses({ variant: 'secondary', size: 'md' })}
-                  >
-                    複製行事曆訂閱連結
-                  </button>
-                )}
-              </div>
-            ) : (
-              <p className="mt-2 text-sm text-fg-subtle">
-                活動時間定案後即可一鍵匯入 Google、Apple 與 Outlook 行事曆。
-              </p>
-            )}
-
-            {viewer.isLoggedIn && (
+          {/* Live change alerts (the Google Calendar reminder sits under the ticket) */}
+          {viewer.isLoggedIn && (
+            <Card>
+              <h2 className="flex items-center gap-2 font-display text-base font-bold text-fg">
+                <Bell className="h-4 w-4 text-brand" aria-hidden="true" />
+                臨時異動通知
+              </h2>
               <button
                 type="button"
                 onClick={handleEnableWebPush}
@@ -1073,8 +989,8 @@ export function EventPageClient({
                 <Bell className="h-3.5 w-3.5" aria-hidden="true" />
                 開啟瀏覽器即時異動通知
               </button>
-            )}
-          </Card>
+            </Card>
+          )}
         </div>
       </div>
 

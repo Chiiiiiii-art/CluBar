@@ -15,10 +15,6 @@ export const TOKEN_PALETTE: FoodPalette = {
   spark: 'var(--color-spark)',
 };
 
-export function domainColorVar(slug: string): string {
-  return `var(--color-domain-${slug})`;
-}
-
 interface Part {
   color: string;
   count: number;

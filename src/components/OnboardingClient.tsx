@@ -9,10 +9,10 @@ import { EventCard } from './EventCard';
 import { RecipeCard } from './RecipeCard';
 import type { DiscoverEventCardDTO } from '@/lib/serializers';
 import { ONBOARDING_DISMISSED_KEY } from '@/lib/constants';
-import { MAX_TAPS, foodLabel, recipeImagePath, recipePath, toRecipe, type Food } from '@/lib/recipe';
+import { MAX_TAPS, cardTitle, foodLabel, parseMaker, recipeImagePath, recipePath, toRecipe, type Food, type PaletteId } from '@/lib/recipe';
 import { downloadImage, preloadShareImage, shareInvite } from '@/lib/share';
 
-import { Button, ButtonLink, EmptyState, PageHeader, cn } from '@/components/ui';
+import { Button, ButtonLink, EmptyState, Input, PageHeader, cn } from '@/components/ui';
 interface RecommendResult {
   persona_archetype: string;
   clubs: {
@@ -197,11 +197,14 @@ export function OnboardingClient({
   universities,
   domains,
   isLoggedIn,
+  userName = '',
   initialUniversityId = '',
 }: {
   universities: { id: string; short_name: string; name: string }[];
   domains: { id: string; slug: string; name_zh: string }[];
   isLoggedIn: boolean;
+  /** Printed on the share card; editable before sharing. */
+  userName?: string;
   /** School already known (cookie): start on the interest step. */
   initialUniversityId?: string;
 }) {
@@ -212,6 +215,8 @@ export function OnboardingClient({
   // Taps per domain slug: more taps, bigger share of the recipe.
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [food, setFood] = useState<Food>('drink');
+  const [palette, setPalette] = useState<PaletteId>('soda');
+  const [maker, setMaker] = useState(parseMaker(userName));
   const [shareNote, setShareNote] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<RecommendResult | null>(null);
@@ -220,7 +225,8 @@ export function OnboardingClient({
   const recipe = toRecipe(counts);
   const slugToId = new Map(domains.map((d) => [d.slug, d.id]));
   const domainIds = recipe.map((p) => slugToId.get(p.slug)).filter(Boolean) as string[];
-  const imageUrl = recipeImagePath(recipe, food);
+  const card = { parts: recipe, food, palette, maker: parseMaker(maker) };
+  const imageUrl = recipeImagePath(card);
 
   useEffect(() => {
     // iOS needs the share image ready before the tap (see lib/share).
@@ -239,9 +245,9 @@ export function OnboardingClient({
 
   const handleShare = async () => {
     const outcome = await shareInvite({
-      title: `我的社團${foodLabel(food)}`,
-      text: `這是我的社團${foodLabel(food)}，你也來調一份？`,
-      url: `${window.location.origin}${recipePath(recipe, food)}`,
+      title: cardTitle(card.maker, food),
+      text: `這是${cardTitle(card.maker, food)}，你也來調一份？`,
+      url: `${window.location.origin}${recipePath(card)}`,
       imageUrl,
       fileName: 'clubar-mix.png',
     });
@@ -389,7 +395,26 @@ export function OnboardingClient({
             description="點越多下的興趣，份量越多。想換個食物也可以。"
           />
           <div className="space-y-3">
-            <RecipeCard parts={recipe} food={food} onFoodChange={setFood} />
+            <RecipeCard
+              parts={recipe}
+              food={food}
+              palette={palette}
+              maker={card.maker}
+              onFoodChange={setFood}
+              onPaletteChange={setPalette}
+            />
+            <div className="max-w-xs">
+              <label htmlFor="onb-maker" className="mb-1 block text-sm font-semibold text-fg-secondary">
+                卡片上的名字
+              </label>
+              <Input
+                id="onb-maker"
+                value={maker}
+                maxLength={16}
+                placeholder="留空就寫「我」"
+                onChange={(e) => setMaker(e.target.value)}
+              />
+            </div>
             <div className="flex flex-wrap gap-2.5">
               <Button onClick={handleShare} icon={<Share2 className="h-4 w-4" aria-hidden="true" />}>
                 分享我的{foodLabel(food)}

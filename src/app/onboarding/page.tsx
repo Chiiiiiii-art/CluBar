@@ -31,6 +31,7 @@ export default async function OnboardingPage() {
       universities={uniRows}
       domains={domainRows}
       isLoggedIn={Boolean(user)}
+      userName={user?.displayName ?? ''}
       initialUniversityId={cookieUni}
     />
   );
