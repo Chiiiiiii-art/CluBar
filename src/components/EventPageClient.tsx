@@ -160,9 +160,14 @@ export function EventPageClient({
     detail.campus_only &&
     (!viewer.isCampusVerified || viewer.universityId !== detail.club.university_id);
 
-  // Seats left is the event's own capacity, not a popularity count; product asked to show it.
-  const seatsLeft = detail.capacity ? Math.max(0, detail.capacity - detail.going_count) : null;
-  const isFull = seatsLeft === 0;
+  const isFull = Boolean(detail.capacity && detail.going_count >= detail.capacity);
+  // Per-event turnout (product decision, docs/design/01-brand.md): zeros are never shown.
+  const turnout = [
+    detail.going_count > 0 ? `${detail.going_count} 人卡位` : '',
+    detail.interested_count > 0 ? `${detail.interested_count} 人有興趣` : '',
+  ]
+    .filter(Boolean)
+    .join('・');
   // Ended = past ends_at, or 3h after starts_at when no end time was given.
   const endMs = detail.ends_at
     ? new Date(detail.ends_at).getTime()
@@ -788,9 +793,9 @@ export function EventPageClient({
                 ? '謝謝大家來參加！把現場照片放進共享相簿，精選會回到社團頁。'
                 : isFull
                   ? '名額已滿，可以先按「有興趣」追蹤這場活動。'
-                  : seatsLeft !== null
-                    ? `剩下 ${seatsLeft} 個位置，零基礎也歡迎。`
-                    : '還有位子，零基礎也歡迎直接報名。'}
+                  : turnout
+                    ? `${turnout}，零基礎也歡迎。`
+                    : '還沒有人卡位，搶頭香吧！零基礎也歡迎。'}
             </p>
 
             {hasEnded ? (
