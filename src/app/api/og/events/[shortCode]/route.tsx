@@ -14,9 +14,11 @@ export async function GET(
 ) {
   const { shortCode } = await context.params;
   const url = new URL(req.url);
-  const isStory = url.searchParams.get('format') === 'story';
+  const format = url.searchParams.get('format');
+  // Portrait formats (story 9:16, IG feed 4:5) share the larger type scale.
+  const isStory = format === 'story' || format === 'feed';
   const width = isStory ? 1080 : 1200;
-  const height = isStory ? 1920 : 630;
+  const height = format === 'story' ? 1920 : format === 'feed' ? 1350 : 630;
 
   let title = 'CluBar 校園社團活動';
   let clubName = '精選社團';
@@ -94,7 +96,7 @@ export async function GET(
           flexDirection: 'column',
           justifyContent: 'space-between',
           backgroundColor: bgHex,
-          padding: isStory ? '88px 72px' : '52px 64px',
+          padding: format === 'story' ? '88px 72px' : format === 'feed' ? '72px 64px' : '52px 64px',
           color: fg,
           fontFamily: fontData ? 'NotoSansTC, sans-serif' : 'sans-serif',
         }}

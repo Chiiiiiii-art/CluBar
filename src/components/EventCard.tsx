@@ -7,6 +7,7 @@ import { trackAnalyticsEvent } from '@/lib/analytics-client';
 import { EVENT_THEME_PRESETS, LEARNING_HOURS_LABELS } from '@/lib/constants';
 import { clampedAspectRatio, type DiscoverEventCardDTO } from '@/lib/serializers';
 import { Badge, ClubMark } from '@/components/ui';
+import { ShareButton } from '@/components/ShareButton';
 import { realMediaUrl } from '@/lib/media/placeholder';
 
 export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
@@ -108,6 +109,18 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
               {tag}
             </Badge>
           ))}
+          <ShareButton
+            iconOnly
+            variant="ghost"
+            label={`分享「${event.title}」`}
+            url={href}
+            title={event.title}
+            text={`${event.club.name}｜${event.title}\n時間：${timeLabel}`}
+            clubId={event.club.id}
+            targetId={event.id}
+            surface="event_card"
+            className="-my-2 -mr-2"
+          />
         </div>
       </div>
     </article>

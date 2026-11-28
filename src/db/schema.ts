@@ -253,6 +253,9 @@ export const analyticsEventTypeEnum = pgEnum('analytics_event_type', [
   'official_link_click',
   'club_follow',
   'bookmark_add',
+  'event_share',
+  'event_publish_started',
+  'event_publish_channel',
 ]);
 
 // ── 1. 學校、興趣領域、使用者、Onboarding 與 Blend ─────────────────────────
@@ -412,6 +415,7 @@ export const clubs = pgTable(
     officialDirectoryUrl: text('official_directory_url'),
     lastActivityAt: timestamp('last_activity_at', { withTimezone: true }),
     lastHandoverAt: timestamp('last_handover_at', { withTimezone: true }),
+    discordWebhookEnc: text('discord_webhook_enc'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

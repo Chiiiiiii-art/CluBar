@@ -810,6 +810,9 @@ export function buildEventPromoPack(params: {
   const eventUrl = `${cleanBase}/e/${event.shortCode}`;
   const ogStoryImageUrl = `${cleanBase}/api/og/events/${event.shortCode}?format=story`;
   const ogLandscapeImageUrl = `${cleanBase}/api/og/events/${event.shortCode}`;
+  const ogFeedImageUrl = `${cleanBase}/api/og/events/${event.shortCode}?format=feed`;
+  // Officer chose to keep the place off shared posts; the event page shows it after RSVP.
+  const locationText = event.shareHideLocation ? null : event.locationText;
   const timeText = event.startsAt
     ? formatTaipeiDateTime(event.startsAt)
     : event.scheduleMode === 'voting'
@@ -825,7 +828,7 @@ export function buildEventPromoPack(params: {
     `【${universityShortName} ${club.name}｜${event.title}】`,
     event.summary || null,
     `時間：${timeText}`,
-    `地點：${event.locationText}`,
+    locationText ? `地點：${locationText}` : null,
     `條件：${event.beginnerFriendly ? '零基礎友善' : '進階體驗'}／${event.nonMembersWelcome ? '非社員歡迎' : '限社員'}／${feeText}${hoursText}`,
     `1-Click 報名與行事曆：${eventUrl}`,
   ]
@@ -836,7 +839,7 @@ export function buildEventPromoPack(params: {
     `### 📣 ${club.name}｜${event.title}`,
     event.summary ? `> ${event.summary}` : null,
     `- **時間**：${timeText}`,
-    `- **地點**：${event.locationText}`,
+    locationText ? `- **地點**：${locationText}` : null,
     `- **費用與認證**：${feeText}${hoursText}`,
     `- **新手指標**：${event.beginnerFriendly ? '零基礎友善' : '需基礎'} ・ ${event.nonMembersWelcome ? '歡迎非社員' : '限社員'}`,
     `👉 **立即報名／加入行事曆**：${eventUrl}`,
@@ -849,7 +852,7 @@ export function buildEventPromoPack(params: {
     `${universityShortName} ${club.name} 誠摯邀請！`,
     event.summary || null,
     `⏰ ${timeText}`,
-    `📍 ${event.locationText}`,
+    locationText ? `📍 ${locationText}` : null,
     `💰 ${feeText}${hoursText}`,
     '',
     `報名與詳細行前指南請點主頁連結或限動貼紙：${eventUrl}`,
@@ -862,6 +865,9 @@ export function buildEventPromoPack(params: {
     event_url: eventUrl,
     og_story_image_url: ogStoryImageUrl,
     og_landscape_image_url: ogLandscapeImageUrl,
+    og_feed_image_url: ogFeedImageUrl,
+    time_text: timeText,
+    location_text: locationText,
     line_message: lineMessage,
     discord_markdown: discordMarkdown,
     ig_caption: igCaption,

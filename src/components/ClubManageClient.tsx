@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Archive,
   ArrowRightLeft,
   Calendar,
   Check,
+  CheckCircle2,
   ChevronDown,
   Copy,
   Download,
@@ -14,6 +15,7 @@ import {
   Film,
   HelpCircle,
   KeyRound,
+  Megaphone,
   Pin,
   Printer,
   Sparkles,
@@ -34,8 +36,23 @@ import { shouldRouteDraftToEvent } from '@/lib/validators';
 import { uploadShortVideo } from '@/lib/media/client-upload';
 import { POST_KIND_LABELS } from '@/lib/constants';
 import { ImageUploader } from '@/components/ImageUploader';
+import { PublishPanel } from '@/components/publish/PublishPanel';
 
-import { Badge, Button, ButtonLink, Card, Notice, PageHeader, Tabs, buttonClasses, controlClasses, useConfirm } from '@/components/ui';
+import {
+  Badge,
+  Button,
+  ButtonLink,
+  Card,
+  Dialog,
+  Field,
+  Input,
+  Notice,
+  PageHeader,
+  Tabs,
+  buttonClasses,
+  controlClasses,
+  useConfirm,
+} from '@/components/ui';
 export interface ManageClubData {
   club: {
     id: string;
@@ -162,6 +179,82 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
 
   // Events state
   const [eventsList, setEventsList] = useState(data.events);
+
+  // Publish center (docs/one-stop-publish-solution.md phase 1)
+  type PublishTarget = { id: string; shortCode: string; title: string };
+  const [justCreated, setJustCreated] = useState<PublishTarget | null>(null);
+  const [publishTarget, setPublishTarget] = useState<PublishTarget | null>(null);
+  const [discordConfigured, setDiscordConfigured] = useState(false);
+  const [webhookInput, setWebhookInput] = useState('');
+  const [webhookEditing, setWebhookEditing] = useState(false);
+  const [webhookError, setWebhookError] = useState<string | null>(null);
+  const [bioLinkCopied, setBioLinkCopied] = useState(false);
+  const [origin, setOrigin] = useState(process.env.NEXT_PUBLIC_APP_URL?.replace(/\/+$/, '') ?? '');
+  const latestPublishable = eventsList.find((ev) => ev.status !== 'cancelled') ?? null;
+  const bioLink = `${origin}/clubs/${data.club.slug}`;
+
+  useEffect(() => {
+    if (!origin) setOrigin(window.location.origin);
+    if (!isOfficer) return;
+    fetch(`/api/clubs/${data.club.slug}/publish-channels`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((j) => j && setDiscordConfigured(Boolean(j.discord_configured)))
+      .catch(() => {});
+    // Deep link: /clubs/<slug>/manage?publish=<shortCode> opens the publish panel directly.
+    const code = new URLSearchParams(window.location.search).get('publish');
+    const target = code ? data.events.find((ev) => ev.shortCode === code) : null;
+    if (target) setPublishTarget({ id: target.id, shortCode: target.shortCode, title: target.title });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function openPublishSettings() {
+    setPublishTarget(null);
+    setTab('events');
+    setTimeout(() => document.getElementById('publish-channels')?.scrollIntoView({ behavior: 'smooth' }), 50);
+  }
+
+  async function handleSaveWebhook(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy('webhook');
+    setWebhookError(null);
+    try {
+      const res = await fetch(`/api/clubs/${data.club.slug}/publish-channels`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ discord_webhook_url: webhookInput.trim() }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || '保存失敗');
+      setDiscordConfigured(true);
+      setWebhookInput('');
+      setWebhookEditing(false);
+    } catch (err) {
+      setWebhookError(err instanceof Error ? err.message : '保存失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function handleRemoveWebhook() {
+    const ok = await confirm({
+      title: '移除 Discord 頻道？',
+      description: '之後要發到 Discord，得重新到頻道設定複製一次 Webhook 網址貼上。',
+      confirmLabel: '移除頻道',
+    });
+    if (!ok) return;
+    setBusy('webhook');
+    setWebhookError(null);
+    try {
+      const res = await fetch(`/api/clubs/${data.club.slug}/publish-channels`, { method: 'DELETE' });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error?.message || '移除失敗');
+      setDiscordConfigured(false);
+    } catch (err) {
+      setWebhookError(err instanceof Error ? err.message : '移除失敗');
+    } finally {
+      setBusy(null);
+    }
+  }
   // D-12: the 4-section create form starts collapsed once the club has events.
   const [eventFormOpen, setEventFormOpen] = useState(data.events.length === 0);
   // U-11: AI only drafts. After an AI fill the officer must confirm time and place before publishing.
@@ -382,7 +475,8 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
       setEvCover([]);
       setAiFilledEvent(false);
       setAiFieldsConfirmed(false);
-      setBannerMsg(`活動已發布！專屬短網址：/e/${json.event.short_code}`);
+      setJustCreated({ id: json.event.id, shortCode: json.event.short_code, title: json.event.title });
+      setEventFormOpen(false);
     } catch (err) {
       setBannerErr(err instanceof Error ? err.message : '建立活動失敗');
     } finally {
@@ -756,11 +850,42 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
         title={`${data.club.name} 管理後台`}
         description={`${data.club.universityName} · 您的權限：${ROLE_LABEL[data.myRole] ?? data.myRole}`}
         action={
-          <ButtonLink href={`/clubs/${data.club.slug}`} variant="secondary">
-            查看公開門面
-          </ButtonLink>
+          <div className="flex flex-wrap gap-2">
+            {isOfficer && latestPublishable && (
+              <Button
+                variant="soft"
+                icon={<Megaphone className="h-4 w-4" aria-hidden="true" />}
+                onClick={() => setPublishTarget(latestPublishable)}
+              >
+                發布最新活動
+              </Button>
+            )}
+            <ButtonLink href={`/clubs/${data.club.slug}`} variant="secondary">
+              查看公開門面
+            </ButtonLink>
+          </div>
         }
       />
+
+      <Dialog
+        open={Boolean(publishTarget)}
+        onClose={() => setPublishTarget(null)}
+        title={publishTarget ? `發布「${publishTarget.title}」` : ''}
+        description="文案都幫你寫好了，可以先改再發。"
+        className="sm:max-w-2xl"
+      >
+        {publishTarget && (
+          <PublishPanel
+            shortCode={publishTarget.shortCode}
+            clubId={data.club.id}
+            clubSlug={data.club.slug}
+            eventId={publishTarget.id}
+            title={publishTarget.title}
+            discordConfigured={discordConfigured}
+            onOpenSettings={openPublishSettings}
+          />
+        )}
+      </Dialog>
 
       {isReadOnlyAlumni && (
         <Notice tone="info">
@@ -794,6 +919,31 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
       {/* EVENTS TAB */}
       {tab === 'events' && (
         <div className="space-y-6">
+          {justCreated && (
+            <Card className="space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="flex items-center gap-2 font-display text-base font-bold text-fg">
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-success-fg" aria-hidden="true" />
+                    「{justCreated.title}」已發布，接著發到各平台
+                  </h2>
+                  <p className="mt-0.5 text-sm text-fg-muted">文案都幫你寫好了，可以先改再發。</p>
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => setJustCreated(null)}>
+                  先不用
+                </Button>
+              </div>
+              <PublishPanel
+                shortCode={justCreated.shortCode}
+                clubId={data.club.id}
+                clubSlug={data.club.slug}
+                eventId={justCreated.id}
+                title={justCreated.title}
+                discordConfigured={discordConfigured}
+                onOpenSettings={openPublishSettings}
+              />
+            </Card>
+          )}
           {canWrite && (
             <details
               open={eventFormOpen}
@@ -1115,6 +1265,16 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                       列入評鑑
                     </label>
                   )}
+                  {isOfficer && ev.status !== 'cancelled' && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      icon={<Megaphone className="h-3.5 w-3.5" aria-hidden="true" />}
+                      onClick={() => setPublishTarget({ id: ev.id, shortCode: ev.shortCode, title: ev.title })}
+                    >
+                      發布到各平台
+                    </Button>
+                  )}
                   <Link
                     href={`/e/${ev.shortCode}`}
                     className={buttonClasses({ variant: 'secondary', size: 'sm' })}
@@ -1125,6 +1285,104 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
               </div>
             ))}
           </Card>
+
+          {isOfficer && (
+            <Card id="publish-channels" className="scroll-mt-24 space-y-5">
+              <div>
+                <h2 className="font-display text-base font-bold text-fg">發布管道</h2>
+                <p className="mt-0.5 text-sm text-fg-muted">設定一次，之後每場活動都能直接發。</p>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="text-sm font-bold text-fg-body">Discord 公告頻道</h3>
+                {discordConfigured && !webhookEditing ? (
+                  <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface-subtle p-4">
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-1.5 text-sm font-semibold text-success-fg">
+                        <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                        已設定 Discord 頻道
+                      </p>
+                      <p className="mt-0.5 break-all text-sm text-fg-muted">
+                        Webhook 網址已加密保存（discord.com/api/webhooks/••••），不會再顯示。
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="secondary" size="sm" onClick={() => setWebhookEditing(true)}>
+                        更換頻道
+                      </Button>
+                      <Button variant="ghost" size="sm" loading={busy === 'webhook'} onClick={handleRemoveWebhook}>
+                        移除頻道
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSaveWebhook} className="space-y-3">
+                    <Field
+                      label="頻道 Webhook 網址"
+                      hint="在 Discord 頻道設定 → 整合 → Webhook → 新 Webhook，按「複製 Webhook 網址」後貼上。"
+                      error={webhookError}
+                    >
+                      {(props) => (
+                        <Input
+                          {...props}
+                          type="url"
+                          inputMode="url"
+                          autoComplete="off"
+                          placeholder="https://discord.com/api/webhooks/…"
+                          value={webhookInput}
+                          onChange={(e) => setWebhookInput(e.target.value)}
+                        />
+                      )}
+                    </Field>
+                    <div className="flex flex-wrap gap-2">
+                      <Button type="submit" loading={busy === 'webhook'} disabled={!webhookInput.trim()}>
+                        保存 Discord 頻道
+                      </Button>
+                      {webhookEditing && (
+                        <Button
+                          variant="ghost"
+                          onClick={() => {
+                            setWebhookEditing(false);
+                            setWebhookInput('');
+                            setWebhookError(null);
+                          }}
+                        >
+                          取消
+                        </Button>
+                      )}
+                    </div>
+                  </form>
+                )}
+                {discordConfigured && !webhookEditing && webhookError && (
+                  <p className="text-sm font-medium text-danger-fg">{webhookError}</p>
+                )}
+              </div>
+
+              <div className="border-t border-line pt-5">
+                <Field label="放到 IG 個人簡介的連結" hint="社團頁會列出所有近期活動，IG 簡介放這一條就夠了。">
+                  {(props) => (
+                    <div className="flex flex-wrap gap-2 sm:flex-nowrap">
+                      <Input {...props} readOnly value={bioLink} onFocus={(e) => e.currentTarget.select()} />
+                      <Button
+                        variant="secondary"
+                        icon={<Copy className="h-4 w-4" aria-hidden="true" />}
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(bioLink);
+                            setBioLinkCopied(true);
+                          } catch {
+                            setBioLinkCopied(false);
+                          }
+                        }}
+                      >
+                        {bioLinkCopied ? '已複製' : '複製連結'}
+                      </Button>
+                    </div>
+                  )}
+                </Field>
+              </div>
+            </Card>
+          )}
         </div>
       )}
 

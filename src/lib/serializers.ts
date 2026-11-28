@@ -13,6 +13,8 @@ import type {
 
 export const FORBIDDEN_PUBLIC_KEYS = new Set([
   'email',
+  'discordWebhookEnc',
+  'discord_webhook_enc',
   'campus_email',
   'campusEmail',
   'provider_account_id',

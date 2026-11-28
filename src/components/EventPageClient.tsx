@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Bell,
@@ -29,6 +29,7 @@ import { uploadDualAlbumPhoto } from '@/lib/media/client-upload';
 import type { EventFullViewDTO } from '@/lib/services/events';
 import { ImageUploader } from '@/components/ImageUploader';
 import { MarkdownView } from '@/components/MarkdownView';
+import { ShareButton } from '@/components/ShareButton';
 import {
   Badge,
   Button,
@@ -199,6 +200,31 @@ export function EventPageClient({
   const featuredCount = album_photos.filter((p) => p.status === 'featured_stream').length;
   const googleUrl = buildGoogleCalendarHref(detail);
   const outlookUrl = buildOutlookCalendarHref(detail);
+  const canRsvp = viewer.isLoggedIn && !campusRestricted && !hasEnded && detail.status !== 'cancelled';
+  const loginHref = `/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}?rsvp=1`)}`;
+  // Invite text for the share sheet; location stays out when officers chose to hide it.
+  const inviteText = [
+    `${detail.club.name}｜${detail.title}`,
+    `時間：${formatDisplayTime(detail.starts_at)}`,
+    detail.share_hide_location ? null : `地點：${detail.location_text}`,
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  // Back from login with ?rsvp=1: bring the RSVP card into view; the user still confirms.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('rsvp') !== '1') return;
+    if (canRsvp) {
+      const heading = document.getElementById('rsvp-heading');
+      heading?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      heading?.focus({ preventScroll: true });
+    }
+    params.delete('rsvp');
+    const query = params.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${query ? `?${query}` : ''}${window.location.hash}`);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function refreshEvent() {
     const res = await fetch(`/api/events/${detail.short_code}`, { cache: 'no-store' });
@@ -619,6 +645,18 @@ export function EventPageClient({
             </div>
             <h1 className="font-display text-2xl font-black leading-snug text-fg sm:text-3xl">{detail.title}</h1>
             {detail.summary && <p className="text-base text-fg-muted">{detail.summary}</p>}
+            <ShareButton
+              preload
+              label="分享邀請卡"
+              url={`/e/${detail.short_code}`}
+              title={detail.title}
+              text={inviteText}
+              imageUrl={`/api/og/events/${detail.short_code}?format=story`}
+              fileName={`clubar-${detail.short_code}.png`}
+              clubId={detail.club.id}
+              targetId={detail.id}
+              surface="event_page"
+            />
           </div>
         </div>
 
@@ -754,7 +792,7 @@ export function EventPageClient({
                   {!viewer.isLoggedIn && (
                     <p className="text-sm text-fg-subtle">
                       <Link
-                        href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`}
+                        href={loginHref}
                         className="inline-flex min-h-[44px] items-center font-bold text-brand underline"
                       >
                         登入帳號
@@ -782,7 +820,7 @@ export function EventPageClient({
         <div id="rsvp-section" className="space-y-6 md:col-span-5">
           {/* RSVP Card */}
           <Card>
-            <h2 className="font-display text-lg font-bold text-fg">{hasEnded ? '活動結束了' : '報名這場活動'}</h2>
+            <h2 id="rsvp-heading" tabIndex={-1} className="font-display text-lg font-bold text-fg outline-none">{hasEnded ? '活動結束了' : '報名這場活動'}</h2>
             <p className="mt-1 text-sm text-fg-muted">
               {hasEnded
                 ? '謝謝大家來參加！把現場照片放進共享相簿，精選會回到社團頁。'
@@ -801,7 +839,7 @@ export function EventPageClient({
             ) : !viewer.isLoggedIn ? (
               <div className="mt-4 space-y-3">
                 <Link
-                  href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`}
+                  href={loginHref}
                   className={buttonClasses({ variant: 'primary', size: 'lg', className: 'w-full' })}
                 >
                   {loginCtaLabel}
@@ -1445,7 +1483,7 @@ export function EventPageClient({
               {permissions.can_participate ? '上傳照片' : '看相簿'}
             </a>
           ) : !viewer.isLoggedIn ? (
-            <ButtonLink href={`/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}`)}`} size="lg">
+            <ButtonLink href={loginHref} size="lg">
               登入報名
             </ButtonLink>
           ) : campusRestricted ? (

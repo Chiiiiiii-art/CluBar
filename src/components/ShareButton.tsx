@@ -1,36 +1,119 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Check, Share2 } from 'lucide-react';
 
-import { Button } from '@/components/ui';
+import { Button, IconButton, type ButtonSize, type ButtonVariant } from '@/components/ui';
+import { preloadShareImage, shareInvite, trackShareEvent, type ShareOutcome } from '@/lib/share';
 
-export function ShareButton({ label = '分享連結' }: { label?: string }) {
-  const [copied, setCopied] = useState(false);
+const STATUS_TEXT: Partial<Record<ShareOutcome, string>> = {
+  shared: '已開啟分享',
+  copied: '已複製連結',
+  failed: '沒辦法分享，請直接複製網址列的連結',
+};
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback ignored if clipboard blocked
+type ShareButtonProps = {
+  label?: string;
+  /** Defaults to the current page URL. Relative paths resolve against the current origin. */
+  url?: string;
+  title?: string;
+  text?: string;
+  imageUrl?: string;
+  fileName?: string;
+  clubId?: string | null;
+  /** When set, a successful share is tracked as `event_share`. */
+  targetId?: string | null;
+  surface?: string;
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  iconOnly?: boolean;
+  className?: string;
+  /** Load the share image on mount (prominent buttons); others load it on hover/focus/touch. */
+  preload?: boolean;
+};
+
+export function ShareButton({
+  label = '分享連結',
+  url,
+  title,
+  text = '',
+  imageUrl,
+  fileName,
+  clubId,
+  targetId,
+  surface = 'share_button',
+  variant = 'secondary',
+  size,
+  iconOnly = false,
+  preload = false,
+  className,
+}: ShareButtonProps) {
+  const [outcome, setOutcome] = useState<ShareOutcome | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warm = () => {
+    if (imageUrl) preloadShareImage(imageUrl, fileName);
+  };
+  useEffect(() => {
+    if (preload) warm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preload, imageUrl]);
+
+  const handleShare = async () => {
+    const result = await shareInvite({
+      title: title ?? document.title,
+      text,
+      url: new URL(url ?? window.location.href, window.location.href).href,
+      imageUrl,
+      fileName,
+    });
+    if (targetId && (result === 'shared' || result === 'copied')) {
+      trackShareEvent({ type: 'event_share', clubId, targetId, surface });
     }
+    setOutcome(result === 'cancelled' ? null : result);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setOutcome(null), 2500);
   };
 
+  const done = outcome === 'shared' || outcome === 'copied';
+  const status = outcome ? STATUS_TEXT[outcome] : undefined;
+  const icon = done ? (
+    <Check className="h-4 w-4 text-success-fg" aria-hidden="true" />
+  ) : (
+    <Share2 className="h-4 w-4" aria-hidden="true" />
+  );
+
   return (
-    <Button variant="secondary" onClick={handleCopy} aria-live="polite">
-      {copied ? (
-        <>
-          <Check className="h-4 w-4 text-success-fg" aria-hidden="true" />
-          <span className="text-success-fg">已複製連結</span>
-        </>
+    <>
+      {iconOnly ? (
+        <IconButton
+          aria-label={label}
+          title={label}
+          variant={variant === 'ghost' ? 'ghost' : 'secondary'}
+          onClick={handleShare}
+          onPointerEnter={warm}
+          onFocus={warm}
+          onTouchStart={warm}
+          className={className}
+        >
+          {icon}
+        </IconButton>
       ) : (
-        <>
-          <Share2 className="h-4 w-4" aria-hidden="true" />
-          <span>{label}</span>
-        </>
+        <Button
+          variant={variant}
+          size={size}
+          onClick={handleShare}
+          onPointerEnter={warm}
+          onFocus={warm}
+          onTouchStart={warm}
+          className={className}
+        >
+          {icon}
+          <span className={done ? 'text-success-fg' : undefined}>{status ?? label}</span>
+        </Button>
       )}
-    </Button>
+      <span role="status" aria-live="polite" className="sr-only">
+        {status ?? ''}
+      </span>
+    </>
   );
 }
