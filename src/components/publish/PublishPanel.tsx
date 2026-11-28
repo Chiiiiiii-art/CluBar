@@ -14,7 +14,7 @@ import {
   Send,
 } from 'lucide-react';
 import { Badge, Button, Notice, Skeleton, controlClasses } from '@/components/ui';
-import { downloadImage, lineShareUrl, preloadShareImage, shareInvite, trackShareEvent } from '@/lib/share';
+import { downloadImage, lineShareUrl, preloadShareImage, shareImage, trackShareEvent } from '@/lib/share';
 
 // Officer "publish complete" panel (docs/one-stop-publish-solution.md §3.5, phase 1).
 
@@ -228,10 +228,8 @@ export function PublishPanel({
       () => false
     );
     if (isMobile) {
-      const outcome = await shareInvite({
+      const outcome = await shareImage({
         title,
-        text: text.ig,
-        url: pack!.event_url,
         imageUrl: pack!.og_story_image_url,
         fileName: `${shortCode}-story.png`,
       });

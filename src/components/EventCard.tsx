@@ -115,7 +115,7 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
             label={`分享「${event.title}」`}
             url={href}
             title={event.title}
-            text={`${event.club.name}｜${event.title}\n時間：${timeLabel}`}
+            text={`一起去嗎？${event.club.name}「${event.title}」\n${timeLabel}\n點連結看活動、報名：`}
             clubId={event.club.id}
             targetId={event.id}
             surface="event_card"

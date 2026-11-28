@@ -204,11 +204,10 @@ export function EventPageClient({
   const loginHref = `/login?callbackUrl=${encodeURIComponent(`/e/${detail.short_code}?rsvp=1`)}`;
   // Invite text for the share sheet; location stays out when officers chose to hide it.
   const inviteText = [
-    `${detail.club.name}｜${detail.title}`,
-    `時間：${formatDisplayTime(detail.starts_at)}`,
-    detail.share_hide_location ? null : `地點：${detail.location_text}`,
+    `一起去嗎？${detail.club.name}「${detail.title}」`,
+    `${formatDisplayTime(detail.starts_at)}${detail.share_hide_location ? '' : `｜${detail.location_text}`}`,
+    '點連結看活動、報名：',
   ]
-    .filter(Boolean)
     .join('\n');
 
   // Back from login with ?rsvp=1: bring the RSVP card into view; the user still confirms.
@@ -645,18 +644,29 @@ export function EventPageClient({
             </div>
             <h1 className="font-display text-2xl font-black leading-snug text-fg sm:text-3xl">{detail.title}</h1>
             {detail.summary && <p className="text-base text-fg-muted">{detail.summary}</p>}
-            <ShareButton
-              preload
-              label="分享邀請卡"
-              url={`/e/${detail.short_code}`}
-              title={detail.title}
-              text={inviteText}
-              imageUrl={`/api/og/events/${detail.short_code}?format=story`}
-              fileName={`clubar-${detail.short_code}.png`}
-              clubId={detail.club.id}
-              targetId={detail.id}
-              surface="event_page"
-            />
+            <div className="flex flex-wrap gap-2">
+              <ShareButton
+                label="分享邀請"
+                url={`/e/${detail.short_code}`}
+                title={`${detail.club.name}｜${detail.title}`}
+                text={inviteText}
+                clubId={detail.club.id}
+                targetId={detail.id}
+                surface="event_page"
+              />
+              <ShareButton
+                mode="image"
+                preload
+                variant="ghost"
+                label="存限動圖"
+                title={detail.title}
+                imageUrl={`/api/og/events/${detail.short_code}?format=story`}
+                fileName={`clubar-${detail.short_code}-story.png`}
+                clubId={detail.club.id}
+                targetId={detail.id}
+                surface="event_page_story"
+              />
+            </div>
           </div>
         </div>
 

@@ -93,6 +93,30 @@ export async function shareInvite(opts: {
   }
 }
 
+/**
+ * Share only an image (IG story card). Image + text shares make chat apps drop the link, so the
+ * clickable invite is shared separately via shareInvite without an image; this one is for stories,
+ * where the card carries a QR code and short link. Falls back to download.
+ */
+export async function shareImage(opts: {
+  imageUrl: string;
+  fileName: string;
+  title: string;
+}): Promise<ShareOutcome> {
+  const nav = typeof navigator !== 'undefined' ? navigator : undefined;
+  const file = imageCache.get(opts.imageUrl);
+  if (file === undefined) preloadShareImage(opts.imageUrl, opts.fileName);
+  if (file && nav?.share && nav.canShare?.({ files: [file] })) {
+    try {
+      await nav.share({ files: [file], title: opts.title });
+      return 'shared';
+    } catch (err) {
+      if (isAbort(err)) return 'cancelled';
+    }
+  }
+  return downloadImage(opts.imageUrl, opts.fileName);
+}
+
 /** Save an image (e.g. generated story card) for manual posting on desktop. */
 export async function downloadImage(imageUrl: string, fileName: string): Promise<ShareOutcome> {
   try {

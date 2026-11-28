@@ -1,14 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Check, Share2 } from 'lucide-react';
+import { Check, ImageDown, Share2 } from 'lucide-react';
 
 import { Button, IconButton, type ButtonSize, type ButtonVariant } from '@/components/ui';
-import { preloadShareImage, shareInvite, trackShareEvent, type ShareOutcome } from '@/lib/share';
+import { preloadShareImage, shareImage, shareInvite, trackShareEvent, type ShareOutcome } from '@/lib/share';
 
 const STATUS_TEXT: Partial<Record<ShareOutcome, string>> = {
   shared: '已開啟分享',
   copied: '已複製連結',
+  downloaded: '已存下限動圖',
   failed: '沒辦法分享，請直接複製網址列的連結',
 };
 
@@ -28,6 +29,11 @@ type ShareButtonProps = {
   size?: ButtonSize;
   iconOnly?: boolean;
   className?: string;
+  /**
+   * 'link' (default) shares the URL only, so chat apps unfurl it into a tappable invite card.
+   * 'image' shares/downloads imageUrl alone (IG story card with QR code).
+   */
+  mode?: 'link' | 'image';
   /** Load the share image on mount (prominent buttons); others load it on hover/focus/touch. */
   preload?: boolean;
 };
@@ -46,6 +52,7 @@ export function ShareButton({
   size,
   iconOnly = false,
   preload = false,
+  mode = 'link',
   className,
 }: ShareButtonProps) {
   const [outcome, setOutcome] = useState<ShareOutcome | null>(null);
@@ -59,14 +66,15 @@ export function ShareButton({
   }, [preload, imageUrl]);
 
   const handleShare = async () => {
-    const result = await shareInvite({
-      title: title ?? document.title,
-      text,
-      url: new URL(url ?? window.location.href, window.location.href).href,
-      imageUrl,
-      fileName,
-    });
-    if (targetId && (result === 'shared' || result === 'copied')) {
+    const result =
+      mode === 'image' && imageUrl
+        ? await shareImage({ imageUrl, fileName: fileName ?? 'clubar-invite.png', title: title ?? document.title })
+        : await shareInvite({
+            title: title ?? document.title,
+            text,
+            url: new URL(url ?? window.location.href, window.location.href).href,
+          });
+    if (targetId && (result === 'shared' || result === 'copied' || result === 'downloaded')) {
       trackShareEvent({ type: 'event_share', clubId, targetId, surface });
     }
     setOutcome(result === 'cancelled' ? null : result);
@@ -74,10 +82,12 @@ export function ShareButton({
     timer.current = setTimeout(() => setOutcome(null), 2500);
   };
 
-  const done = outcome === 'shared' || outcome === 'copied';
+  const done = outcome === 'shared' || outcome === 'copied' || outcome === 'downloaded';
   const status = outcome ? STATUS_TEXT[outcome] : undefined;
   const icon = done ? (
     <Check className="h-4 w-4 text-success-fg" aria-hidden="true" />
+  ) : mode === 'image' ? (
+    <ImageDown className="h-4 w-4" aria-hidden="true" />
   ) : (
     <Share2 className="h-4 w-4" aria-hidden="true" />
   );
