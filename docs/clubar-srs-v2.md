@@ -597,10 +597,10 @@ CREATE INDEX idx_otp_user_active ON campus_email_otps(user_id, created_at DESC) 
 CREATE TABLE user_onboarding_profiles (
   user_id               UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   selected_university_id UUID REFERENCES universities(id),
-  goals                 TEXT[] NOT NULL DEFAULT '{}', -- e.g. 'make_friends','learn_skill','weekend_fun','earn_hours'
+  goals                 TEXT[] NOT NULL DEFAULT '{}', -- 舊版測驗用；2026-11-28 起測驗不再詢問，新紀錄為空陣列
   domain_ids            UUID[] NOT NULL DEFAULT '{}',
-  vibe                  TEXT,                         -- 'active' | 'chill' | 'hands_on' | 'discussion'
-  persona_archetype     TEXT,                         -- 確定性計算之個人興趣風格標籤
+  vibe                  TEXT,                         -- 舊版測驗用；新紀錄為 NULL
+  persona_archetype     TEXT,                         -- 確定性計算之風格標籤；仍寫入，但測驗結果頁已不顯示（改顯示配方卡）
   updated_at            TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

@@ -1,5 +1,7 @@
 # 使用者旅程 × 現行實作落差分析（2026-11-28）
 
+> **時效**：這是 2026-11-28 當下的快照。之後已實作的修正（首頁依狀態切換、測驗配方卡、發布中心第一階段、報名入場券等）見 [PRD v2](./clubar-prd-v2.md) 與 [設計規範](./design/README.md)；本文的落差清單不再逐項更新。
+
 > **依據**：[clubar-user-research.md](./clubar-user-research.md)（人物誌、As-Is 旅程）、[clubar-prd-v2.md](./clubar-prd-v2.md)（To-Be 規格與 KPI）、分支 `ui/v2-tactile`（commit `3f660ee`）程式碼，以及本機 `localhost:3000` 實機量測（行動版 375×812）。
 > **效度提醒**：研究的 11 份訪談為 AI 模擬（創遊社為真實一手資料），工時數字是推估值；專案尚未做過真人可用性測試（[ux-usability-test-script.md](./ux-usability-test-script.md) 未執行）。本文的「符合／不符合」是**對照規格與程式碼的推論**，不是使用者實測結果。
 

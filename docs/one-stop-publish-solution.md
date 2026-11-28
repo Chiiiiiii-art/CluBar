@@ -1,7 +1,7 @@
 # 解決方案構想：幹部一站式發布 ＋ 落差分析修正（2026-11-28）
 
 > **上游**：[ux-journey-gap-analysis.md](./ux-journey-gap-analysis.md)（Q1–Q4 落差）、[clubar-user-research.md](./clubar-user-research.md)（C1/C2/C3 旅程）、[clubar-prd-v2.md](./clubar-prd-v2.md) FR-MY-02/03。
-> **狀態**：構想稿，尚未實作；標「需實機驗證」的項目未在真機上測過。外部 API 條件以 2026-11 查到的官方文件為準，正式開發前要再確認。
+> **狀態**：第一階段已實作（發布中心面板、分享邀請卡、Discord Webhook 直發、LINE／IG 跳 App 分享；見 `src/components/publish/`），第二階段（IG OAuth 直發）未開始；標「需實機驗證」的項目仍未在真機上測過（清單見 [share-device-test-checklist.md](./share-device-test-checklist.md)）。外部 API 條件以 2026-11 查到的官方文件為準，正式開發前要再確認。
 
 ---
 
