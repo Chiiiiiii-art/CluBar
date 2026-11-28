@@ -9,6 +9,7 @@ import type { DiscoverBatchMeta } from '@/lib/discovery/service';
 import type { DiscoverEventCardDTO, DiscoverStreamCardDTO } from '@/lib/serializers';
 import type { RoleStrip } from '@/lib/services/home-context';
 import { startFlow } from '@/lib/flow';
+import { DomainIcon } from './DomainIcon';
 import { EventCard } from './EventCard';
 import { PostCard } from './PostCard';
 import { RoleStripBar } from './home/RoleStripBar';
@@ -465,7 +466,7 @@ export function DiscoverClient({
               <h1 id="home-title" className="font-display text-xl font-black leading-tight text-fg sm:text-3xl">
                 第一次來？先挑你{' '}
                 <span className="tactile-shadow-sm inline-block rounded-lg border-2 border-border-ink bg-spark px-1.5 py-0.5 text-fg sm:px-2.5">
-                  好奇的社團
+                  想去的社團
                 </span>
               </h1>
               <p className="text-sm text-fg-secondary sm:text-base">選學校和興趣，10 秒幫你留下可能想去的社團。</p>
@@ -539,6 +540,7 @@ export function DiscoverClient({
                 tintClass={domainTints[idx % domainTints.length]}
                 selected={selectedDomainIds.includes(d.id)}
                 onClick={() => handleDomainSelect(d.id)}
+                icon={<DomainIcon slug={d.slug} />}
                 className="sm:px-3"
               >
                 {d.name_zh}

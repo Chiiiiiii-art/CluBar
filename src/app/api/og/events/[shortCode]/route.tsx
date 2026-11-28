@@ -5,26 +5,25 @@ import { db, isDatabaseConfigured } from '@/db';
 import { clubEvents, clubs, universities } from '@/db/schema';
 import { EVENT_THEME_PRESETS, LEARNING_HOURS_LABELS } from '@/lib/constants';
 import { loadTraditionalChineseFont } from '@/lib/og/font';
-import { isAllowedMediaUrl } from '@/lib/validators';
+import {
+  BRAND,
+  COBALT,
+  ClubPill,
+  CoverFrame,
+  INK,
+  INK_MUTED,
+  SPARK,
+  WHITE,
+  Wordmark,
+  clip,
+  dotPaper,
+  loadCover,
+  type Cover,
+} from '@/lib/og/card-parts';
 
 export const runtime = 'nodejs';
 
-// Brand palette (docs/design/02-tokens.md) as hex: Satori cannot read CSS variables.
-const INK = '#0e141e';
-const INK_MUTED = '#454c57';
-const PAPER = '#f9f6f0';
-const WHITE = '#ffffff';
-const SPARK = '#fce575';
-const COBALT = '#155cbb';
-const BRAND = '#ce1a1f';
-
 type Format = 'link' | 'story' | 'feed';
-
-interface Cover {
-  src: string;
-  width: number;
-  height: number;
-}
 
 interface CardData {
   title: string;
@@ -58,39 +57,6 @@ function dateParts(d: Date) {
     weekday: p.weekday ?? '',
     time: `${p.hour}:${p.minute}`,
   };
-}
-
-function clip(text: string, max: number) {
-  return text.length > max ? `${text.slice(0, max - 1)}…` : text;
-}
-
-/** Fit (w, h) inside (maxW, maxH) keeping the original ratio: posters are never cropped. */
-function contain(w: number, h: number, maxW: number, maxH: number) {
-  const s = Math.min(maxW / w, maxH / h);
-  return { width: Math.round(w * s), height: Math.round(h * s) };
-}
-
-/** Load the event cover as PNG (Satori cannot decode WebP). Only allowed media hosts are fetched. */
-async function loadCover(coverUrl: string | undefined, origin: string): Promise<Cover | null> {
-  if (!coverUrl || !isAllowedMediaUrl(coverUrl)) return null;
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 3500);
-    const res = await fetch(new URL(coverUrl, origin), { signal: controller.signal });
-    clearTimeout(timer);
-    if (!res.ok) return null;
-    const buf = Buffer.from(await res.arrayBuffer());
-    if (buf.length > 12 * 1024 * 1024) return null;
-    const sharp = (await import('sharp')).default;
-    const { data, info } = await sharp(buf)
-      .rotate()
-      .resize({ width: 1100, height: 1100, fit: 'inside', withoutEnlargement: true })
-      .png()
-      .toBuffer({ resolveWithObject: true });
-    return { src: `data:image/png;base64,${data.toString('base64')}`, width: info.width, height: info.height };
-  } catch {
-    return null;
-  }
 }
 
 async function loadData(shortCode: string, origin: string): Promise<CardData> {
@@ -178,78 +144,6 @@ async function loadData(shortCode: string, origin: string): Promise<CardData> {
 }
 
 // ── Building blocks (inline styles only; Satori needs display:flex on every container) ──
-
-const dotPaper = {
-  backgroundColor: PAPER,
-  backgroundImage: 'radial-gradient(circle, rgba(14,20,30,0.13) 2px, transparent 2.5px)',
-  backgroundSize: '30px 30px',
-};
-
-function ClubPill({ d, size }: { d: CardData; size: number }) {
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: size * 0.4, maxWidth: size * 18 }}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: size * 1.9,
-          height: size * 1.9,
-          borderRadius: 999,
-          backgroundColor: d.accent,
-          border: `3px solid ${INK}`,
-          color: WHITE,
-          fontSize: size * 0.95,
-        }}
-      >
-        {d.clubName.slice(0, 1)}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
-        <div style={{ display: 'flex', fontSize: size, color: INK }}>{clip(d.clubName, 14)}</div>
-        {d.uniName ? <div style={{ display: 'flex', fontSize: size * 0.75, color: INK_MUTED }}>{d.uniName}</div> : null}
-      </div>
-    </div>
-  );
-}
-
-function Wordmark({ size }: { size: number }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        padding: `${size * 0.3}px ${size * 0.7}px`,
-        backgroundColor: INK,
-        color: SPARK,
-        borderRadius: size * 0.5,
-        fontSize: size,
-        transform: 'rotate(2deg)',
-      }}
-    >
-      社團聚 CluBar
-    </div>
-  );
-}
-
-function CoverFrame({ cover, maxW, maxH }: { cover: Cover; maxW: number; maxH: number }) {
-  const pad = 14;
-  const { width, height } = contain(cover.width, cover.height, maxW - pad * 2, maxH - pad * 2);
-  return (
-    <div
-      style={{
-        display: 'flex',
-        padding: pad,
-        backgroundColor: WHITE,
-        border: `3px solid ${INK}`,
-        borderRadius: 22,
-        boxShadow: `10px 10px 0 ${INK}`,
-        transform: 'rotate(-1.5deg)',
-      }}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={cover.src} width={width} height={height} style={{ borderRadius: 10 }} alt="" />
-    </div>
-  );
-}
 
 /** Ticket stub: accent date block + time/location, with notch circles on the seam. */
 function Ticket({ d, scale }: { d: CardData; scale: number }) {
@@ -391,7 +285,7 @@ function QrBlock({ d, qr, size }: { d: CardData; qr: string; size: number }) {
       <img src={qr} width={size} height={size} alt="" />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flexShrink: 1 }}>
         <div style={{ display: 'flex', fontSize: 36, color: INK }}>掃描看活動、報名</div>
-        <div style={{ display: 'flex', fontSize: 24, color: INK_MUTED }}>不用下載 App，手機就能留位子</div>
+        <div style={{ display: 'flex', fontSize: 24, color: INK_MUTED }}>不用下載 App，手機就能卡位</div>
         <div
           style={{
             display: 'flex',

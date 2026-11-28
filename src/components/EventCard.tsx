@@ -8,6 +8,7 @@ import { EVENT_THEME_PRESETS, LEARNING_HOURS_LABELS } from '@/lib/constants';
 import { clampedAspectRatio, type DiscoverEventCardDTO } from '@/lib/serializers';
 import { Badge, ClubMark } from '@/components/ui';
 import { ShareButton } from '@/components/ShareButton';
+import { EventStatusTags, settledLocation } from '@/components/EventStatusTags';
 import { realMediaUrl } from '@/lib/media/placeholder';
 
 export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
@@ -23,14 +24,8 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
     decisionTags.push(`${LEARNING_HOURS_LABELS[event.learning_hours_category]} ${event.learning_hours_count}h`);
   }
 
-  const timeLabel =
-    event.schedule_mode === 'voting'
-      ? '時間投票中'
-      : event.schedule_mode === 'tbd'
-        ? '時間待定'
-        : event.starts_at
-          ? formatTaipeiDateTime(event.starts_at)
-          : '時間待定';
+  const timeSettled = event.schedule_mode !== 'voting' && event.schedule_mode !== 'tbd' && Boolean(event.starts_at);
+  const timeLabel = timeSettled ? formatTaipeiDateTime(event.starts_at!) : event.schedule_mode === 'voting' ? '時間投票中' : '時間待定';
 
   const track = () =>
     trackAnalyticsEvent({
@@ -72,10 +67,13 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
           </p>
         )}
 
-        <p className="flex items-center gap-1.5 font-mono text-xs font-bold tabular-nums text-brand-soft-fg">
-          <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          {timeLabel}
-        </p>
+        {timeSettled && (
+          <p className="flex items-center gap-1.5 font-mono text-xs font-bold tabular-nums text-brand-soft-fg">
+            <Calendar className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            {timeLabel}
+          </p>
+        )}
+        <EventStatusTags scheduleMode={event.schedule_mode} startsAt={event.starts_at} locationText={event.location_text} />
 
         <Link href={href} onClick={track} className="block py-0.5">
           <h3 className="line-clamp-2 font-display text-lg font-black leading-snug text-fg group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4">
@@ -93,7 +91,8 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
         <p className="flex items-center gap-1.5 text-sm text-fg-muted">
           <MapPin className="h-4 w-4 shrink-0 text-fg-muted" aria-hidden="true" />
           <span className="truncate">
-            {event.club.university_short_name} · {event.location_text}
+            {event.club.university_short_name}
+            {settledLocation(event.location_text) ? ` · ${settledLocation(event.location_text)}` : ''}
           </span>
         </p>
       </div>

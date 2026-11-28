@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Check, Share2 } from 'lucide-react';
+import { DomainIcon } from './DomainIcon';
 import { EventCard } from './EventCard';
 import type { DiscoverEventCardDTO } from '@/lib/serializers';
 import { ONBOARDING_DISMISSED_KEY } from '@/lib/constants';
@@ -231,7 +232,10 @@ export function OnboardingClient({
           <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3" role="group" aria-label="興趣領域">
             {domains.map((d) => (
               <Choice key={d.id} selected={domainIds.includes(d.id)} onClick={() => toggleDomain(d.id)}>
-                {d.name_zh}
+                <span className="inline-flex items-center gap-2">
+                  <DomainIcon slug={d.slug} />
+                  {d.name_zh}
+                </span>
               </Choice>
             ))}
           </div>

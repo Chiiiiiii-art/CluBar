@@ -254,7 +254,7 @@ export function EventPageClient({
       }
       setStatusMessage(
         nextStatus === 'going'
-          ? '位子留好了！記得加入行事曆。'
+          ? '卡位成功！記得加入行事曆。'
           : nextStatus === 'interested'
             ? '已標記為有興趣。'
             : '已取消報名。'
@@ -917,7 +917,7 @@ export function EventPageClient({
                     disabled={busyAction !== null || detail.status === 'cancelled'}
                     onClick={() => handleRsvp('going')}
                   >
-                    {viewer_rsvp?.status === 'going' ? '✓ 已留位' : '留個位子'}
+                    {viewer_rsvp?.status === 'going' ? '✓ 已卡位' : '卡位'}
                   </Button>
                   <Button
                     variant={viewer_rsvp?.status === 'interested' ? 'soft' : 'secondary'}
@@ -940,10 +940,10 @@ export function EventPageClient({
                       }`}
                       key={stampKey}
                     >
-                      已留位
+                      已卡位
                     </span>
                     <div className="min-w-0 text-sm">
-                      <p className="font-bold text-fg">位子留好了：{detail.title}</p>
+                      <p className="font-bold text-fg">卡位成功：{detail.title}</p>
                       <p className="text-fg-secondary">
                         <span className="font-mono tabular-nums">{formatDisplayTime(detail.starts_at)}</span>・{detail.location_text}
                       </p>
@@ -1295,7 +1295,7 @@ export function EventPageClient({
           </form>
         ) : (
           <p className="mt-2 text-sm text-fg-subtle">
-            按「留個位子」成為同場參與者後即可發起共乘或行前討論。
+            按「卡位」成為同場參與者後即可發起共乘或行前討論。
           </p>
         )}
 
@@ -1469,7 +1469,7 @@ export function EventPageClient({
               disabled={busyAction !== null || detail.status === 'cancelled'}
               onClick={() => handleRsvp('going')}
             >
-              留個位子
+              卡位
             </Button>
           )}
         </div>
