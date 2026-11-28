@@ -33,9 +33,12 @@ export default async function HomePage({
     ? await getHomeContext(currentUser.id).catch(() => null)
     : null;
 
-  // URL wins; otherwise the saved quiz interest becomes a visible, removable filter.
-  const initialDomainId =
-    sp.domain_id && uuidRegex.test(sp.domain_id) ? sp.domain_id : (homeContext?.savedDomainId ?? '');
+  // URL wins (comma-separated); otherwise the saved quiz interests become visible, removable filters.
+  const urlDomainIds = (sp.domain_id ?? '')
+    .split(',')
+    .filter((id) => uuidRegex.test(id))
+    .slice(0, 6);
+  const initialDomainIds = urlDomainIds.length > 0 ? urlDomainIds : (homeContext?.savedDomainIds ?? []);
   // The client also checks localStorage before showing it.
   const maybeFirstVisit = !homeContext?.known && !initialUniversityId;
 
@@ -43,14 +46,14 @@ export default async function HomePage({
     ? await Promise.all([
         getDiscoverStream({
           universityId: initialUniversityId || undefined,
-          domainId: initialDomainId || undefined,
+          domainIds: initialDomainIds,
         }).catch(() => ({
           items: [],
           batch_meta: { count: 0, cap: 12, has_more: false, next_exclude_ids: [] },
         })),
         getDiscoverEvents({
           universityId: initialUniversityId || undefined,
-          domainId: initialDomainId || undefined,
+          domainIds: initialDomainIds,
         }).catch(() => ({
           items: [],
           batch_meta: { count: 0, cap: 12, has_more: false, next_exclude_ids: [] },
@@ -92,7 +95,7 @@ export default async function HomePage({
       domains={domainRows}
       dbConfigured={dbReady}
       initialUniversityId={initialUniversityId}
-      initialDomainId={initialDomainId}
+      initialDomainIds={initialDomainIds}
       initialWeekEvents={weekData.items.slice(0, 3)}
       maybeFirstVisit={maybeFirstVisit}
       roleStrip={homeContext?.strip ?? null}

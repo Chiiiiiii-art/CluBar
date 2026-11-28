@@ -19,8 +19,8 @@ export interface RoleStrip {
 export interface HomeContext {
   /** The user already told us something (quiz, membership or follow): skip the "第一次來？" prompt. */
   known: boolean;
-  /** First interest from the saved quiz, applied as a removable default filter. */
-  savedDomainId: string | null;
+  /** Interests from the saved quiz, applied as removable default filters. */
+  savedDomainIds: string[];
   strip: RoleStrip | null;
 }
 
@@ -74,7 +74,7 @@ export async function getHomeContext(userId: string): Promise<HomeContext> {
 
   const profile = profileRows[0];
   const known = Boolean(profile) || memberRows.length > 0 || followRows.length > 0;
-  const savedDomainId = profile?.domainIds[0] ?? null;
+  const savedDomainIds = profile?.domainIds ?? [];
 
   const officers = memberRows.filter((m) => m.role === 'owner' || m.role === 'editor');
   const officerIds = officers.map((m) => m.clubId);
@@ -140,5 +140,5 @@ export async function getHomeContext(userId: string): Promise<HomeContext> {
     followedRows[0] ?? null
   );
 
-  return { known, savedDomainId, strip };
+  return { known, savedDomainIds, strip };
 }

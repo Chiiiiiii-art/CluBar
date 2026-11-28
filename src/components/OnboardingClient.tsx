@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, Check, Share2 } from 'lucide-react';
 import { EventCard } from './EventCard';
 import type { DiscoverEventCardDTO } from '@/lib/serializers';
+import { ONBOARDING_DISMISSED_KEY } from '@/lib/constants';
 
-import { Button, ButtonLink, PageHeader, cn } from '@/components/ui';
+import { Button, ButtonLink, EmptyState, PageHeader, cn } from '@/components/ui';
 interface RecommendResult {
   persona_archetype: string;
   clubs: {
@@ -21,19 +22,6 @@ interface RecommendResult {
   }[];
   events: DiscoverEventCardDTO[];
 }
-
-const GOALS = [
-  { id: 'make_friends', label: '想破冰交友、認識跨系同學' },
-  { id: 'learn_skill', label: '想從零學一項酷技能或創作作品' },
-  { id: 'weekend_fun', label: '想找下課或週末輕鬆參與的活動' },
-  { id: 'earn_hours', label: '想順便累積藝文／生活／服務時數' },
-];
-
-const VIBES = [
-  { id: 'hands_on', label: '動手做專案／實作派' },
-  { id: 'chill', label: '低壓力、像跟朋友聊天的氛圍' },
-  { id: 'active', label: '戶外活動或揮汗運動' },
-];
 
 /** One selected style for every step: dark border, light fill, check mark. */
 function Choice({
@@ -63,6 +51,27 @@ function Choice({
   );
 }
 
+/** Every step can be skipped: remember it so the home page stops offering the quiz. */
+function SkipLink() {
+  return (
+    <p className="text-center">
+      <Link
+        href="/"
+        onClick={() => {
+          try {
+            window.localStorage.setItem(ONBOARDING_DISMISSED_KEY, '1');
+          } catch {
+            // Ignore storage failures
+          }
+        }}
+        className="inline-flex min-h-11 items-center px-3 text-sm font-medium text-fg-muted underline-offset-4 hover:text-fg hover:underline"
+      >
+        先隨便看看
+      </Link>
+    </p>
+  );
+}
+
 function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
   return (
     <div>
@@ -85,21 +94,25 @@ function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
   );
 }
 
+const MAX_DOMAINS = 3;
+
 export function OnboardingClient({
   universities,
   domains,
   isLoggedIn,
+  initialUniversityId = '',
 }: {
   universities: { id: string; short_name: string; name: string }[];
   domains: { id: string; slug: string; name_zh: string }[];
   isLoggedIn: boolean;
+  /** School already known (cookie): start on the interest step. */
+  initialUniversityId?: string;
 }) {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [universityId, setUniversityId] = useState(universities[0]?.id ?? '');
-  const [goals, setGoals] = useState<string[]>(['make_friends']);
+  const knownSchool = universities.some((u) => u.id === initialUniversityId);
+  const [step, setStep] = useState<1 | 2 | 3>(knownSchool ? 2 : 1);
+  const [universityId, setUniversityId] = useState(knownSchool ? initialUniversityId : '');
   const [domainIds, setDomainIds] = useState<string[]>([]);
-  const [vibe, setVibe] = useState('hands_on');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<RecommendResult | null>(null);
   const [blendLoading, setBlendLoading] = useState(false);
@@ -111,20 +124,14 @@ export function OnboardingClient({
     }
   };
 
-  const toggleGoal = (id: string) => {
-    setGoals((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < 2 ? [...prev, id] : [prev[1]!, id]
-    );
-  };
-
   const toggleDomain = (id: string) => {
     setDomainIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < 4 ? [...prev, id] : prev
+      prev.includes(id) ? prev.filter((x) => x !== id) : prev.length < MAX_DOMAINS ? [...prev, id] : prev
     );
   };
 
   const submitQuiz = async () => {
-    if (!universityId) return;
+    if (!universityId || domainIds.length === 0) return;
     setLoading(true);
     try {
       const res = await fetch('/api/onboarding/recommend', {
@@ -132,9 +139,7 @@ export function OnboardingClient({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           university_id: universityId,
-          goals,
           domain_ids: domainIds,
-          vibe,
         }),
       });
       const json = await res.json();
@@ -146,9 +151,8 @@ export function OnboardingClient({
           'clubar_onboarding',
           JSON.stringify({
             university_id: universityId,
-            goals,
+            goals: [],
             domain_ids: domainIds,
-            vibe,
             synced: false,
           })
         );
@@ -156,7 +160,7 @@ export function OnboardingClient({
           void fetch('/api/me/onboarding-sync', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ university_id: universityId, goals, domain_ids: domainIds, vibe }),
+            body: JSON.stringify({ university_id: universityId, goals: [], domain_ids: domainIds }),
           });
         }
       }
@@ -178,7 +182,7 @@ export function OnboardingClient({
         body: JSON.stringify({
           university_id: universityId,
           domain_ids: domainIds,
-          goals,
+          goals: [],
         }),
       });
       const json = await res.json();
@@ -197,82 +201,54 @@ export function OnboardingClient({
       {step === 1 && (
         <div className="space-y-6">
           <PageHeader
-            title="先選你就讀的大專校院"
-            description="不用註冊，就能瀏覽全校活躍社團與近期可參加的體驗課。"
+            title="你讀哪間學校？"
+            description="點一下就好，不用註冊。"
           />
           <div className="grid gap-2.5 sm:grid-cols-2">
             {universities.map((u) => (
-              <Choice key={u.id} selected={universityId === u.id} onClick={() => setUniversityId(u.id)}>
+              <Choice
+                key={u.id}
+                selected={universityId === u.id}
+                onClick={() => {
+                  setUniversityId(u.id);
+                  goStep(2);
+                }}
+              >
                 {u.name}
               </Choice>
             ))}
           </div>
-          <div className="flex justify-end border-t-2 border-dashed border-line pt-4">
-            <Button size="md" onClick={() => goStep(2)} icon={<ArrowRight className="h-4 w-4" aria-hidden="true" />} className="flex-row-reverse">
-              下一步
-            </Button>
-          </div>
+          <SkipLink />
         </div>
       )}
 
       {step === 2 && (
-        <div className="space-y-8">
-          <PageHeader title="這學期想怎麼探索校園？" />
-
-          <section className="space-y-3" aria-labelledby="onb-goals">
-            <h2 id="onb-goals" className="font-display text-base font-bold text-fg">
-              你現在比較在意什麼？
-              <span className="ml-2 text-sm font-normal text-fg-muted">可選 1–2 項</span>
-            </h2>
-            <div className="grid gap-2.5 sm:grid-cols-2">
-              {GOALS.map((g) => (
-                <Choice key={g.id} selected={goals.includes(g.id)} onClick={() => toggleGoal(g.id)}>
-                  {g.label}
-                </Choice>
-              ))}
-            </div>
-          </section>
-
-          <section className="space-y-3" aria-labelledby="onb-domains">
-            <h2 id="onb-domains" className="font-display text-base font-bold text-fg">
-              挑幾個你有點好奇的領域
-              <span className="ml-2 text-sm font-normal text-fg-muted">可選 1–4 個</span>
-            </h2>
-            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
-              {domains.map((d) => (
-                <Choice key={d.id} selected={domainIds.includes(d.id)} onClick={() => toggleDomain(d.id)}>
-                  #{d.name_zh}
-                </Choice>
-              ))}
-            </div>
-          </section>
-
-          <section className="space-y-3" aria-labelledby="onb-vibe">
-            <h2 id="onb-vibe" className="font-display text-base font-bold text-fg">
-              偏好的社團氛圍
-            </h2>
-            <div className="grid gap-2.5 sm:grid-cols-2">
-              {VIBES.map((v) => (
-                <Choice key={v.id} selected={vibe === v.id} onClick={() => setVibe(v.id)}>
-                  {v.label}
-                </Choice>
-              ))}
-            </div>
-          </section>
-
+        <div className="space-y-6">
+          <PageHeader
+            title="你對哪些有點好奇？"
+            description={`選 1–${MAX_DOMAINS} 個，我們只留下這些類型的社團。`}
+          />
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3" role="group" aria-label="興趣領域">
+            {domains.map((d) => (
+              <Choice key={d.id} selected={domainIds.includes(d.id)} onClick={() => toggleDomain(d.id)}>
+                {d.name_zh}
+              </Choice>
+            ))}
+          </div>
           <div className="flex items-center justify-between gap-3 border-t-2 border-dashed border-line pt-4">
             <Button variant="ghost" onClick={() => goStep(1)}>
-              上一步
+              換學校
             </Button>
             <Button
-              disabled={loading}
+              disabled={loading || domainIds.length === 0}
               onClick={submitQuiz}
               icon={<ArrowRight className="h-4 w-4" aria-hidden="true" />}
               className="flex-row-reverse"
             >
-              {loading ? '配對中...' : '看結果（免註冊）'}
+              {loading ? '挑選中...' : '看結果'}
             </Button>
           </div>
+          <SkipLink />
         </div>
       )}
 
@@ -291,7 +267,7 @@ export function OnboardingClient({
                   {isLoggedIn ? '做一張分享卡，約朋友合拍' : '登入做興趣分享卡'}
                 </Button>
                 <ButtonLink
-                  href={`/?university_id=${encodeURIComponent(universityId)}${domainIds[0] ? `&domain_id=${encodeURIComponent(domainIds[0])}` : ''}`}
+                  href={`/?university_id=${encodeURIComponent(universityId)}${domainIds.length ? `&domain_id=${encodeURIComponent(domainIds.join(','))}` : ''}`}
                   variant="secondary"
                 >
                   逛逛現場動態
@@ -299,6 +275,14 @@ export function OnboardingClient({
               </>
             }
           />
+
+          {result.clubs.length === 0 && result.events.length === 0 && (
+            <EmptyState
+              title="這間學校還沒有這類社團的動態"
+              description="換幾個興趣看看，或先逛逛全校的社團現場。"
+              action={<Button variant="secondary" onClick={() => goStep(2)}>換幾個興趣</Button>}
+            />
+          )}
 
           {result.clubs.length > 0 && (
             <section className="space-y-3" aria-labelledby="onb-clubs">

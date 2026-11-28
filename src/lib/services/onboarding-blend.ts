@@ -31,7 +31,8 @@ export function computePersonaArchetype(params: {
   domainNames?: string[];
 }): string {
   const goal = params.goals[0];
-  const vibe = params.vibe || 'hands_on';
+  // No default vibe: the quiz no longer asks it, and a default would name everyone 實作實驗家.
+  const vibe = params.vibe ?? null;
   const topDomain = params.domainNames?.[0] ?? '跨界好奇';
 
   if (goal === 'make_friends' && vibe === 'chill') return `暖心破冰派 · ${topDomain}`;
@@ -117,8 +118,10 @@ export async function recommendOnboarding(input: OnboardingInput): Promise<{
     .map((r) => {
       const overlap = r.club.domainIds.filter((d) => targetDomainSet.has(d)).length;
       const recentBoost = r.club.lastActivityAt ? 1 : 0;
-      return { ...r, score: overlap * 10 + recentBoost };
+      return { ...r, overlap, score: overlap * 10 + recentBoost };
     })
+    // The quiz promises to drop unrelated clubs, so zero-overlap clubs never fill the list.
+    .filter((r) => r.overlap > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, 6);
 
@@ -154,8 +157,9 @@ export async function recommendOnboarding(input: OnboardingInput): Promise<{
       const overlap = r.event.domainIds.filter((d) => targetDomainSet.has(d)).length;
       const hoursBonus =
         input.goals.includes('earn_hours') && r.event.learningHoursCategory !== 'none' ? 3 : 0;
-      return { ...r, score: overlap * 10 + hoursBonus };
+      return { ...r, overlap, score: overlap * 10 + hoursBonus };
     })
+    .filter((r) => r.overlap > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, 4);
 
