@@ -200,7 +200,8 @@ v2.0 對應 PRD v2.0 §3.3 建立 **6 層使用者身分**，所有寫入、私�
 | 路由路徑 | 裝置優先 | 存取權限 | 核心承載功能與介面邊界 |
 | :--- | :--- | :--- | :--- |
 | `/` | Mobile-first | 公開（免登入） | **別的聚**：頂部單一輕量漸進探索膠囊＋橫向興趣標籤；平級雙分頁 `探索現場流`（預設）與 `近期可參加`；每次 12 則分段提示卡＋「換下一批（12 則）」按鈕。首次未選校訪客顯示免登入適性破冰引導覆蓋層／卡片。 |
-| `/onboarding` | Mobile-first | 公開（免登入） | 獨立適性破冰測驗頁（選校 → 2–3 題偏好 → 產出個人興趣圖譜與 `Blend` 分享入口，立即導向個人化 `/`）。 |
+| `/onboarding` | Mobile-first | 公開（免登入） | 適性測驗頁（選校〔已知則跳過〕→ 點興趣加權 → 配方卡＋相關社團／活動；分享入口與 `Blend` 入口）。 |
+| `/mix` | Mobile-first | 公開（免登入） | 分享出去的配方卡落地頁：由 query `r`（`slug:份數,…`）、`f`（`drink`/`pizza`）、`p`（色票）、`n`（名字，≤16 字）重建卡片，不讀資料庫；主要行動「我也來調一份」導向 `/onboarding`。 |
 | `/blend/[code]` | Mobile-first | 公開預覽／互動需登入 | **雙人興趣 Blend 頁**：顯示邀請者興趣特質與合拍按鈕；受邀方登入完成比對後顯示雙方共同推薦之冷門／熱門社團與活動，提供 9:16 PNG 下載分享至 IG 限動。 |
 | `/e/[shortCode]` | Mobile-first | 公開（免下載） | **Partiful 式活動專屬頁**：支援主題視覺或原比例主圖、`TBD`／`Find a Time` 投票區、初心者安檢表、兩段式隱私報名與出席名單、Google/Apple/Outlook 行事曆與 `webcal://` 訂閱、已報名者留言板、活動後無損共享相簿上傳與下載。 |
 | `/clubs/[slug]` | Mobile-first | 公開 | **我的聚（社團公開門面）**：認證／示範標章、近期可參加活動置頂區、NRC 社員集體日常牆（含非競爭性集體累計標示）、精選代表作品牆、置頂 FAQ 與匿稱公開提問箱、「追蹤全動態／只追活動」切換。 |
@@ -226,10 +227,11 @@ v2.0 對應 PRD v2.0 §3.3 建立 **6 層使用者身分**，所有寫入、私�
 | Method & Path | 權限守衛 | 請求重點 | 回應重點／關鍵錯誤碼 |
 | :--- | :--- | :--- | :--- |
 | `GET /api/universities` | 公開 | `?q=` | 支援之大專校院清單與細分興趣領域清單 `interest_domains` |
-| `POST /api/onboarding/recommend` | 公開 | `{ university_id, goals: string[], domain_ids: string[], vibe?: string }` | 確定性推薦之初始社團／活動清單＋個人特質代碼（`< 300ms`，免登入） |
+| `POST /api/onboarding/recommend` | 公開 | `{ university_id, goals: string[], domain_ids: string[] (≤12，依份數由多到少), vibe?: string }`（前端已不送 `goals`／`vibe`） | 確定性推薦之初始社團／活動清單＋個人特質代碼（`< 300ms`，免登入） |
 | `POST /api/me/onboarding-sync` | `requireAuth` | `{ university_id, goals, domain_ids, vibe }` | 將訪客端 `localStorage` 適性偏好合併寫入 `user_onboarding_profiles`（冪等） |
 | `POST /api/blends` | `requireAuth` | `{ domain_ids?, goals? }` | 建立個人 Blend 邀請短碼 `/blend/[code]`（有效 30 天） |
 | `POST /api/blends/[code]/join` | `requireAuth` | — | 以登入者興趣與邀請者計算雙人合拍分數、共同推薦社團／活動；自邀回 `400 CANNOT_BLEND_SELF` |
+| `GET /api/og/mix` | 公開 | `?r=&f=&p=&n=`（同 `/mix`；未知領域、非正整數份數與控制字元一律丟棄） | `image/png` 1200×630 調配單樣式配方卡（快取 1 天） |
 | `GET /api/og/blend/[code]` | 公開 | `?format=story\|post` | `image/png`（`next/og` 渲染 1080×1920 或 1080×1350 分享圖卡，不含 PII） |
 
 #### 3.2.3 模組一：別的聚（雙分頁探索與公平重排）
@@ -261,7 +263,7 @@ v2.0 對應 PRD v2.0 §3.3 建立 **6 層使用者身分**，所有寫入、私�
 | `GET /api/events/[shortCode]` | 公開 | — | 活動完整資訊、投票統計、依兩段隱私過濾之參加者名單（嚴禁外洩 `private_count_only` 個人身分與任何 PII）、總參加人數 |
 | `PATCH /api/events/[shortCode]` | `requireClubOfficer` | 即時修改時間／教室／連結／單張換圖／鎖定投票結果 | 更新活動；若時間或地點變動自動遞增 `ics_sequence` |
 | `POST /api/events/[shortCode]/poll-vote` | `requireAuth` | `{ option_ids: uuid[] }` | 於 `voting` 狀態下投票喬時間／選主題（冪等覆寫本人選擇） |
-| `POST /api/events/[shortCode]/rsvp` | `requireAuth`（`campus_only` 時升級 `requireSameUniversity`） | `{ status: 'going'\|'interested'\|'cancelled', privacy_mode: 'public_to_attendees'\|'private_count_only', display_alias? }` | 報名或取消報名；若額滿回 `409 EVENT_CAPACITY_FULL` |
+| `POST /api/events/[shortCode]/rsvp` | `requireAuth`（`campus_only` 時升級 `requireSameUniversity`） | `{ status: 'going'\|'interested'\|'cancelled', privacy_mode: 'public_to_attendees'\|'private_count_only', display_alias? }`（前端固定送 `null`，名稱取自個人頁） | 報名或取消報名；若額滿回 `409 EVENT_CAPACITY_FULL` |
 | `PATCH /api/events/[shortCode]/attendance` | `requireClubOfficer` | `{ updates: [{ user_id, attended: boolean }] }` | 幹部簽到確認，同步更新參加者 `1D` 學習時數認列狀態 |
 | `POST /api/events/[shortCode]/comments` | `requireEventAttendee` | `{ content (1..500字) }` | 已報名者／幹部於活動頁留言 |
 | `DELETE /api/events/[shortCode]/comments/[id]` | 留言者或 `requireClubOfficer` | — | 軟刪除不當留言並寫入稽核 |
@@ -331,7 +333,7 @@ v2.0 對應 PRD v2.0 §3.3 建立 **6 層使用者身分**，所有寫入、私�
 
 | 需求 ID | EARS 需求陳述 | 驗證 | 對應 PRD |
 | :--- | :--- | :---: | :--- |
-| `SRS-ONB-001` | 當未登入訪客首次開啟 `/` 且本機無 `selected_university_id` 紀錄時，系統**必須**引導選擇大專校院並顯示 2 至 3 題選擇式偏好問題（參與目的、興趣領域、期望氛圍），且**不得**要求登入或註冊即可完成。 | `[D]` | `FR-ONB-01` |
+| `SRS-ONB-001` | 當未登入訪客首次開啟 `/` 且未做過測驗、未選「先隨便看看」時，系統**必須**以測驗卡為首屏主角；測驗僅含選校（`clubar_univ` Cookie 已有則跳過）與興趣點選兩步（每點一下該領域 +1 份，長按或 Backspace −1，無數量上限、無預設值），且**不得**要求登入或註冊即可完成。 | `[D]` | `FR-ONB-01` |
 | `SRS-ONB-002` | 當訪客完成適性偏好選擇時，系統**必須**於 300 毫秒內依確定性興趣加權演算法呈現該校之「探索現場流」與「近期可參加」結果，並將選擇結果保存於瀏覽器 `localStorage`（與非敏感 Cookie 供 SSR 讀取）。 | `[T][D]` | `FR-ONB-01` |
 | `SRS-ONB-003` | 當具訪客適性紀錄之使用者觸發需登入操作（報名、收藏、提問、建立 Blend）並完成 OAuth 登入時，系統**必須**自動呼叫 `/api/me/onboarding-sync` 合併其選校與偏好紀錄，並導回原觸發頁面不遺失瀏覽脈絡。 | `[T][D]` | `FR-ONB-01` |
 | `SRS-ONB-004` | 當登入使用者點擊「產生興趣分享卡／邀請朋友 Blend」時，系統**必須**建立唯一 8 碼邀請連結 `/blend/[code]`，並透過 `/api/og/blend/[code]` 渲染以「個人興趣風格特質」為主視覺（不含特定社團廣告文案與任何 PII）之 9:16 PNG 圖卡供下載轉發。 | `[T][D]` | `FR-ONB-02` |
@@ -377,7 +379,7 @@ v2.0 對應 PRD v2.0 §3.3 建立 **6 層使用者身分**，所有寫入、私�
 | `SRS-EVT-005` | 當活動同時設定選填之 `external_registration_url` 時，系統**必須**於活動頁同時保留 CluBar 原生報名（支援名單、行事曆、留言、相簿、足跡）與明確標示之外連報名按鈕，且外連 URL 必須通過 `https:` 白名單檢核。 | `[T][D]` | `FR-MY-02` |
 | `SRS-EVT-006` | 當使用者於 `/e/[shortCode]` 留言板送出留言時，系統**必須**透過 `requireEventAttendee(eventId)` 驗證其為該場已報名者或主辦／Co-Club 幹部，否則回傳 `403 EVENT_ATTENDEE_REQUIRED`；幹部得軟刪除不當留言，所有登入者得檢舉留言。 | `[T]` | `FR-MY-02` |
 | `SRS-EVT-007` | 當社團幹部修改已發布活動之時間、地點、說明、外連或抽換單張主圖時，系統**必須**即時原地更新並保持 `/e/[shortCode]` 短連結不變；若 `starts_at`、`ends_at`、`location_text` 或活動取消狀態異動，系統**必須**將 `ics_sequence` 遞增 `1`。 | `[T]` | `FR-MY-02` |
-| `SRS-EVT-008` | 系統**必須**為每場已定案活動提供 ① 單次 RFC 5545 `.ics` 下載、② Google / Outlook 行事曆快捷深度連結、③ 個人化可訂閱 `webcal://` Feed（`/api/calendar/me/[token].ics`），使外部行事曆客戶端於活動改期時依 `UID` 與遞增 `SEQUENCE` 自動同步更新。 | `[T][D]` | `FR-MY-02`、`FR-MY-03` |
+| `SRS-EVT-008` | 系統**必須**為每場已定案活動提供 ① 單次 RFC 5545 `.ics` 下載、② Google / Outlook 行事曆快捷深度連結、③ 個人化可訂閱 `webcal://` Feed（2026-11-28 起活動頁介面只露出 Google 日曆「當日推播我」，其餘以 API 保留）（`/api/calendar/me/[token].ics`），使外部行事曆客戶端於活動改期時依 `UID` 與遞增 `SEQUENCE` 自動同步更新。 | `[T][D]` | `FR-MY-02`、`FR-MY-03` |
 | `SRS-EVT-009` | 當幹部於後台開啟「一鍵複製推廣包」時，系統**必須**即時生成並提供一鍵複製以下 3 套格式：① LINE 純文字公告版（含時間／地點／初心者標籤／可點短鏈）、② Discord Markdown 版、③ IG 貼文文案＋私訊短文＋由 `/api/og/events/[shortCode]?format=story` 生成之 9:16 限動推廣 PNG 圖卡。 | `[T][D]` | `FR-MY-03` |
 | `SRS-EVT-010` | 當幹部執行活動異動／行前「一鍵群發通知」時，系統**必須**對所有 `status IN ('going','interested')` 之使用者同時寫入站內 `notifications`、對具有效 `push_subscriptions` 者派發 VAPID Web Push、對無有效 Web Push 訂閱或推送失敗（`404`/`410`）者寄發 Email 備援通知，並立即回傳可一鍵貼回 LINE／DC／IG 之改期提醒短文案；單場活動每小時限群發 2 次（超出回 `429 RATE_LIMITED`）。 | `[T]` | `FR-MY-03` |
 | `SRS-EVT-011` | 當幹部透過 `POST /api/ai/draft-from-raw` 貼入零散文字、上傳文字型 `.pdf`/`.txt`/`.md` 或上傳活動海報圖片（≤ 4 MB）時，系統**必須**透過 `AIAdapter`（Chat 或 Vision 模型）抽取結構化草稿欄位（標題、時間、地點、費用、學習時數、零基礎／非社員資格、報名連結），並於回應附帶 `missing_beginner_fields[]` 主動提醒漏填項目；若 Vision 模型判定海報文字密度過高（`poster_text_heavy = true`），系統**必須**建議幹部於探索流改用現場實拍或作品照作為封面，但**不得**強制阻擋發布。 | `[T][D]` | `FR-MY-03` |
