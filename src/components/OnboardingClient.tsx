@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRight, Check, Download, Share2 } from 'lucide-react';
@@ -10,7 +10,7 @@ import { RecipeCard } from './RecipeCard';
 import type { DiscoverEventCardDTO } from '@/lib/serializers';
 import { ONBOARDING_DISMISSED_KEY } from '@/lib/constants';
 import { MAX_TAPS, cardTitle, foodLabel, parseMaker, recipeImagePath, recipePath, toRecipe, type Food, type PaletteId } from '@/lib/recipe';
-import { downloadImage, preloadShareImage, shareInvite } from '@/lib/share';
+import { downloadImage, shareInvite } from '@/lib/share';
 
 import { Button, ButtonLink, EmptyState, Input, PageHeader, cn } from '@/components/ui';
 interface RecommendResult {
@@ -228,11 +228,6 @@ export function OnboardingClient({
   const card = { parts: recipe, food, palette, maker: parseMaker(maker) };
   const imageUrl = recipeImagePath(card);
 
-  useEffect(() => {
-    // iOS needs the share image ready before the tap (see lib/share).
-    if (step === 3 && recipe.length > 0) preloadShareImage(imageUrl, 'clubar-mix.png');
-  }, [step, imageUrl, recipe.length]);
-
   const goStep = (next: 1 | 2 | 3) => {
     setStep(next);
     if (typeof window !== 'undefined') {
@@ -244,12 +239,22 @@ export function OnboardingClient({
     setCounts((prev) => ({ ...prev, [slug]: Math.max(0, Math.min(MAX_TAPS, (prev[slug] ?? 0) + delta)) }));
 
   const handleShare = async () => {
+    const url = `${window.location.origin}${recipePath(card)}`;
+    // Desktop share sheets copy the image, not the link; there, just copy the link.
+    if (!window.matchMedia('(pointer: coarse)').matches) {
+      try {
+        await navigator.clipboard.writeText(url);
+        setShareNote('連結已複製，貼給朋友吧');
+      } catch {
+        setShareNote('複製失敗，可以改用存成圖片');
+      }
+      return;
+    }
+    // Link only: chat apps drop the link when an image rides along, and the link preview is the card.
     const outcome = await shareInvite({
       title: cardTitle(card.maker, food),
       text: `這是${cardTitle(card.maker, food)}，你也來調一份？`,
-      url: `${window.location.origin}${recipePath(card)}`,
-      imageUrl,
-      fileName: 'clubar-mix.png',
+      url,
     });
     setShareNote(
       outcome === 'copied' ? '連結已複製，貼給朋友吧' : outcome === 'failed' ? '分享失敗，可以改用存成圖片' : ''
