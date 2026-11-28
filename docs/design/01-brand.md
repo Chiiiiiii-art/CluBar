@@ -47,4 +47,4 @@
 
 ## 6. 視覺參考
 
-定案方向是 **v2.5：精修潮流貼紙風（Soft Neubrutalism × 非圓形貼紙）**。原型：[01-modern-tactile-v2.html](../ui-redesign/style-tiles-v2/01-modern-tactile-v2.html)（[對照控制台](../ui-redesign/style-tiles-v2/index.html)）。
+定案方向是 **v2.5：精修潮流貼紙風（Soft Neubrutalism × 非圓形貼紙）**。原型：[01-modern-tactile-v2.html](../ui-redesign/style-tiles-v2/01-modern-tactile-v2.html)。

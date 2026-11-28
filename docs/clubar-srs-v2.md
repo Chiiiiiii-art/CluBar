@@ -1,6 +1,6 @@
 # 社團聚（CluBar）軟體需求規格書（SRS v2.0）
 
-> **文件版本**：v2.0（正式規格基線，全新 v2 Schema 重建；用以取代 v1.0 [clubar-srs.md](./clubar-srs.md)，v1.0 原檔保留不動）  
+> **文件版本**：v2.0（正式規格基線，全新 v2 Schema 重建；用以取代 v1.0；v1.0 原檔已刪除，需要時從 git 歷史取回）  
 > **上位文件**：[clubar-prd-v2.md](./clubar-prd-v2.md)（PRD v2.0）、[clubar-user-research.md](./clubar-user-research.md)  
 > **依循國際與工程標準**：ISO/IEC/IEEE 29148:2018、ISO/IEC 25010:2023（SQuaRE）、INCOSE Guide to Writing Requirements（GtWR）、EARS（Easy Approach to Requirements Syntax，Alistair Mavin）、RFC 2119、RFC 5545（iCalendar）、RFC 8030 / 8292（Web Push / VAPID）  
 > **目標讀者**：前後端工程師、資料庫與 AI 工程師、QA 測試人員、資安與校方技術對接窗口

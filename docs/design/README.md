@@ -15,14 +15,11 @@
 **研究依據（現行）**：
 - [v2 視覺重設研究報告](../ui-redesign/v2-tactile-research.md)（含反 AI 模板策略、12 個案例拆解、OKLCH 驗證）
 
-**視覺對照（現行定案）**：[v2.5 整合原型](../ui-redesign/style-tiles-v2/01-modern-tactile-v2.html)（[並排控制台](../ui-redesign/style-tiles-v2/index.html)）
+**視覺對照（現行定案）**：[v2.5 整合原型](../ui-redesign/style-tiles-v2/01-modern-tactile-v2.html)
 
 **已棄置的 v1 歷史文件（DEPRECATED — 僅供溯源，請勿作為視覺／文案依據）**：
-- [價值主張對齊（v1 吧台版，已棄置）](./research/00-value-proposition-alignment.md)
 - [設計參考分析（v1 舊版，已棄置）](./research/reference-analysis.md)
-- [UI 改善計畫（v1 舊版，已棄置）](../ui-redesign-plan.md)
 - [UX 稽核報告（Phase 1-2 功能缺陷清單，視覺已取代）](../ux-audit-and-benchmark.md)
-- [v1 吧台原型（style-tiles/，已棄置）](../ui-redesign/style-tiles/index.html)
 
 ## 真實來源的優先順序
 
@@ -39,4 +36,4 @@
 ## 修改規範
 
 - 小修（錯字、補例子）：直接改。
-- 改原則、品牌色、字體、形容詞：先更新 [UI 改善計畫 §7 決策紀錄（歷史決策日誌）](../ui-redesign-plan.md) 或 [v2 研究報告](../ui-redesign/v2-tactile-research.md)，再同步本規範。
+- 改原則、品牌色、字體、形容詞：先更新 [v2 研究報告](../ui-redesign/v2-tactile-research.md)，再同步本規範。
