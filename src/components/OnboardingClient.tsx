@@ -283,7 +283,7 @@ export function OnboardingClient({
           {result.clubs.length === 0 && result.events.length === 0 && (
             <EmptyState
               title="這間學校還沒有這類社團的動態"
-              description="換幾個興趣看看，或先逛逛全校的社團現場。"
+              description="換幾個興趣看看，或先逛逛全校的社團動態。"
               action={<Button variant="secondary" onClick={() => goStep(2)}>換幾個興趣</Button>}
             />
           )}

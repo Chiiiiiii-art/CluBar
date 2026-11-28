@@ -346,7 +346,7 @@ export default async function ClubPublicPage({
                 </div>
                 <div className="ticket-stub flex flex-wrap items-center justify-between gap-2 bg-surface-subtle px-4 py-3">
                   <span className="font-mono text-sm font-bold text-fg">
-                    {ev.feeNtd === 0 ? '免費入場' : `NT$${ev.feeNtd}`}
+                    {ev.feeNtd === 0 ? '免費' : `NT$${ev.feeNtd}`}
                   </span>
                   <div className="flex flex-wrap items-center gap-1.5">
                     {ev.beginnerFriendly && <Badge tone="accent">零基礎可</Badge>}

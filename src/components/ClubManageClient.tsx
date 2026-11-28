@@ -279,7 +279,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
   const [evMode, setEvMode] = useState<'scheduled' | 'tbd' | 'voting'>('scheduled');
   const [evStart, setEvStart] = useState('');
   const [evEnd, setEvEnd] = useState('');
-  const [evLocation, setEvLocation] = useState('TBD 待定');
+  const [evLocation, setEvLocation] = useState('');
   const [evHideLocation, setEvHideLocation] = useState(false);
   const [evFee, setEvFee] = useState('0');
   const [evBeginner, setEvBeginner] = useState(true);
@@ -442,7 +442,7 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
         schedule_mode: evMode,
         starts_at: evMode === 'scheduled' && evStart ? new Date(evStart).toISOString() : null,
         ends_at: evMode === 'scheduled' && evEnd ? new Date(evEnd).toISOString() : null,
-        location_text: evLocation.trim() || 'TBD 待定',
+        location_text: evLocation.trim() || '地點待定',
         share_hide_location: evHideLocation,
         beginner_friendly: evBeginner,
         non_members_welcome: evNonMember,
@@ -1164,9 +1164,9 @@ export function ClubManageClient({ data }: { data: ManageClubData }) {
                   )}
 
                   <div>
-                    <label htmlFor="club-manage-evlocation" className="mb-1 block text-sm font-semibold text-fg-secondary">地點 *</label>
+                    <label htmlFor="club-manage-evlocation" className="mb-1 block text-sm font-semibold text-fg-secondary">地點</label>
                     <input id="club-manage-evlocation"
-                      required
+                      placeholder="還沒定可以先留空"
                       value={evLocation}
                       onChange={(e) => setEvLocation(e.target.value)}
                       className={`${controlClasses} min-h-11 w-full`}

@@ -685,7 +685,7 @@ export function EventPageClient({
               <span className="sr-only">費用</span>
             </dt>
             <dd className="min-w-0 font-mono text-sm font-bold tabular-nums text-fg">
-              {detail.fee_ntd > 0 ? `NT$${detail.fee_ntd}` : '免費入場'}
+              {detail.fee_ntd > 0 ? `NT$${detail.fee_ntd}` : '免費'}
             </dd>
           </div>
         </dl>
@@ -731,7 +731,7 @@ export function EventPageClient({
             <Card>
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h2 className="font-display text-lg font-bold text-fg">
-                  {detail.schedule_mode === 'voting' ? '一起喬時間／選主題投票' : '活動時段／主題投票'}
+                  {detail.schedule_mode === 'voting' ? '喬時間／選主題' : '活動時段／主題投票'}
                 </h2>
                 <Badge tone={detail.schedule_mode === 'scheduled' ? 'success' : 'accent'}>
                   {detail.schedule_mode === 'scheduled' ? '已定案' : '投票進行中'}

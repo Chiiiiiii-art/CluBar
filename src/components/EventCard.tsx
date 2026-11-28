@@ -25,7 +25,7 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
   }
 
   const timeSettled = event.schedule_mode !== 'voting' && event.schedule_mode !== 'tbd' && Boolean(event.starts_at);
-  const timeLabel = timeSettled ? formatTaipeiDateTime(event.starts_at!) : event.schedule_mode === 'voting' ? '時間投票中' : '時間待定';
+  const timeLabel = timeSettled ? formatTaipeiDateTime(event.starts_at!) : event.schedule_mode === 'voting' ? '喬時間' : '時間待定';
 
   const track = () =>
     trackAnalyticsEvent({
@@ -100,7 +100,7 @@ export function EventCard({ event }: { event: DiscoverEventCardDTO }) {
       {/* Ticket stub: fee and who can come */}
       <div className="ticket-stub flex flex-wrap items-center justify-between gap-2 bg-surface-subtle px-4 py-3">
         <span className="font-mono text-sm font-bold text-fg">
-          {event.fee_ntd === 0 ? '免費入場' : `NT$${event.fee_ntd}`}
+          {event.fee_ntd === 0 ? '免費' : `NT$${event.fee_ntd}`}
         </span>
         <div className="flex flex-wrap items-center gap-1.5">
           {decisionTags.map((tag) => (

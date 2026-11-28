@@ -25,6 +25,22 @@ export interface OnboardingInput {
   vibe?: string;
 }
 
+/** One MBTI-style type per domain, so two people who picked different interests get different names. */
+const DOMAIN_PERSONAS: Record<string, string> = {
+  遊戲開發: '像素造夢師',
+  影像攝影: '光影捕手',
+  音樂展演: '舞台共振者',
+  工藝美術: '手作魔法師',
+  '程式與 AI': '程式煉金師',
+  戶外探索: '山野漫遊者',
+  社會服務: '溫暖行動家',
+  投資與研究: '數據偵探',
+  桌遊電競: '策略玩家',
+  舞蹈舞台: '節奏律動派',
+  球類運動: '熱血場上派',
+  語言與飲食: '文化饕客',
+};
+
 export function computePersonaArchetype(params: {
   goals: string[];
   vibe?: string | null;
@@ -39,7 +55,7 @@ export function computePersonaArchetype(params: {
   if (goal === 'learn_skill' || vibe === 'hands_on') return `實作實驗家 · ${topDomain}`;
   if (goal === 'weekend_fun' || vibe === 'active') return `週末行動派 · ${topDomain}`;
   if (goal === 'earn_hours') return `生活時數收集控 · ${topDomain}`;
-  return `校園探索旅人 · ${topDomain}`;
+  return DOMAIN_PERSONAS[topDomain] ?? '校園探索旅人';
 }
 
 export function computeBlendScore(params: {

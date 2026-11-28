@@ -345,7 +345,7 @@ export function DiscoverClient({
     { label: '非社員可', active: nonMemberOnly, onClick: () => { setNonMemberOnly(!nonMemberOnly); reloadEvents({ nonMemberOnly: !nonMemberOnly }); } },
     { label: '免費', active: freeOnly, onClick: () => { setFreeOnly(!freeOnly); reloadEvents({ freeOnly: !freeOnly }); } },
     { label: '有學習時數', active: hoursOnly, onClick: () => { setHoursOnly(!hoursOnly); reloadEvents({ hoursOnly: !hoursOnly }); } },
-    { label: '時間投票中', active: votingOnly, onClick: () => { setVotingOnly(!votingOnly); reloadEvents({ votingOnly: !votingOnly }); } },
+    { label: '喬時間', active: votingOnly, onClick: () => { setVotingOnly(!votingOnly); reloadEvents({ votingOnly: !votingOnly }); } },
   ] as const;
 
   const removeQuery = () => {
@@ -502,7 +502,7 @@ export function DiscoverClient({
             value={activeTab}
             onChange={handleTabSwitch}
             items={[
-              { id: 'stream', label: '社團現場', icon: <Flame className="hidden h-4 w-4 sm:block" aria-hidden="true" /> },
+              { id: 'stream', label: '社團動態', icon: <Flame className="hidden h-4 w-4 sm:block" aria-hidden="true" /> },
               { id: 'events', label: '近期活動', icon: <Calendar className="hidden h-4 w-4 sm:block" aria-hidden="true" /> },
             ]}
           />
@@ -651,7 +651,7 @@ export function DiscoverClient({
             </Button>
           )}
           <Button variant="soft" onClick={() => handleTabSwitch(activeTab === 'stream' ? 'events' : 'stream')}>
-            {activeTab === 'stream' ? '看近期活動' : '看社團現場'}
+            {activeTab === 'stream' ? '看近期活動' : '看社團動態'}
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Button>
         </div>

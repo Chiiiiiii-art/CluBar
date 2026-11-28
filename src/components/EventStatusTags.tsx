@@ -30,7 +30,7 @@ export function EventStatusTags({
   const tags: { key: string; label: string; icon: React.ReactNode }[] = [];
   const icon = 'h-3.5 w-3.5';
   if (scheduleMode === 'voting') {
-    tags.push({ key: 'voting', label: '投票中', icon: <Vote className={icon} aria-hidden="true" /> });
+    tags.push({ key: 'voting', label: '喬時間', icon: <Vote className={icon} aria-hidden="true" /> });
   } else if (scheduleMode === 'tbd' || !startsAt) {
     tags.push({ key: 'tbd', label: '時間待定', icon: <CalendarClock className={icon} aria-hidden="true" /> });
   }
